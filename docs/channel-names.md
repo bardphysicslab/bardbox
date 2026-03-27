@@ -1,35 +1,54 @@
-# Channel Names
+# Bard Box Normalized Channel Names
 
-Bard Box uses standardised short channel names to identify sensor measurements. Channel names are used in serial output, driver code, API responses, and dashboards.
+This is the authoritative list of normalized channel names for Bard Box.
 
-## Naming convention
+All drivers and devices must use these names. Do not invent alternate names 
+for existing channels.
 
-Channel names are lowercase, alphanumeric, no spaces. Typically 2–6 characters.
+To add a new channel name, submit a pull request to this repo with a clear 
+description of the sensor and unit.
 
-Prefer names that reflect the physical quantity:
+---
 
-| Prefix | Meaning |
-|---|---|
-| `t` | Temperature |
-| `h` | Humidity |
-| `p` | Pressure |
-| `c` | Particle count |
-| `co2` | CO₂ concentration |
-| `pm` | Particulate matter (mass) |
-| `v` | Voltage |
+## Environmental
 
-## Registered channels
+| Channel | Unit | Description |
+|---------|------|-------------|
+| `temp_c` | C | Temperature in Celsius |
+| `rh_pct` | % | Relative humidity |
+| `press_pa` | Pa | Atmospheric pressure |
+| `co2_ppm` | ppm | CO2 concentration |
+| `lux` | lux | Light level |
 
-| Channel | Description | Unit | Source |
-|---|---|---|---|
-| `c03` | Particle count ≥ 0.3 µm | particles/m³ | GT-521S |
-| `c05` | Particle count ≥ 5.0 µm | particles/m³ | GT-521S |
-| `temp` | Air temperature | °C | BME280 |
-| `hum` | Relative humidity | % RH | BME280 |
-| `pres` | Barometric pressure | hPa | BME280 |
+---
 
-## Adding a new channel
+## Particle Counts — Standard
 
-1. Choose a short name that doesn't conflict with existing entries
-2. Add it to the table above with description, unit, and source sensor
-3. Update the relevant driver `README.md` and device `README.md`
+| Channel | Unit | Description |
+|---------|------|-------------|
+| `pm1_std` | count | PM1.0 standard count |
+| `pm25_std` | count | PM2.5 standard count |
+| `pm10_std` | count | PM10 standard count |
+
+---
+
+## Particle Counts — Environmental
+
+| Channel | Unit | Description |
+|---------|------|-------------|
+| `pm1_env` | count | PM1.0 environmental count |
+| `pm25_env` | count | PM2.5 environmental count |
+| `pm10_env` | count | PM10 environmental count |
+
+---
+
+## Particle Counts — Per Cubic Foot
+
+| Channel | Unit | Description |
+|---------|------|-------------|
+| `c03` | count/ft³ | 0.3µm particles per cubic foot |
+| `c05` | count/ft³ | 0.5µm particles per cubic foot |
+| `c10` | count/ft³ | 1.0µm particles per cubic foot |
+| `c25` | count/ft³ | 2.5µm particles per cubic foot |
+| `c50` | count/ft³ | 5.0µm particles per cubic foot |
+| `c100` | count/ft³ | 10µm particles per cubic foot |
