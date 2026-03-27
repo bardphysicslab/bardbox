@@ -1,54 +1,46 @@
-# Bard Box Normalized Channel Names
+# Channel Names
 
-This is the authoritative list of normalized channel names for Bard Box.
+Bard Box uses standardised short channel names to identify sensor measurements. Channel names are used in serial output, driver code, API responses, and dashboards.
 
-All drivers and devices must use these names. Do not invent alternate names 
-for existing channels.
+## Naming convention
 
-To add a new channel name, submit a pull request to this repo with a clear 
-description of the sensor and unit.
+Channel names are lowercase, alphanumeric, no spaces. Typically 2–6 characters.
 
----
+Prefer names that reflect the physical quantity:
 
-## Environmental
+| Prefix | Meaning |
+|---|---|
+| `t` | Temperature |
+| `h` | Humidity |
+| `p` | Pressure |
+| `c` | Particle count |
+| `co2` | CO₂ concentration |
+| `pm` | Particulate matter (mass) |
+| `v` | Voltage |
 
-| Channel | Unit | Description |
-|---------|------|-------------|
-| `temp_c` | C | Temperature in Celsius |
-| `rh_pct` | % | Relative humidity |
-| `press_pa` | Pa | Atmospheric pressure |
-| `co2_ppm` | ppm | CO2 concentration |
-| `lux` | lux | Light level |
+## Registered channels
 
----
+### Particle count channels (GT-521S and compatible)
 
-## Particle Counts — Standard
+| Channel | Particle size | Unit | Notes |
+|---|---|---|---|
+| `c03` | ≥ 0.3 µm | count/ft³ | |
+| `c05` | ≥ 0.5 µm | count/ft³ | |
+| `c10` | ≥ 1.0 µm | count/ft³ | |
+| `c25` | ≥ 2.5 µm | count/ft³ | |
+| `c50` | ≥ 5.0 µm | count/ft³ | |
+| `c100` | ≥ 10.0 µm | count/ft³ | |
 
-| Channel | Unit | Description |
-|---------|------|-------------|
-| `pm1_std` | count | PM1.0 standard count |
-| `pm25_std` | count | PM2.5 standard count |
-| `pm10_std` | count | PM10 standard count |
+### Environmental channels (BME280 and compatible)
 
----
+| Channel | Description | Unit | Source |
+|---|---|---|---|
+| `temp_c` | Air temperature | °C | BME280 |
+| `rh_pct` | Relative humidity | % RH | BME280 |
+| `press_pa` | Barometric pressure | hPa | BME280 |
 
-## Particle Counts — Environmental
+## Adding a new channel
 
-| Channel | Unit | Description |
-|---------|------|-------------|
-| `pm1_env` | count | PM1.0 environmental count |
-| `pm25_env` | count | PM2.5 environmental count |
-| `pm10_env` | count | PM10 environmental count |
-
----
-
-## Particle Counts — Per Cubic Foot
-
-| Channel | Unit | Description |
-|---------|------|-------------|
-| `c03` | count/ft³ | 0.3µm particles per cubic foot |
-| `c05` | count/ft³ | 0.5µm particles per cubic foot |
-| `c10` | count/ft³ | 1.0µm particles per cubic foot |
-| `c25` | count/ft³ | 2.5µm particles per cubic foot |
-| `c50` | count/ft³ | 5.0µm particles per cubic foot |
-| `c100` | count/ft³ | 10µm particles per cubic foot |
+1. Choose a short name that doesn't conflict with existing entries
+2. Add it to the table above with description, unit, and source sensor
+3. Update the relevant driver `README.md` and device `README.md`
