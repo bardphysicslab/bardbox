@@ -1,44 +1,55 @@
-# Network Access
+# Bard Box Network Access
 
-This document describes how to reach Bard Box Pi gateways remotely.
+Bard Box deployments are intended for internal use and are not exposed to the 
+public internet.
 
-## Requirements
+---
 
-- Connected to **Bard internal network** or **Bard VPN**
-- SSH key access to the target Pi
+## Standard Access Model
 
-## Deployed gateways
+- Raspberry Pi connected to Bard network via ethernet
+- Static IP assigned in coordination with Bard IT
+- Dashboard accessible on Bard internal network or via Bard VPN
+- No public-facing ports
 
-| Hostname | IP | Project | SSH shortcut | Dashboard |
-|---|---|---|---|---|
-| `golab-pi` | `10.60.10.59` | GoLab Monitor | `ssh golab` | `http://10.60.10.59:8000` |
+---
 
-## SSH access
+## Why Internal Only
 
+- Sensor data may be sensitive
+- Keeps infrastructure simple — no SSL certificates or authentication layer 
+  required for the first version
+- IT manages access at the network level
+
+---
+
+## Setting Up a New Deployment
+
+1. Connect the Pi to the Bard ethernet network
+2. Contact Bard IT to request a static IP for the device
+3. Configure the static IP on the Pi using `nmcli`
+4. Confirm the Pi is reachable over VPN
+
+**Example nmcli configuration:**
 ```bash
-ssh golab                        # shortcut (requires ~/.ssh/config entry)
-ssh golab@10.60.10.59            # direct
+sudo nmcli con mod "Wired connection 1" ipv4.addresses "10.60.10.59/24"
+sudo nmcli con mod "Wired connection 1" ipv4.gateway "10.60.10.1"
+sudo nmcli con mod "Wired connection 1" ipv4.dns "10.60.10.1 8.8.8.8"
+sudo nmcli con mod "Wired connection 1" ipv4.method manual
+sudo nmcli con up "Wired connection 1"
 ```
 
-## Checking a deployed service
+---
 
-```bash
-ssh golab "systemctl status labdash --no-pager"
-ssh golab "journalctl -u labdash -n 50 --no-pager"
-```
+## Accessing the Dashboard
 
-## Adding a new gateway
+Users access the dashboard via browser while on the Bard network or connected 
+to Bard VPN. No special software is required beyond the standard Bard VPN client.
 
-1. Assign a static IP through Bard ITS
-2. Add an SSH config entry on your Mac (`~/.ssh/config`)
-3. Add a row to the table above
-4. Document the service name and dashboard URL
+---
 
-## SSH config example
+## Future Consideration
 
-```
-Host golab
-  HostName 10.60.10.59
-  User golab
-  IdentityFile ~/.ssh/id_ed25519
-```
+As deployments grow, a centralized Bard Box portal aggregating multiple 
+dashboards behind a single authenticated URL may make sense. This is out of 
+scope for current deployments.
