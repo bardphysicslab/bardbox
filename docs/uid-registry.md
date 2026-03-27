@@ -1,18 +1,47 @@
-# UID Registry
+# Bard Box UID Registry
 
-Every Bard Box device node is assigned a unique identifier in the format `bb-XXXX`.
+Every Bard Box device must have a unique identifier (UID).
 
-UIDs are assigned sequentially. Never reuse a UID, even if a device is retired.
+---
+
+## UID Format
+```
+bb-0001, bb-0002, bb-0003, ...
+```
+
+---
+
+## Rules
+
+- UIDs are globally unique across all Bard Box deployments
+- Once assigned, a UID must never be reused
+- UIDs must remain stable — do not change a UID after deployment
+- Do not use project-local names as UIDs (e.g. `sensor_01`, `golab_pms`)
+
+---
+
+## Where the UID Lives
+
+**Programmable devices (Arduino, ESP32):**
+- Store in firmware as `#define DEVICE_UID "bb-0001"`
+- Physically label the device with the UID
+
+**Non-programmable devices (instruments, external systems):**
+- Assign in Pi driver configuration
+- Physically label the device with the UID if possible
+
+---
+
+## How to Assign a UID
+
+1. Check the registry below for the next available UID
+2. Add your device with a description
+3. Commit the update to this file
+
+---
 
 ## Registry
 
-| UID | Device ID | Project | Sensors | Location | Status |
-|---|---|---|---|---|---|
-| `bb-0001` | `golab_sensor_01` | GoLab Monitor | GT-521S, BME280, PMS | Go Lab, Bard Physics | Active |
-
-## Assigning a new UID
-
-1. Take the next available number from this table
-2. Add a row with device ID, project, sensors, location, and status
-3. Commit the update to this file before writing firmware
-4. Embed the UID in the device firmware
+| UID | Description | Project | Status |
+|-----|-------------|---------|--------|
+| bb-0001 | GT-521S particle counter | GoLab Monitor | Active |
