@@ -1,0 +1,12 @@
+{
+  "uid": "bb-0001",
+  "timestamp": "2026-03-30T14:32:01",
+  "status": "ok",
+  "data": {
+    "temp_c": 22.5,
+    "rh_pct": 45.2,
+    "press_pa": 101325.0
+  },
+  "extended": {},
+  "raw": null
+}
