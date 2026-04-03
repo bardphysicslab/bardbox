@@ -2,7 +2,7 @@
 gt521s_driver.py
 Bard Box driver for the GT-521S optical particle counter.
 
-Channels : c03 (≥ 0.3 µm), c05 (≥ 0.5 µm)
+Channels : c03 (≥ 0.3 µm), c50 (≥ 5.0 µm)
 Interface: USB serial via CP2102 (Silicon Labs)
 Baud rate: 9600
 Count units: count/ft³  (CU 0)
@@ -27,7 +27,7 @@ DEFAULT_BAUD = 9600
 
 _CHANNELS: List[Dict[str, str]] = [
     {"channel": "c03", "description": "Particle count ≥ 0.3 µm", "unit": "count/ft³"},
-    {"channel": "c05", "description": "Particle count ≥ 0.5 µm", "unit": "count/ft³"},
+    {"channel": "c50", "description": "Particle count ≥ 5.0 µm", "unit": "count/ft³"},
 ]
 
 
@@ -39,7 +39,7 @@ class GT521SDriver:
     -----
     driver = GT521SDriver()
     driver.start()
-    reading = driver.get_reading()   # {"ts": "...", "c03": 1452, "c05": 87}
+    reading = driver.get_reading()   # {"ts": "...", "c03": 1452, "c50": 87}
     driver.stop()
     """
 
@@ -162,6 +162,6 @@ class GT521SDriver:
         for size, cnt in [(size1, cnt1), (size2, cnt2)]:
             if abs(size - 0.3) < 0.05:
                 result["c03"] = cnt
-            elif abs(size - 0.5) < 0.05:
-                result["c05"] = cnt
+            elif abs(size - 5.0) < 0.11:
+                result["c50"] = cnt
         return result if len(result) > 1 else None
