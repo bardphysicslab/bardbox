@@ -19,10 +19,10 @@ The contract test suite (`tests/test_driver_contract.py`) validates that a drive
 - `get_info()` returns a dict with `uid`, `transport`, `protocol`
 - `transport` is a valid physical connection descriptor (`serial`, `i2c`, `usb`, `spi`, `uart`, `can`)
 - `protocol` is a logical name — not a physical bus name
-- `get_capabilities()` returns a dict with a non-empty `channels` list
-- Each channel entry has `channel` and `unit` keys
+- `get_capabilities()` returns a dict with a non-empty `channels` dict
+- `channels` is keyed by canonical channel name; each value is an object with `label` and `unit`
 - `get_reading()` returns a dict or `None`
-- When a reading is available: required keys are present, `uid` matches `get_info()`, timestamp is ISO 8601, status is valid, `data` keys exactly match declared channels, `extended` is always a dict, `raw` is bounded
+- When a reading is available: required keys are present, `uid` matches `get_info()`, timestamp is ISO 8601, status is valid, `data` keys exactly match the keys of `get_capabilities()["channels"]`, `extended` is always a dict, `raw` is bounded
 
 ### Running
 

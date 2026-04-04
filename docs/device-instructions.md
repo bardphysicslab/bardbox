@@ -166,6 +166,8 @@ Rules:
 * Send header immediately after `START`
 * Send header when `HEADER` is requested
 * Header defines structure of all subsequent data lines
+* Header field names must match canonical channel names defined in `channel-names.md`
+* Header fields must correspond exactly to channels declared in driver capabilities
 
 ---
 
