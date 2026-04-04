@@ -9,7 +9,7 @@
 
 | Sensor | Channels | Interface | Notes |
 |---|---|---|---|
-| GT-521S | `c03`, `c05` | USB serial (CP2102) | Particle counter, count/ft³ |
+| GT-521S | `c03`, `c50` | USB serial (CP2102) | Particle counter, count/ft³ |
 | BME280 | `temp_c`, `rh_pct`, `press_pa` | I²C | Temperature, humidity, pressure |
 | PMS | TBD | UART | Particulate matter sensor |
 
@@ -18,7 +18,7 @@
 | Channel | Description | Unit |
 |---|---|---|
 | `c03` | Particle count ≥ 0.3 µm | count/ft³ |
-| `c05` | Particle count ≥ 0.5 µm | count/ft³ |
+| `c50` | Particle count ≥ 5.0 µm | count/ft³ |
 | `temp_c` | Air temperature | °C |
 | `rh_pct` | Relative humidity | % RH |
 | `press_pa` | Barometric pressure | hPa |

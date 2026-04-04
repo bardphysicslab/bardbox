@@ -8,7 +8,10 @@ For writing code, use the specific instruction documents:
 
 * `device-instructions.md` — Arduino/ESP32 sensor nodes
 * `pi-driver-instructions.md` — Raspberry Pi drivers
-* `channel-names.md` — normalized channel reference
+* `channel-names.md` — normalized channel name reference
+* `reading-format.md` — standard reading object format
+* `capabilities-schema.md` — driver capabilities schema
+* `session-model.md` — session and run model for timed devices
 
 ---
 
@@ -27,15 +30,21 @@ The connection method is implementation-specific and does not affect the system 
 
 ### 2. Raspberry Pi
 
-The Pi is the hub. It:
+The Pi is the hub. It has two logical layers:
 
-* reads from sensors via drivers
-* normalizes data
+**Driver layer** — one driver per data source. Each driver:
+* communicates with the device
+* normalizes raw data into the standard reading format
+* exposes `get_info()`, `get_capabilities()`, and `get_reading()`
+
+**App layer** — the backend application. It:
+* calls drivers to collect readings
+* manages sessions for timed devices
 * serves an API
 * powers dashboards or displays
 
 All sensor communication goes through a standardized driver interface.
-The rest of the system must not depend on hardware details.
+The app layer must not depend on hardware details.
 
 ---
 
@@ -61,11 +70,14 @@ Devices and sensors may vary, but all data must be normalized before entering th
 
 ## System Contract
 
-Bard Box relies on three enforced interfaces:
+Bard Box relies on four enforced interfaces:
 
-* **Device → Pi:** Bard Box serial protocol (`HDR`, `DAT`, `INFO`)
-* **Driver → Backend:** normalized driver interface (`get_info`, `get_capabilities`, `get_reading`)
-* **Data model:** standardized channel names (`channel-names.md`)
+* **Device → Pi:** Bard Box serial protocol (`HDR`, `DAT`, `INFO`) — see `device-instructions.md`
+* **Driver → Backend:** normalized driver interface (`get_info`, `get_capabilities`, `get_reading`) — see `pi-driver-instructions.md`
+* **Data model:** standardized reading format and channel names — see `reading-format.md` and `channel-names.md`
+* **Capabilities:** driver capabilities schema (`channels` dict, sampling mode, controls) — see `capabilities-schema.md`
+
+For session-based devices, the session model also applies — see `session-model.md`.
 
 Everything in the system depends on these contracts being strictly followed.
 
@@ -182,18 +194,21 @@ Bard Box deployments are internal systems and are not exposed to the public inte
 2. Assign an App ID for the system
 3. Write device firmware using `device-instructions.md`
 4. Write a Pi driver using `pi-driver-instructions.md`
-5. Reuse existing drivers where possible
-6. Use `channel-names.md` for all field naming
-7. Use an AI assistant with these documents as context to generate code
+5. Ensure driver conforms to `reading-format.md` and `capabilities-schema.md`
+6. If the device uses timed sampling, follow `session-model.md`
+7. Reuse existing drivers where possible
+8. Use `channel-names.md` for all field naming
+9. Use an AI assistant with these documents as context to generate code
 
 ---
 
 ## Final Principle
 
-If something breaks, it is almost always because one of the three contracts was violated:
+If something breaks, it is almost always because one of the four contracts was violated:
 
 * device protocol
 * driver interface
-* channel naming
+* reading format or channel naming
+* capabilities schema
 
 Fix the contract — not the symptom.

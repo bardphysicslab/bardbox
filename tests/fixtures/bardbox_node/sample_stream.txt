@@ -1,0 +1,5 @@
+HDR,v1,bb-0001,gt521s
+INFO,uid=bb-0001,source_type=gt521s,transport=serial,protocol=bardbox,firmware=null
+DAT,2026-03-30T14:32:01,c03=1452,c50=87
+DAT,2026-03-30T14:32:31,c03=1389,c50=72
+DAT,2026-03-30T14:33:01,c03=1501,c50=91

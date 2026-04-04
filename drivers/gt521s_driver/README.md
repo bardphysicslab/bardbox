@@ -11,7 +11,7 @@ The GT-521S measures airborne particle concentrations in up to six size channels
 | Channel | Description | Unit |
 |---|---|---|
 | `c03` | Particle count ≥ 0.3 µm | count/ft³ |
-| `c05` | Particle count ≥ 0.5 µm | count/ft³ |
+| `c50` | Particle count ≥ 5.0 µm | count/ft³ |
 
 ## Serial configuration
 
@@ -45,7 +45,7 @@ YYYY-MM-DD HH:MM:SS, <size1>, <count1>, <size2>, <count2>, *<checksum>
 
 Example:
 ```
-2026-03-20 14:32:01, 0.3, 1452, 0.5, 87, *A3F2
+2026-03-20 14:32:01, 0.3, 1452, 5.0, 87, *A3F2
 ```
 
 Count values are in whatever unit is active — always send `CU 0` before starting a run.

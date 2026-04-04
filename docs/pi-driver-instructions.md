@@ -5,17 +5,16 @@
 Write a Raspberry Pi driver for a Bard Box data source.
 
 A data source may be:
-
-* a direct Pi-connected sensor (I2C, SPI, UART, USB)
-* a remote microcontroller device communicating over serial
-* a standalone instrument with its own protocol
-* another computer sending data over serial
+- a direct Pi-connected sensor (I2C, SPI, UART, USB)
+- a remote microcontroller device communicating over serial
+- a standalone instrument with its own protocol
+- another computer sending data over serial
 
 The driver must fit the Bard Box architecture:
-
-* hardware-specific logic stays in the driver
-* the backend only consumes normalized data
-* the driver must hide transport and protocol details
+- hardware-specific logic stays in the driver
+- the backend only consumes normalized data
+- the driver must hide transport and protocol details
+- the Pi acts as the normalization and timestamping layer
 
 ---
 
@@ -23,16 +22,31 @@ The driver must fit the Bard Box architecture:
 
 The Raspberry Pi is the normalization layer.
 
-No matter how the data source works internally, the driver must expose a common
-interface and normalized data structure.
+No matter how the data source works internally, the driver must expose a common interface and normalized data structure.
 
 The backend must NOT depend on:
+- sensor-specific protocols
+- raw serial messages
+- I2C register details
+- device quirks
+- wiring assumptions
 
-* sensor-specific protocols
-* raw serial messages
-* I2C register details
-* device quirks
-* wiring assumptions
+`main.py` must never construct vendor commands or parse vendor responses directly.
+
+---
+
+## Design Philosophy
+
+For Bard Box, especially in academic and research contexts:
+
+Expose all valid sensor data that may be useful later, while maintaining a clean normalized interface.
+
+Do NOT collapse rich sensors into minimal outputs.
+
+Examples:
+- BME280 → temp, humidity, pressure
+- PMSA003I → PM counts + particle bins
+- GT-521S → particle counts + sampling metadata
 
 ---
 
@@ -42,17 +56,49 @@ The backend must NOT depend on:
 class SensorDriver:
     def get_info(self) -> dict:
         ...
-    def get_reading(self) -> dict:
-        ...
     def get_capabilities(self) -> dict:
+        ...
+    def get_reading(self) -> dict:
         ...
 ```
 
 ---
 
-## Required Output Models
+## Optional Operational Interface
+
+These methods must remain transport- and protocol-agnostic from the perspective of the Pi app.
+For devices that require active control, drivers may additionally implement:
+
+```python
+def configure(self, settings: dict) -> None:
+    # Apply device settings (sample time, hold time, etc.)
+    ...
+
+def start_session(self, settings: dict, on_sample=None) -> None:
+    # Full hardware start sequence — see Exception note under Sampling Modes
+    ...
+
+def stop(self) -> None:
+    # Stop sampling and clean up
+    ...
+
+def get_state(self) -> dict:
+    # Return current hardware state (running, received_samples, etc.)
+    ...
+
+def raw_command(self, cmd: str) -> str:
+    # Send a raw vendor command — expert use only
+    ...
+```
+
+These methods are sanctioned extensions of the driver interface. They are not
+ad hoc additions. If implemented, they must keep all vendor protocol knowledge
+inside the driver — `main.py` may call them but must never construct the
+underlying commands itself.
 
 ### get_info()
+
+Return stable device metadata.
 
 ```json
 {
@@ -65,39 +111,51 @@ class SensorDriver:
 ```
 
 Notes:
+- `uid` is required
+- `source_type` identifies the sensor/instrument family and must NOT include transport
+- `transport` describes the physical connection: `serial`, `i2c`, `usb`, `spi`
+- `protocol` describes the logical communication protocol — use terms like `vendor`, `bardbox`, `modbus`, `nmea`, not physical bus names like `i2c` or `spi` (those belong in `transport`)
+- `firmware` may be null if not available from the device
 
-* `uid` is required
-* `uid` may come from device firmware OR Pi config
-* `source_type` identifies the sensor/instrument family and must NOT include transport
-* `transport`: `serial`, `i2c`, `usb`, `spi`
-* `protocol`: `vendor`, `bardbox`, etc. (logical protocol, not physical transport)
-* `firmware` may be null if not available
+Optional fields when available:
+
+```json
+{
+  "vendor_model": "Met One GT-521S",
+  "serial_number": "123456",
+  "info_raw": {}
+}
+```
 
 ---
 
 ### get_capabilities()
 
+Return a description of what the driver provides.
+
 ```json
 {
-  "channels": [
-    {"name": "temp_c", "unit": "C"},
-    {"name": "rh_pct", "unit": "%"},
-    {"name": "press_pa", "unit": "Pa"},
-    {"name": "pm25_std", "unit": "count"}
-  ]
+  "channels": {
+    "temp_c": {"label": "Temperature", "unit": "°C"},
+    "rh_pct": {"label": "Relative Humidity", "unit": "%"}
+  },
+  "raw_available": true
 }
 ```
 
 Rules:
-
-* Use normalized Bard Box channel names from `channel-names.md`
-* Keep units explicit
-* Declare only what the driver can actually provide
-* Backend uses this to discover available channels
+- `channels` is a dict keyed by canonical Bard Box channel name
+- Channel names MUST match `channel-names.md`
+- Units MUST match standard definitions exactly — no aliases
+- Declare only fields the driver can actually provide
+- `channels` are normalized fields
+- `raw_available` indicates whether raw data is available
 
 ---
 
 ### get_reading()
+
+Return one normalized reading.
 
 ```json
 {
@@ -106,24 +164,30 @@ Rules:
   "status": "ok",
   "data": {
     "temp_c": 22.5,
-    "rh_pct": 45.2,
-    "press_pa": 101325,
-    "pm25_std": 12
-  }
+    "rh_pct": 45.2
+  },
+  "extended": {
+    "sample_time_s": 60
+  },
+  "raw": null
 }
 ```
 
 Rules:
+- `uid` must match `get_info()`
+- `timestamp` is ISO 8601 UTC, generated by the driver; the Pi may assign one if the driver does not provide it
+- `status` is one of: `"ok"`, `"stale"`, `"error"`
+- `data` keys must exactly match the keys of `get_capabilities()["channels"]`
+- Every declared normalized channel must appear in `data`, using `null` if temporarily unavailable
+- `extended` must always be present — use `{}` if empty
+- `raw` is optional bounded raw payload for debug/audit and may be `null`
 
-* `uid` must match `get_info()`
-* `timestamp` is ISO 8601, generated by the Pi
-* `status` is `"ok"`, `"error"`, or `"stale"`
-* `data` keys must exactly equal channel names in `get_capabilities()["channels"]`
-* Every declared channel must appear in `data`, using `null` if temporarily unavailable
-* No raw protocol strings in output
-* No hardware-specific field names in `data`
+Status definitions:
+- `ok` — fresh and valid
+- `stale` — last known good but outdated
+- `error` — unusable reading
 
-**Error example:**
+Error example:
 
 ```json
 {
@@ -131,134 +195,275 @@ Rules:
   "timestamp": "2026-03-27T18:00:00Z",
   "status": "error",
   "data": {},
+  "extended": {},
+  "raw": null,
   "error": "serial timeout"
+}
+```
+
+Stale example:
+
+```json
+{
+  "uid": "bb-0002",
+  "timestamp": "2026-03-27T18:00:00Z",
+  "status": "stale",
+  "data": {
+    "temp_c": 22.5,
+    "rh_pct": null
+  },
+  "extended": {
+    "warning": "missing humidity"
+  },
+  "raw": null
 }
 ```
 
 ---
 
+## Three Data Layers
+
+### 1. Normalized (data)
+
+Shared cross-system fields. This is the layer the backend should rely on first.
+
+Examples: `temp_c`, `rh_pct`, `press_pa`, `pm1_std`, `pm25_std`, `pm10_std`, `c03`, `c05`, `c10`, `c25`, `c50`, `c100`
+
+See `channel-names.md` for the full list.
+
+### 2. Extended (extended)
+
+Structured, sensor-specific data that is meaningful and worth preserving.
+
+Examples: `sample_time_s`, `location_id`, `status_bits`, configuration settings, instrument state
+
+Rules:
+- Always return `extended` — use `{}` if nothing to report
+- Extended fields are not predeclared; include meaningful structured data when available
+
+### 3. Raw (raw)
+
+Original payloads or low-level data for audit, debugging, or later reprocessing.
+
+Examples: original serial line, binary frame, register dump, uncompensated values
+
+Rules:
+- Raw data must NOT replace normalized data
+- Raw data should be bounded (e.g. last frame only)
+- Do NOT expose unbounded logs through `raw`
+
+---
+
 ## UID Rules
 
-* UID does NOT always live on the hardware
-* For programmable devices: stored in firmware
-* For instruments or external systems: assigned in Pi config
-* Driver must always expose UID through `get_info()` and `get_reading()`
+- UID may come from hardware firmware or Pi config
+- UID must always be present in both `get_info()` and `get_reading()`
+- See `uid-registry.md` for assignment rules
 
 ---
 
 ## Naming Philosophy
 
 Use:
+- UID for identity
+- Normalized names for shared meaning
+- Extended names for device-specific meaning
+- Raw for audit/debug only
 
-* UID for identity
-* Normalized channels for meaning
-
-Do NOT use:
-
-* Project-local names as identity
-* Raw vendor field names in output
-* Invented field names — if the standard defines `c03`, do not use `pm03_cf`
+Do NOT:
+- Use vendor field names in normalized data
+- Invent field names if a Bard Box standard already exists
+- Include transport in `source_type`
+- If the standard defines `c03`, do NOT use `pm03_cf`
 
 ---
 
-## Driver Responsibilities
+## Sampling Modes
 
-The driver must own:
+Drivers may represent devices with different sampling behaviors:
 
-* Connection setup
-* Retries and timeouts
-* Serial / I2C / SPI communication
-* Protocol parsing
-* Validation
-* Normalization into Bard Box fields
+| Mode | Description |
+|------|-------------|
+| `instant` | Single reading on demand — no session required |
+| `stream` | Continuous output at a fixed interval |
+| `session` | Discrete timed samples with explicit start/stop |
 
-The driver must NOT leak:
+The driver always returns atomic readings regardless of mode. Session logic — managing run state, timing, and result collection — is handled outside the driver by the backend. The driver is not responsible for session orchestration.
 
-* Raw vendor commands
-* Unparsed CSV lines
-* Sensor register values
-* Inconsistent field names
+### Exception: Driver-Owned Start Sequences
+
+For instruments with complex, hardware-specific start sequences, a driver may
+implement a `start_session(settings)` method that owns the hardware initialization
+sequence internally (e.g. wake → stop → configure → start → verify).
+
+This is permitted provided:
+- The driver only manages hardware state — not application session state
+- The driver does not store session metadata (session_id, start_time, summary)
+- Application session state is managed by the backend
+- Any sample callback fires normalized data only — no GT-specific logic in the callback
+- No application logic enters the driver via the callback
+
+This exception exists because some instruments require an atomic, ordered command
+sequence that cannot be safely split between the driver and the backend.
+
+---
+
+
+
+The driver must handle:
+- Connection setup
+- Retries and timeouts
+- Protocol parsing
+- Validation
+- Normalization
+- Unit conversion
+- Timestamp generation
+
+The driver must NOT leak into the backend:
+- Raw protocol data
+- Register-level data as the main API
+- Inconsistent field names
+- Transport assumptions
+
+---
+
+## Granular Access Rule
+
+Expose:
+- All reliable measurements
+- Acquisition context
+- Instrument state
+- Raw data when useful
+
+Do NOT expose:
+- Unstable internals unless clearly labeled
+- Meaningless fields
+- Duplicate normalized data
+
+Rule: If it is real and meaningful, expose it somewhere.
 
 ---
 
 ## For Serial Devices
 
-* Open and manage the serial port
-* Handle reconnects and retries
-* Parse line-based responses
-* Validate headers and versions if the protocol provides them
-* Reject malformed data cleanly
+The driver must:
+- Manage the serial port
+- Handle reconnects and retries
+- Validate protocol structure
+- Reject malformed data cleanly
 
-**Bard Box serial protocol:**
+If the device uses Bard Box serial protocol:
+- Validate `HDR,v1,...`
+- Parse `INFO`
+- Parse `DAT,...`
+- Enforce protocol version compatibility
 
-* Validate `HDR,v1,...`
-* Parse `INFO`
-* Parse `DAT,...`
-* Reject protocol version mismatches
-
-**Proprietary protocol:**
-
-* Parse internally
-* Still output only normalized Bard Box data
+If the device uses a proprietary protocol:
+- Parse internally
+- Output normalized fields only in `data`
+- Place sensor-specific structured fields in `extended`
+- Place bounded raw payloads in `raw` only when useful
 
 ---
 
 ## For Direct Pi Sensors
 
-* Use the simplest stable library available
-* Wrap all raw readings in the driver
-* Normalize output to Bard Box fields
-* Keep transport details hidden from the backend
+The driver must:
+- Wrap library calls
+- Normalize output
+- Hide transport details
+
+Additional data such as configuration state or raw values must go in `extended` or `raw`, not in normalized `data`.
 
 ---
 
 ## For Remote MCU Devices
 
-* Treat as a data source, not a special-case subsystem
-* Parse only the Bard Box serial protocol
-* Do not depend on board type in the backend
-* Backend sees only normalized readings
+Treat the device as a data source, not a backend special case.
+
+The backend should see only:
+- Normalized `data`
+- Optional `extended` fields
+- Optional `raw` payloads
 
 ---
 
 ## Error Handling
 
-* Raise clear exceptions or return structured failure states
-* Reject malformed lines
-* Reject missing required fields
-* Reject protocol version mismatches
-* Do not silently reinterpret bad data
+The driver must:
+- Reject malformed data
+- Reject missing required fields
+- Reject protocol mismatches
+- Avoid silently fixing bad data
+- Return structured failures
 
 ---
 
 ## Driver Naming Standard
 
-* `source_type` identifies the sensor/instrument family and must NOT include transport
-* `transport` is reported separately in `get_info()`
+`source_type` identifies the sensor or instrument family and must NOT include transport. Transport is reported separately in `get_info()`.
 
-### File Naming
+File naming:
 
 ```
 {source_type}_driver.py
 ```
 
 Examples:
+- `gt521s_driver.py`
+- `bme280_driver.py`
+- `pmsa003_driver.py`
 
-* `gt521s_driver.py`
-* `bme280_driver.py`
-* `pmsa003_driver.py`
+---
+
+## Recommended Output Pattern
+
+```json
+{
+  "uid": "bb-0002",
+  "timestamp": "2026-03-27T18:00:00Z",
+  "status": "ok",
+  "data": {},
+  "extended": {},
+  "raw": null
+}
+```
+
+Where:
+- `data` = normalized shared fields
+- `extended` = meaningful sensor-specific fields
+- `raw` = bounded original payload or debug material
+
+---
+
+## Testing Requirement
+
+Every driver must pass the generic contract test suite before merge:
+
+```bash
+BARDBOX_DRIVER_NAME=<your_driver> pytest tests/test_driver_contract.py
+```
+
+This validates that your driver correctly implements the interface above. Failures are not acceptable for merge. See `docs/testing-guide.md` for full usage.
+
+Key rules enforced by the contract tests:
+- `get_info()['transport']` must be a physical connection descriptor (`serial`, `i2c`, `usb`, `spi`, `uart`, `can`)
+- `get_info()['protocol']` must be a logical name — NOT a physical bus name (e.g. use `vendor`, `bardbox`, `modbus`, not `serial` or `i2c`)
+- `get_capabilities()['channels']` must be a dict keyed by canonical channel name
+- `data` keys must exactly match declared channel names — no extras, no missing
 
 ---
 
 ## Final Requirement
 
 Return a complete Python driver file that:
-
-* Is ready to place in the Pi codebase
-* Defines a concrete driver class
-* Implements `get_info()`, `get_capabilities()`, and `get_reading()`
-* Includes minimal necessary helper methods
-* Includes basic error handling
+- Is production-ready
+- Implements `get_info()`, `get_capabilities()`, and `get_reading()`
+- Includes minimal helper methods
+- Includes basic error handling
+- Exposes full normalized data
+- Exposes meaningful extended data
+- Includes raw data only when useful
 
 Do not return pseudocode.
 Do not return partial snippets.
