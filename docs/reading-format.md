@@ -140,6 +140,17 @@ The UI may reformat timestamps for display, but drivers must always output UTC.
 
 ---
 
+## Time Synchronization
+
+All Bard Box systems must maintain synchronized system time via NTP.
+
+- The Raspberry Pi is the authoritative time source
+- Timestamps must be generated at the driver level on the Pi
+- Devices may include timestamps, but they are not authoritative
+- Target accuracy: ±100 ms or better
+
+---
+
 ## Complete Example
 
 ```json
