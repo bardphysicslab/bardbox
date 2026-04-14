@@ -78,7 +78,122 @@ requirement.
 
 ---
 
-## 5. Timezone
+## 5. Real-Time Clock (RTC) (Required for Reliable Timestamps)
+
+Bard Box systems must maintain correct time even when network connectivity
+is unavailable. This requires enabling and validating the onboard RTC
+with a backup battery.
+
+Without a functioning RTC, systems may produce invalid timestamps at boot
+(e.g. 1970), which can compromise logged data.
+
+### Enable RTC
+
+Edit config:
+
+```bash
+sudo nano /boot/firmware/config.txt
+```
+
+Add:
+
+```
+dtparam=rtc
+```
+
+Reboot:
+
+```bash
+sudo reboot
+```
+
+### Install RTC tools
+
+On newer Raspberry Pi OS versions, `hwclock` is provided by:
+
+```bash
+sudo apt install util-linux-extra -y
+```
+
+### Initialize RTC
+
+Ensure system time is correct (via NTP), then write to RTC:
+
+```bash
+date
+sudo hwclock -w
+```
+
+### Enable periodic RTC synchronization (REQUIRED)
+
+Create service:
+
+```bash
+sudo nano /etc/systemd/system/bardbox-rtc-sync.service
+```
+
+```ini
+[Unit]
+Description=Write synchronized system time to RTC
+After=network-online.target time-sync.target
+Wants=time-sync.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/hwclock --systohc --utc
+```
+
+Create timer:
+
+```bash
+sudo nano /etc/systemd/system/bardbox-rtc-sync.timer
+```
+
+```ini
+[Unit]
+Description=Periodic RTC refresh from system clock
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+Enable:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now bardbox-rtc-sync.timer
+```
+
+### Verify RTC functionality (REQUIRED)
+
+```bash
+sudo systemctl start bardbox-rtc-sync.service
+date
+sudo hwclock -r
+```
+
+Times must match closely.
+
+Then test persistence:
+1. Power off and disconnect power
+2. Wait several minutes
+3. Boot and check: `date`
+
+Time must be correct without waiting for network synchronization.
+
+**Failure condition:** If system time resets after power loss, check the RTC
+battery connection and replace the battery if necessary.
+
+Deployments without a functioning RTC must not be considered production-ready.
+
+---
+
+## 6. Timezone
 
 Set the correct timezone:
 
@@ -94,7 +209,7 @@ timedatectl
 
 ---
 
-## 6. Networking / Static IP
+## 7. Networking / Static IP
 
 Assign a static IP in coordination with Bard IT.
 
@@ -113,7 +228,7 @@ requirements.
 
 ---
 
-## 7. Python Virtual Environment
+## 8. Python Virtual Environment
 
 Install Python dependencies:
 
@@ -132,7 +247,7 @@ pip install -r requirements.txt
 
 ---
 
-## 8. Repo and Config Placement
+## 9. Repo and Config Placement
 
 Clone the application repo:
 
@@ -151,7 +266,7 @@ sensitive or site-specific data.
 
 ---
 
-## 9. Systemd Service
+## 10. Systemd Service
 
 Create a systemd service file to run the application automatically on boot:
 
@@ -220,7 +335,7 @@ check the USB connection and confirm the driver is loaded.
 
 ---
 
-## 12. Validation Checklist
+## 13. Validation Checklist
 
 Before handing off the deployment, verify each item:
 
@@ -228,6 +343,8 @@ Before handing off the deployment, verify each item:
 - [ ] Passwordless SSH is configured
 - [ ] System packages are up to date
 - [ ] `chrony` is running and time is synchronized
+- [ ] RTC is enabled and retains time after power loss
+- [ ] RTC is periodically synchronized from system clock
 - [ ] Correct timezone is set
 - [ ] Static IP is assigned and reachable over Bard network
 - [ ] Bard VPN access confirmed
