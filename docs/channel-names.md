@@ -45,6 +45,20 @@ Examples:
 
 ---
 
+### State Channels
+
+| Channel     | Description       | Unit    | Source |
+| ----------- | ----------------- | ------- | ------ |
+| `door_open` | Door open/closed  | boolean | Switch, reed sensor, Hall sensor |
+
+Rules:
+
+* `true` means open
+* `false` means closed
+* use `null` if the state is temporarily unavailable
+
+---
+
 ## Adding a New Channel
 
 1. Choose a short, descriptive name that does not conflict with existing channels

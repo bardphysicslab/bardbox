@@ -91,6 +91,33 @@ When `status` is `error`, all values in `data` should be `null`.
 
 ---
 
+## Acquisition Modes
+
+Bard Box supports both:
+
+- session/stream-oriented instruments
+- slow polled sensors
+
+Streaming devices normally produce repeated readings after `START` until
+`STOP`. Polled devices normally produce one fresh reading in response to `READ`
+and do not enter continuous streaming mode.
+
+Both acquisition styles produce the same normalized reading object. The reading
+format does not change based on whether the source was streaming or polled.
+
+For Bard Box serial protocol devices:
+
+- `HEADER` is an official command
+- `HEADER` returns exactly one `HDR,v1,...` line
+- `HEADER` may be called at any time
+- `HEADER` does not start streaming and does not change device state
+- Header fields must match subsequent `DAT` lines exactly, in both count and order
+- `READ` returns exactly one `DAT,...` line matching the current header
+- `READ` may return `ERR SENSOR_FAIL` if no sample can be acquired
+- `INFO`, `PING`, `STATUS`, and `HEADER` remain valid for both device classes
+
+---
+
 ## `extended` Rules
 
 Use `extended` for non-core but useful structured fields.

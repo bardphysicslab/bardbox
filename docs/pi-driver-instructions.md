@@ -157,6 +157,10 @@ Rules:
 
 Return one normalized reading.
 
+For a polled Bard Box serial device, `get_reading()` may send `READ`, wait for
+the single returned `DAT,...` line, and normalize that sample. For streaming
+devices, `get_reading()` may return the latest buffered sample.
+
 ```json
 {
   "uid": "bb-0002",
@@ -290,6 +294,19 @@ Drivers may represent devices with different sampling behaviors:
 
 The driver always returns atomic readings regardless of mode. Session logic — managing run state, timing, and result collection — is handled outside the driver by the backend. The driver is not responsible for session orchestration.
 
+Bard Box protocol devices may support one or more acquisition behaviors:
+
+- **Streaming devices** use `START` / `STOP` and may maintain `running == true`.
+- **Polled devices** support `READ` and do not require continuous streaming.
+- A device may be streaming-only, polled-only, or support both.
+
+`running == false` only means continuous streaming is not active. It does not
+imply that the device cannot answer `READ`.
+
+Streaming is preferred where continuous acquisition is intrinsic to the
+instrument. Polling is preferred where periodic single-sample acquisition is the
+natural behavior, such as fridge temperature or door-state nodes.
+
 ### Exception: Driver-Owned Start Sequences
 
 For instruments with complex, hardware-specific start sequences, a driver may
@@ -357,6 +374,14 @@ If the device uses Bard Box serial protocol:
 - Parse `INFO`
 - Parse `DAT,...`
 - Enforce protocol version compatibility
+- Support either streaming (`START` / `STOP`), polling (`READ`), or both, depending on device capabilities
+- Treat `HEADER` as an official command, not an implied behavior
+- For `HEADER`, expect exactly one `HDR,v1,...` line
+- `HEADER` may be called at any time and must not change device state
+- Header fields must match subsequent `DAT` lines exactly, in both count and order
+- Treat `INFO`, `PING`, `STATUS`, and `HEADER` as valid for both streaming and polled device classes
+- For `READ`, expect exactly one fresh `DAT,...` line matching the current header, or `ERR SENSOR_FAIL`
+- Do not assume `running == false` prevents a valid `READ`
 
 If the device uses a proprietary protocol:
 - Parse internally

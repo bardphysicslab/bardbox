@@ -235,6 +235,63 @@ Rules:
 
 ---
 
+## Time Authority and Logging Gate
+
+The Pi app MUST use the operating system clock as the application time
+authority. It must not read the RTC directly. The RTC provides boot/offline
+holdover for the system clock only.
+
+The app MUST expose a `/time` endpoint and include time health in `/state`.
+Required time states are:
+
+* `ntp` — valid and currently NTP-synchronized
+* `rtc_holdover` — valid RTC-backed/offline holdover
+* `invalid` — not acceptable for recording
+
+The dashboard UI SHOULD show visible clock/time status. Start/logging controls
+MUST be disabled or rejected when time is `invalid`.
+
+All logged timestamps MUST be UTC ISO 8601 strings.
+
+---
+
+## Session and Export Storage
+
+The Pi app SHOULD use the standard storage layout:
+
+```text
+~/golab-monitor/data/
+~/golab-monitor/data/sessions/
+~/golab-monitor/data/env_daily_averages.jsonl
+```
+
+When removable storage is supported, the app must use mounted filesystem paths,
+not raw USB or serial-device scans. Standard mounted targets are under:
+
+```text
+/media/<user>/...
+```
+
+Session target selection affects future session/test recording paths only.
+For USB targets, session files SHOULD be written under:
+
+```text
+/media/<user>/<target>/golab-monitor/sessions/
+```
+
+Exports are separate copy actions. Daily averages remain local and may be copied
+to:
+
+```text
+/media/<user>/<target>/golab-monitor/exports/
+```
+
+Exporting must not move, clear, or change the live daily-average logging path.
+This session/export scaffolding should be part of the standard main Pi app
+template for Bard Box dashboards.
+
+---
+
 ## Polling
 
 The Pi app MUST collect readings on a configured interval.

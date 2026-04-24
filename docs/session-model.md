@@ -8,6 +8,11 @@ is owned by the application layer (`main.py`), not the driver.
 Drivers expose normalized readings via `get_reading()`. The application decides
 when a session starts, what it records, and when it ends.
 
+The application also owns session files. GT session files, test records, storage
+target selection, threshold checks, timestamps, session context, and any
+environment or auxiliary readings are application-layer responsibilities, not
+driver responsibilities.
+
 ---
 
 ## Exception: `start_session()` in Hardware-Sequenced Drivers
@@ -41,8 +46,9 @@ A driver may implement `start_session(settings, on_sample)` when:
 - Pass vendor-internal field names (e.g. `_device_ts`, `_raw_line`) through `on_sample`
 
 Application session state — `session_id`, `start_time`, `metadata`, `summary`, `data` —
-is created and managed by `SessionManager` in `main.py`, called after `start_session()`
-returns successfully.
+is created and managed by `SessionManager` in `main.py`. The application may
+create the session and session file before calling `start_session()` so callback
+samples cannot arrive before application storage is ready.
 
 ### Reference implementation
 
@@ -69,3 +75,38 @@ The driver must not pass:
 
 The application callback decides what the sample means: threshold checks,
 session data recording, alerting, etc.
+
+---
+
+## Session Records and Time Metadata
+
+Session files must include application-generated UTC timestamps. Timestamps must
+come from the system clock and use ISO 8601 UTC format.
+
+Session records should include or be associated with time health metadata such as:
+
+- `utc`
+- `source`
+- `ntp_synced`
+- `sane`
+
+Allowed time sources are defined in `time-sync-standard.md`.
+
+If time becomes invalid during a run, the application must stop the run or
+explicitly mark affected data invalid. It must never silently continue logging
+data with invalid time.
+
+---
+
+## Session Files vs Export Files
+
+Session files and export files are different artifacts.
+
+- Session files are application-owned run records written as part of session or
+  test execution.
+- Export files are explicit copy artifacts, such as a daily-average export to a
+  removable target.
+
+Changing the session storage target affects future session/test files only. It
+must not change where live daily averages are maintained unless that behavior is
+explicitly specified by the application standard.

@@ -64,15 +64,35 @@ Rules:
 The device must:
 
 * continuously listen for serial commands
-* start and stop data streaming based on commands
-* output clean CSV only when running
+* implement deterministic command responses
+* support streaming, polling, or both, depending on the device class
+* output clean CSV only as defined by the active command
 * remain responsive at all times
 * never print debug output to the serial stream
 * use non-blocking logic
 
 ---
 
-## Required State
+## Device Behavior Classes
+
+Bard Box supports both:
+
+* session/stream-oriented instruments
+* slow polled sensors
+
+Streaming is preferred where continuous acquisition is intrinsic to the
+instrument. Polling is preferred where periodic single-sample acquisition is the
+natural behavior, such as fridge temperature or door-state nodes.
+
+A device may support:
+
+* streaming only
+* polled only
+* both streaming and polling
+
+---
+
+## Required State Model
 
 ```cpp
 bool running = false;
@@ -81,8 +101,9 @@ bool running = false;
 Rules:
 
 * default is `false`
-* when `running == true`, device streams data
-* when `running == false`, device sends no data (only command responses)
+* streaming devices may set `running == true` after `START`
+* polled devices may leave `running == false` and still answer `READ`
+* `running == false` means continuous streaming is not active; it does not mean the device cannot acquire a single sample
 
 ---
 
@@ -92,7 +113,8 @@ The main loop must:
 
 * continuously check for serial input
 * process commands immediately
-* send data only when `running == true`
+* for streaming devices, send periodic data only when `running == true`
+* for polled devices, send one data line only in response to `READ`
 * avoid long blocking operations
 * use `millis()` or equivalent timing instead of `delay()`
 
@@ -105,12 +127,13 @@ The main loop must:
 Commands are newline-terminated text:
 
 ```
+INFO
+PING
+STATUS
+HEADER
+READ
 START
 STOP
-STATUS
-PING
-HEADER
-INFO
 ```
 
 ---
@@ -124,6 +147,8 @@ OK START
 OK STOP
 OK STATUS RUNNING
 OK STATUS STOPPED
+HDR,v1,<field1>,<field2>,<field3>,...
+DAT,<value1>,<value2>,<value3>,...
 PONG
 OK INFO uid=bb-0001 fw=1.0 sensors=PMS,BME280
 ```
@@ -133,6 +158,12 @@ Rules:
 * `INFO` must include UID and firmware version
 * `sensors` describes connected sensor types
 * Responses must be single-line and deterministic
+* `INFO`, `PING`, `STATUS`, and `HEADER` are valid for both streaming and polled devices
+* `HEADER` returns exactly one `HDR,v1,...` line
+* `HEADER` may be called at any time
+* `HEADER` does not start streaming and does not change device state
+* `READ` returns one `DAT,...` data line only; it does not return `OK READ`
+* `START` on a streaming device returns `OK START`, followed by `HDR,v1,...`, then `DAT,...` lines
 
 ---
 
@@ -151,6 +182,8 @@ ERR SENSOR_FAIL
 ERR NOT_RUNNING
 ```
 
+`READ` may return `ERR SENSOR_FAIL` if the device cannot acquire a sample.
+
 ---
 
 ## Data Output Rules
@@ -163,11 +196,14 @@ HDR,v1,<field1>,<field2>,<field3>,...
 
 Rules:
 
-* Send header immediately after `START`
-* Send header when `HEADER` is requested
+* Streaming devices send header immediately after `START`
+* The `HEADER` command returns exactly one `HDR,v1,...` line
+* `HEADER` may be called at any time
+* `HEADER` does not start streaming and does not change device state
 * Header defines structure of all subsequent data lines
 * Header field names must match canonical channel names defined in `channel-names.md`
 * Header fields must correspond exactly to channels declared in driver capabilities
+* Header fields must match subsequent `DAT` lines exactly, in both count and order
 
 ---
 
@@ -185,6 +221,19 @@ Rules:
 * Consistent order
 * No JSON output
 * No mixed output
+
+For `READ`:
+
+* Device takes one fresh sample
+* Device returns exactly one `DAT,...` line matching the current header
+* Device must not enter continuous streaming mode
+* Device must not emit additional `DAT` lines unless another `READ` is received
+
+For `START` / `STOP`:
+
+* Streaming devices use `START` to begin continuous output
+* Streaming devices use `STOP` to end continuous output
+* Polled-only devices may return `ERR UNKNOWN_CMD` for `START` and `STOP`
 
 ---
 
@@ -254,6 +303,7 @@ The device must:
   * `PING`
   * `HEADER`
   * `INFO`
+  * `READ`
 
 ---
 
@@ -268,7 +318,8 @@ The device must:
 ### Loop
 
 * read and process serial commands
-* send data when running
+* for streaming devices, send data when running
+* for polled devices, send data only when `READ` is handled
 * use non-blocking timing
 
 ### Helper Functions
@@ -279,6 +330,7 @@ The device must:
 * `sendInfo()`
 * `sendStatus()`
 * `sendData()`
+* `readSingleSample()` for polled devices
 
 ---
 
