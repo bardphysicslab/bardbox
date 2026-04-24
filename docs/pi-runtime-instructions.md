@@ -136,6 +136,33 @@ The Pi app MUST treat all drivers identically through the driver interface.
 
 The Pi app interacts with drivers only through the defined interface and optional control methods.
 
+### Named Driver Control Endpoints
+
+`main.py` may expose API endpoints for named driver control actions when an
+instrument requires safe writes or stateful control.
+
+Rules:
+
+* endpoints must call named driver methods only
+* runtime may pass application/system time into the driver
+* runtime must not build vendor command strings
+* control endpoints must be guarded by app state when needed
+* arbitrary raw command endpoints must not be part of normal dashboard APIs
+
+For instruments that share one serial transport between polling and control
+actions, either the driver must serialize access safely or the runtime must
+reject controls while acquisition is active. For SPN1, clock sync should be
+rejected while the run is active unless serial locking and polling pause are
+implemented safely.
+
+Recommended endpoint pattern:
+
+```text
+GET  /devices/{uid}/time
+POST /devices/{uid}/time/sync
+GET  /devices/{uid}/controls
+```
+
 ---
 
 ## Driver Interface Enforcement

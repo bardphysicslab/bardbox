@@ -96,6 +96,50 @@ ad hoc additions. If implemented, they must keep all vendor protocol knowledge
 inside the driver — `main.py` may call them but must never construct the
 underlying commands itself.
 
+---
+
+## Safe Driver Control Actions
+
+Bard Box remains read-first: normal application code should rely on
+`get_info()`, `get_capabilities()`, and `get_reading()` wherever possible.
+Write/control actions are allowed when an instrument requires them, but they
+must be exposed as safe named driver methods.
+
+Rules:
+
+- All writes must be encapsulated as named driver methods.
+- `main.py` must never construct vendor commands directly.
+- The UI must never expose arbitrary raw command entry by default.
+- Dangerous vendor calibration, factory, or test commands must not be exposed
+  unless explicitly documented as expert-only.
+- Drivers that perform serial read/write transactions must protect the
+  transport with a lock.
+- Named control methods should return structured results.
+
+Suggested optional interface:
+
+```python
+def get_controls(self) -> dict:
+    """
+    Return named safe control actions supported by this driver.
+    Example:
+    {
+        "time_read": {"label": "Read instrument time", "dangerous": False},
+        "time_sync": {"label": "Sync instrument time", "dangerous": False}
+    }
+    """
+    ...
+
+def get_device_time(self) -> dict:
+    ...
+
+def sync_device_time(self, dt_utc: datetime) -> dict:
+    ...
+```
+
+`raw_command()` remains expert/debug only. It must not be used by normal UI
+controls, and it must not be exposed as a default dashboard action.
+
 ### get_info()
 
 Return stable device metadata.
