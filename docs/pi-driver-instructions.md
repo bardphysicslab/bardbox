@@ -24,6 +24,19 @@ The Raspberry Pi is the normalization layer.
 
 No matter how the data source works internally, the driver must expose a common interface and normalized data structure.
 
+Nodes may use compact single-line wire payloads such as `INFO`, `HDR`, `DAT`,
+and `ERR`. They do not need to emit normalized JSON. The driver converts:
+
+```text
+Node wire protocol
+↓
+compact DAT lines
+
+Pi normalization layer
+↓
+normalized Bard Box reading object
+```
+
 The backend must NOT depend on:
 - sensor-specific protocols
 - raw serial messages
@@ -203,7 +216,9 @@ Return one normalized reading.
 
 For a polled Bard Box serial device, `get_reading()` may send `READ`, wait for
 the single returned `DAT,...` line, and normalize that sample. For streaming
-devices, `get_reading()` may return the latest buffered sample.
+devices, `get_reading()` may return the latest buffered sample. For slower
+sensors, the device may internally sample/cache values and `READ` may return
+the latest valid cached reading.
 
 ```json
 {
@@ -243,9 +258,10 @@ Error example:
   "timestamp": "2026-03-27T18:00:00Z",
   "status": "error",
   "data": {},
-  "extended": {},
-  "raw": null,
-  "error": "serial timeout"
+  "extended": {
+    "error": "serial_timeout"
+  },
+  "raw": null
 }
 ```
 
@@ -273,7 +289,8 @@ Stale example:
 
 ### 1. Normalized (data)
 
-Shared cross-system fields. This is the layer the backend should rely on first.
+Scientific and environmental measurements with shared cross-system meaning.
+This is the layer the backend should rely on first.
 
 Examples: `temp_c`, `rh_pct`, `press_pa`, `pm1_std`, `pm25_std`, `pm10_std`, `c03`, `c05`, `c10`, `c25`, `c50`, `c100`
 
@@ -281,17 +298,24 @@ See `channel-names.md` for the full list.
 
 ### 2. Extended (extended)
 
-Structured, sensor-specific data that is meaningful and worth preserving.
+Operational, deployment, transport, and auxiliary metadata that is meaningful
+and worth preserving but is not a canonical measurement channel.
 
-Examples: `sample_time_s`, `location_id`, `status_bits`, configuration settings, instrument state
+Examples: `rssi_dbm`, `uptime_s`, `firmware_version`, `ip_address`,
+`location`, `coordinates`, deployment metadata, `sample_time_s`,
+`status_bits`, configuration settings, instrument state
 
 Rules:
 - Always return `extended` — use `{}` if nothing to report
 - Extended fields are not predeclared; include meaningful structured data when available
+- For fixed installations, `location` and `coordinates` should usually come
+  from deployment/server configuration rather than firmware GPS. GPS is mainly
+  useful for mobile, moving, or vehicle-mounted systems.
 
 ### 3. Raw (raw)
 
-Original payloads or low-level data for audit, debugging, or later reprocessing.
+Original/native payloads or low-level data for audit, debugging, archival
+review, or later reprocessing.
 
 Examples: original serial line, binary frame, register dump, uncompensated values
 
@@ -350,6 +374,12 @@ imply that the device cannot answer `READ`.
 Streaming is preferred where continuous acquisition is intrinsic to the
 instrument. Polling is preferred where periodic single-sample acquisition is the
 natural behavior, such as fridge temperature or door-state nodes.
+
+Server polling frequency does not need to equal hardware sampling frequency.
+For slower I2C, particle, or warm-up-sensitive sensors, device firmware may
+sample on its own cadence and cache the latest valid reading. `READ` can then
+return that cached reading while the driver still reports `ok`, `stale`, or
+`error` accurately.
 
 ### Exception: Driver-Owned Start Sequences
 
@@ -422,6 +452,7 @@ If the device uses Bard Box serial protocol:
 - Treat `HEADER` as an official command, not an implied behavior
 - For `HEADER`, expect exactly one `HDR,v1,...` line
 - `HEADER` may be called at any time and must not change device state
+- `HEADER` defines ordered `DAT` schema fields and does not return live data
 - Header fields must match subsequent `DAT` lines exactly, in both count and order
 - Treat `INFO`, `PING`, `STATUS`, and `HEADER` as valid for both streaming and polled device classes
 - For `READ`, expect exactly one fresh `DAT,...` line matching the current header, or `ERR SENSOR_FAIL`
@@ -499,9 +530,9 @@ Examples:
 ```
 
 Where:
-- `data` = normalized shared fields
-- `extended` = meaningful sensor-specific fields
-- `raw` = bounded original payload or debug material
+- `data` = normalized scientific/environmental measurements
+- `extended` = operational, deployment, transport, and auxiliary metadata
+- `raw` = bounded original/native payload or debug material
 
 ---
 

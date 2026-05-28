@@ -34,7 +34,7 @@ The Pi is the hub. It has two logical layers:
 
 **Driver layer** — one driver per data source. Each driver:
 * communicates with the device
-* normalizes raw data into the standard reading format
+* normalizes compact wire payloads or raw device data into the standard reading format
 * exposes `get_info()`, `get_capabilities()`, and `get_reading()`
 
 **App layer** — the backend application. It:
@@ -54,6 +54,22 @@ The Raspberry Pi is the normalization layer.
 
 Devices and sensors may vary, but all data must be normalized before entering the system.
 
+Nodes may speak the compact Bard Box wire protocol:
+
+```text
+INFO
+HEADER
+READ
+START
+STOP
+HDR,v1,temp_c,rh_pct,press_pa,pm1_std,pm25_std,pm10_std
+DAT,22.27,39.02,101096,2.94,5.55,9.88
+```
+
+The node does not need to emit the full normalized JSON object. The Pi/server
+driver converts the compact `DAT` line into the normalized Bard Box reading
+object consumed by APIs, dashboards, logging, and alerts.
+
 ---
 
 ## Design Principles
@@ -72,7 +88,7 @@ Devices and sensors may vary, but all data must be normalized before entering th
 
 Bard Box relies on four enforced interfaces:
 
-* **Device → Pi:** Bard Box serial protocol (`HDR`, `DAT`, `INFO`) — see `device-instructions.md`
+* **Device → Pi:** Bard Box wire protocol (`INFO`, `HEADER`, `READ`, optional `START` / `STOP`, `HDR`, `DAT`, `ERR`) — see `device-instructions.md`
 * **Driver → Backend:** normalized driver interface (`get_info`, `get_capabilities`, `get_reading`) — see `pi-driver-instructions.md`
 * **Data model:** standardized reading format and channel names — see `reading-format.md` and `channel-names.md`
 * **Capabilities:** driver capabilities schema (`channels` dict, sampling mode, controls) — see `capabilities-schema.md`
@@ -185,6 +201,52 @@ Bard Box deployments are internal systems and are not exposed to the public inte
 * Coordinate with Bard IT for static IP assignment
 * Access via browser on Bard network or VPN
 * No additional client software required
+
+---
+
+## Polling and Sampling
+
+The server polling frequency does not need to match hardware sampling
+frequency. A Raspberry Pi app may poll a driver every few seconds while a
+microcontroller or instrument samples internally on a different cadence.
+
+For slower I2C, particle, or warm-up-sensitive sensors, the recommended pattern
+is:
+
+* firmware samples and caches values at a sensor-appropriate rate
+* `READ` returns the latest valid cached reading
+* the Pi driver marks readings `ok`, `stale`, or `error` based on freshness and
+  communication health
+
+This keeps dashboards responsive without forcing excessive sensor polling.
+
+---
+
+## Location and Coordinates
+
+For fixed installations, location names and coordinates should generally live in
+deployment/server configuration. Firmware GPS is usually unnecessary for fixed
+nodes such as freezer monitors, roof sensors, lab air monitors, or room displays.
+
+GPS is mainly useful for:
+
+* mobile nodes
+* moving deployments
+* vehicle-mounted systems
+
+---
+
+## Dashboard Conventions
+
+Current Bard Box deployments commonly use:
+
+* Bard logo/header
+* live clock
+* compact operational cards
+* one card per node
+* scalable operational layouts suitable for 10-50 nodes
+
+These are recommended UI conventions, not protocol requirements.
 
 ---
 

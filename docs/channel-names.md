@@ -45,6 +45,34 @@ Examples:
 
 ---
 
+### Particulate Mass Channels (PMS, PMSA003I, and compatible)
+
+Canonical standard-mass channels:
+
+| Channel    | Description                  | Unit  | Notes |
+| ---------- | ---------------------------- | ----- | ----- |
+| `pm1_std`  | PM1.0 standard concentration | µg/m³ | Use when the sensor reports standard PM mass |
+| `pm25_std` | PM2.5 standard concentration | µg/m³ | Use `pm25`, not `pm2_5`, in canonical names |
+| `pm10_std` | PM10 standard concentration  | µg/m³ |      |
+
+Optional environmental-mass channels:
+
+| Channel    | Description                       | Unit  | Notes |
+| ---------- | --------------------------------- | ----- | ----- |
+| `pm1_env`  | PM1.0 environmental concentration | µg/m³ | Only use when reported separately |
+| `pm25_env` | PM2.5 environmental concentration | µg/m³ | Only use when reported separately |
+| `pm10_env` | PM10 environmental concentration  | µg/m³ | Only use when reported separately |
+
+Rules:
+
+* Use `pm1_std`, `pm25_std`, and `pm10_std` consistently for standard PM mass
+* Do not use alternate spellings such as `pm1_0_ug_m3`, `pm2_5_ug_m3`, or `pm25`
+  in normalized Bard Box channel names
+* Put units in the channel definition, not in every channel name, when a standard
+  name already exists
+
+---
+
 ### State Channels
 
 | Channel     | Description       | Unit    | Source |

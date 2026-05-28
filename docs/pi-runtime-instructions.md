@@ -40,6 +40,10 @@ All hardware-specific behavior must be handled inside drivers.
 
 The Pi app must never communicate with hardware directly. All hardware interaction occurs inside drivers.
 
+For Bard Box wire-protocol nodes, the driver converts compact `INFO`, `HDR`,
+`DAT`, and `ERR` lines into the normalized Bard Box reading object. Nodes do not
+need to emit normalized JSON themselves.
+
 ---
 
 ## Device Command Conventions
@@ -257,7 +261,7 @@ Example:
 Rules:
 
 * state must only contain validated data
-* no raw protocol artifacts
+* no raw protocol artifacts outside the bounded `raw` field of a normalized reading
 * must be serializable and deterministic
 
 ---
@@ -328,12 +332,19 @@ Rules:
 * interval defined in config
 * polling must not block the app
 * one driver failure must not affect others
+* server polling frequency does not need to equal hardware sampling frequency
+* drivers may return latest valid cached readings from sensors that sample on
+  their own cadence
 
 Behavior:
 
 * success → update latest state
 * temporary failure → mark `stale`
 * repeated failure → mark `error`
+
+Cached latest-valid readings are recommended for slower I2C, particle, or
+warm-up-sensitive sensors. This keeps the dashboard responsive while avoiding
+excessive hardware polling.
 
 ---
 
@@ -370,8 +381,11 @@ Rules:
 
 * responses must be machine-readable
 * must contain normalized data only
-* must not expose raw device data
-* must not expose transport or protocol details
+* must not expose hardware-specific protocol details outside the bounded `raw`
+  field of a normalized reading
+* must not expose unbounded raw device logs
+* transport or deployment metadata may appear in `extended` when operationally
+  useful, but the API contract must not depend on it as sensor data
 
 ---
 

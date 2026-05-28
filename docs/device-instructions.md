@@ -122,6 +122,11 @@ The main loop must:
 
 ## Bard Box Serial Protocol
 
+The device wire protocol is intentionally compact. Nodes send single-line text
+payloads such as `INFO`, `HDR`, `DAT`, and `ERR` responses. They do not emit the
+full normalized Bard Box JSON reading object; the Raspberry Pi/server driver is
+responsible for converting compact device payloads into normalized readings.
+
 ### Commands
 
 Commands are newline-terminated text:
@@ -155,15 +160,27 @@ OK INFO uid=bb-0001 fw=1.0 sensors=PMS,BME280
 
 Rules:
 
-* `INFO` must include UID and firmware version
+* `INFO` returns static device identity and capabilities metadata
+* `INFO` must include UID and firmware version when available
 * `sensors` describes connected sensor types
 * Responses must be single-line and deterministic
 * `INFO`, `PING`, `STATUS`, and `HEADER` are valid for both streaming and polled devices
-* `HEADER` returns exactly one `HDR,v1,...` line
+* `HEADER` returns exactly one `HDR,v1,...` line containing ordered `DAT` schema fields
 * `HEADER` may be called at any time
 * `HEADER` does not start streaming and does not change device state
+* `HEADER` does not return live data
 * `READ` returns one `DAT,...` data line only; it does not return `OK READ`
+* `READ` returns one current sample matching the `HEADER` order exactly
 * `START` on a streaming device returns `OK START`, followed by `HDR,v1,...`, then `DAT,...` lines
+* `START` begins continuous `DAT` streaming using the same `HEADER` schema
+* `STOP` stops continuous streaming
+
+Example air-monitor schema and sample:
+
+```text
+HDR,v1,temp_c,rh_pct,press_pa,pm1_std,pm25_std,pm10_std,rssi_dbm,uptime_s
+DAT,22.27,39.02,101096,2.94,5.55,9.88,-62,18422
+```
 
 ---
 
@@ -200,6 +217,7 @@ Rules:
 * The `HEADER` command returns exactly one `HDR,v1,...` line
 * `HEADER` may be called at any time
 * `HEADER` does not start streaming and does not change device state
+* `HEADER` defines ordered column names only; it does not return live data
 * Header defines structure of all subsequent data lines
 * Header field names must match canonical channel names defined in `channel-names.md`
 * Header fields must correspond exactly to channels declared in driver capabilities
@@ -224,10 +242,13 @@ Rules:
 
 For `READ`:
 
-* Device takes one fresh sample
+* Device returns one current sample
 * Device returns exactly one `DAT,...` line matching the current header
 * Device must not enter continuous streaming mode
 * Device must not emit additional `DAT` lines unless another `READ` is received
+* For slower sensors, the current sample may be the device's latest valid cached
+  measurement, provided that behavior is documented and driver status can still
+  distinguish fresh, stale, and failed reads
 
 For `START` / `STOP`:
 
@@ -265,6 +286,12 @@ Inside the device code:
 
 Internal implementation may use any library.
 External output must follow the Bard Box protocol.
+
+Server polling frequency does not need to equal hardware sampling frequency.
+For slower I2C, particle, or warm-up-sensitive sensors, firmware may sample on
+its own cadence and cache the latest valid reading. `READ` can then return that
+latest valid reading instead of forcing a new hardware transaction every time.
+This improves robustness and prevents excessive sensor polling.
 
 ---
 

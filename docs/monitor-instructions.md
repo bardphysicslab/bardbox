@@ -10,15 +10,18 @@ and `reading-format.md` for those.
 
 ---
 
-## Required Header Elements
+## Recommended Header Elements
 
-Every Bard Box dashboard must include a page header containing:
+Current Bard Box dashboards commonly include a page header containing:
 
 1. **Bard College logo** — use an approved logo from the `static/Bard-Web-Logos/`
    directory. The red logo (`bard-logo-red.png`) is recommended for dark
    backgrounds.
 2. **System title** — a clear, human-readable name describing the deployment
    context. This should identify the lab or location, not the hardware.
+3. **Clock** — a live display of the Raspberry Pi system time or local app time.
+   This helps operators confirm the dashboard is live and that system time is
+   correct.
 
 Example:
 
@@ -30,28 +33,25 @@ Rules:
 - Logo and title must appear together on the same line
 - Title must not describe specific sensors or hardware (e.g. not "GT-521S Monitor")
 - Hardware identity belongs inside the relevant instrument section, not the header
-- Header must remain visible at all times — it must not scroll off-screen in primary views
-
----
-
-## Recommended Header Elements
-
-- **Clock** — a live display of the Raspberry Pi system time (local timezone).
-  Recommended but not required. Useful for operators to confirm the dashboard
-  is live and that system time is correct.
+- Header, title, and clock are UI conventions, not protocol requirements
 
 ---
 
 ## Layout Principles
 
-### Instrument sections
+### Operational cards
 
-Each physical instrument or sensor group should have its own clearly labeled
-section. The section title should identify the instrument (e.g.
-"GT-521S Particle Counter", "Environment Node").
+Current deployments commonly use compact operational cards:
 
-Group related controls and data displays together within one section — do not
-split an instrument's settings and graphs into separate disconnected cards.
+* one card per node, instrument, or sensor group
+* card title shows the human-readable name
+* UID and location remain visible for physical identification
+* status is easy to scan (`ok`, `stale`, `error`, alarm states, disabled/planned)
+* layout scales to roughly 10-50 nodes without turning into a control panel maze
+
+For single-instrument systems, a clearly labeled instrument section is also
+acceptable. Group related controls and data displays together within one section
+or card.
 
 ### Data display
 
@@ -70,6 +70,9 @@ split an instrument's settings and graphs into separate disconnected cards.
 
 Dashboards should be usable on both desktop and tablet. A single-column
 fallback at narrow viewport widths is acceptable.
+
+These conventions are recommendations for consistency across Bard Box apps.
+They do not define the wire protocol, reading format, or backend behavior.
 
 ---
 

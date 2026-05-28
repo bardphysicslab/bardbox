@@ -45,8 +45,9 @@ A typical Bard Box deployment has three parts:
 ### 1. Sensor Node
 
 A microcontroller (ESP32 or Arduino) connected to one or more sensors.
-It collects data and streams it in a standard format using affordable,
-well-documented components.
+It collects data and exposes compact Bard Box wire-protocol commands such as
+`INFO`, `HEADER`, and `READ`. Streaming with `START` / `STOP` is available for
+devices that naturally produce continuous data.
 
 ### 2. Gateway (Raspberry Pi)
 
@@ -55,6 +56,10 @@ a web API.
 
 It uses Bard Box drivers (one per sensor type). Adding a new sensor means
 adding or adapting a driver — not rewriting the system.
+
+The Pi is the normalization layer: it converts compact device payloads such as
+`DAT,...` lines into normalized Bard Box reading objects for APIs, dashboards,
+logging, and alerts.
 
 ### 3. Dashboard or Display
 
@@ -97,9 +102,12 @@ This repository defines the standards all Bard Box deployments follow:
 
 ## Current Deployments
 
-| Project       | Department | Description                     | Status |
-| ------------- | ---------- | ------------------------------- | ------ |
-| GoLab Monitor | Physics    | Air quality monitoring in GoLab | Active |
+| Project          | Department | Description                      | Status |
+| ---------------- | ---------- | -------------------------------- | ------ |
+| GoLab Monitor    | Physics    | Air quality monitoring in GoLab  | Active |
+| RKC Monitor      | Physics    | Freezer monitoring and alerts    | Active |
+| Solar Monitor    | Physics    | Solar/environment monitoring     | Active |
+| CESH Air Monitor | CESH       | Local simulated air monitor demo | Demo   |
 
 ---
 
