@@ -1,125 +1,76 @@
-# Bard Box
+# BardBox
 
-Bard Box is a modular platform developed at Bard College that makes it easy
-for faculty, staff, and students to deploy sensor monitoring and display systems
-across campus — without requiring specialized engineering expertise.
+`bardbox` is the BardBox standards and specification repo.
 
----
+It defines the protocol, reading format, driver boundaries, UI standard,
+naming conventions, time rules, and design decisions shared by BardBox monitor
+projects.
 
-## The Problem
+## Role
 
-Departments at Bard have real needs for:
+This repo is the source of truth for:
 
-* environmental monitoring
-* sustainability reporting
-* research data collection
-* public-facing data displays
+- device protocol rules
+- normalized reading format
+- channel names
+- Raspberry Pi driver responsibilities
+- monitor/dashboard visual standards
+- time synchronization rules
+- testing expectations
+- architecture and naming decisions
 
-Current options are:
+It is not the project template and should not be copied directly for new
+monitor deployments.
 
-* Expensive vendor systems with proprietary cloud subscriptions
-* Complex open-source platforms that require significant technical expertise
-* One-off solutions that cannot be reused across projects
+## Repo Roles
 
----
+`bardbox` is the standards/specification repo.
 
-## The Solution
+`bardbox-project-template` is the reference implementation/template repo.
 
-Bard Box packages proven, affordable open-source hardware and software into a
-standardized system that any department can adopt.
+Workflow:
 
-Each deployment follows:
+1. Protocol or UI rule changes are documented first in `bardbox`.
+2. Then they are implemented in `bardbox-project-template`.
+3. New monitor repos are created from `bardbox-project-template`.
+4. Existing monitor repos like GoLab, RKC, Solar, and CESH Air should be updated from the template standard when practical.
+5. Project-specific repos should not invent protocol behavior unless it is promoted back into `bardbox` and `bardbox-project-template`.
 
-* the same architecture
-* the same communication standards
-* the same visual design language
+Goal: one documented standard, one reference implementation, many project instances.
 
-This allows knowledge and code from one project to carry directly into the next.
+## Current Standards
 
----
+- Node statuses: `ok`, `stale`, `error`, `node_unavailable`
+- Node UIDs use `bb-<site>-<type>-<instance>`, for example `bb-gol-air-001`
+- Legacy reported UIDs may be aliased to canonical UIDs during migration
+- Stale or unavailable API values are `null`
+- Dashboards render `null` as `—`
+- Pi/backend owns freshness detection
+- Devices report readings and protocol errors only
+- Standard device commands: `INFO`, `HEADER`, `READ`
+- Optional device commands: `START`, `STOP`, `PING`
+- RKC Monitor is the current visual reference for BardBox dashboards
+- Firmware development uses VS Code + PlatformIO
 
-## How It Works
+## Key Docs
 
-A typical Bard Box deployment has three parts:
-
-### 1. Sensor Node
-
-A microcontroller (ESP32 or Arduino) connected to one or more sensors.
-It collects data and exposes compact Bard Box wire-protocol commands such as
-`INFO`, `HEADER`, and `READ`. Streaming with `START` / `STOP` is available for
-devices that naturally produce continuous data.
-
-### 2. Gateway (Raspberry Pi)
-
-A Raspberry Pi receives data from sensor nodes, stores it, and serves it via
-a web API.
-
-It uses Bard Box drivers (one per sensor type). Adding a new sensor means
-adding or adapting a driver — not rewriting the system.
-
-The Pi is the normalization layer: it converts compact device payloads such as
-`DAT,...` lines into normalized Bard Box reading objects for APIs, dashboards,
-logging, and alerts.
-
-### 3. Dashboard or Display
-
-A web-based dashboard presents the data in Bard’s visual style.
-
-The same backend can power:
-
-* a technical lab dashboard
-* a public sustainability display
-* a research data export
-
----
-
-## Who Can Deploy It
-
-You do not need to be an engineer.
-
-A typical project requires:
-
-* someone who understands the need (faculty, staff, or student)
-* basic familiarity with Raspberry Pi and Arduino (or access to someone who has it)
-* this documentation
-* an AI assistant (Claude, ChatGPT) for project-specific code
-
-The documentation and existing drivers provide enough structure for an AI
-assistant to generate most of the implementation.
-
----
-
-## What This Repo Contains
-
-This repository defines the standards all Bard Box deployments follow:
-
-* **Device protocol** — how sensor nodes communicate with the Pi
-* **Driver interface** — how data is normalized on the Pi
-* **Channel naming standard** — how measurements are represented
-* **System architecture** — how components fit together
-
----
+- [Reading format](docs/reading-format.md)
+- [Node naming standard](docs/node-naming-standard.md)
+- [Device instructions](docs/device-instructions.md)
+- [Pi driver instructions](docs/pi-driver-instructions.md)
+- [Monitor/UI instructions](docs/monitor-instructions.md)
+- [Channel names](docs/channel-names.md)
+- [Time sync standard](docs/time-sync-standard.md)
+- [Testing guide](docs/testing-guide.md)
 
 ## Current Deployments
 
-| Project          | Department | Description                      | Status |
-| ---------------- | ---------- | -------------------------------- | ------ |
-| GoLab Monitor    | Physics    | Air quality monitoring in GoLab  | Active |
-| RKC Monitor      | Physics    | Freezer monitoring and alerts    | Active |
-| Solar Monitor    | Physics    | Solar/environment monitoring     | Active |
-| CESH Air Monitor | CESH       | Local simulated air monitor demo | Demo   |
-
----
-
-## Design Philosophy
-
-* **Reuse over rebuild** — every project builds on existing work
-* **Standards over flexibility** — consistency enables scale
-* **Open hardware** — no vendor lock-in, no required cloud services
-* **Student-accessible** — understandable by a motivated undergraduate
-* **Practical simplicity** — minimal complexity required to deploy
-
----
+| Project | Department | Description | Status |
+| --- | --- | --- | --- |
+| GoLab Monitor | Physics | Air quality monitoring in GoLab | Active |
+| RKC Monitor | Physics | Freezer monitoring and alerts | Active |
+| Solar Monitor | Physics | Solar/environment monitoring | Active |
+| CESH Air Monitor | CESH | Local simulated air monitor demo | Demo |
 
 ## Maintained By
 

@@ -88,7 +88,7 @@ VALID_TRANSPORTS = {"serial", "i2c", "usb", "spi", "uart", "can"}
 PHYSICAL_BUS_NAMES = {"serial", "i2c", "spi", "usb", "uart", "can", "rs485", "rs232"}
 
 # Valid values for get_reading()["status"]
-VALID_STATUSES = {"ok", "stale", "error"}
+VALID_STATUSES = {"ok", "stale", "error", "node_unavailable"}
 
 # ISO 8601 prefix pattern — YYYY-MM-DDTHH:MM:SS or with space separator
 _ISO_8601_RE = re.compile(r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}")
@@ -100,10 +100,10 @@ _RAW_MAX_LIST_LEN = 1_000
 # Required top-level keys in each interface method's return value
 _INFO_REQUIRED_KEYS = {"uid", "transport", "protocol"}
 _CAPS_REQUIRED_KEYS = {"channels"}
-_READING_REQUIRED_KEYS = {"uid", "timestamp", "status", "data", "extended", "raw"}
+_READING_REQUIRED_KEYS = {"uid", "timestamp", "status", "message", "data", "extended"}
 
 # Required keys in each channel entry inside get_capabilities()["channels"]
-_CHANNEL_ENTRY_REQUIRED_KEYS = {"channel", "unit"}
+_CHANNEL_ENTRY_REQUIRED_KEYS = {"label", "unit"}
 
 # ---------------------------------------------------------------------------
 # Driver discovery
@@ -176,8 +176,7 @@ def reading(driver):
 
 def _declared_channel_names(capabilities: dict) -> set:
     """Return the set of channel names declared in get_capabilities()."""
-    return {ch["channel"] for ch in capabilities.get("channels", [])
-            if "channel" in ch}
+    return set(capabilities.get("channels", {}).keys())
 
 
 def _skip_if_no_reading(reading):
@@ -256,28 +255,30 @@ class TestGetCapabilities:
         assert not missing, \
             f"get_capabilities() is missing required keys: {sorted(missing)}"
 
-    def test_channels_is_a_list(self, capabilities):
+    def test_channels_is_a_dict(self, capabilities):
         channels = capabilities.get("channels")
-        assert isinstance(channels, list), \
-            f"get_capabilities()['channels'] must be a list, got {type(channels).__name__}"
+        assert isinstance(channels, dict), \
+            f"get_capabilities()['channels'] must be a dict, got {type(channels).__name__}"
 
     def test_channels_is_not_empty(self, capabilities):
         assert len(capabilities.get("channels", [])) > 0, \
             "get_capabilities()['channels'] must declare at least one channel"
 
     def test_each_channel_entry_has_required_keys(self, capabilities):
-        for i, ch in enumerate(capabilities.get("channels", [])):
+        for name, ch in capabilities.get("channels", {}).items():
+            assert isinstance(ch, dict), (
+                f"Channel entry {name!r} must be a dict, got {type(ch).__name__}"
+            )
             missing = _CHANNEL_ENTRY_REQUIRED_KEYS - ch.keys()
             assert not missing, (
-                f"Channel entry [{i}] {ch!r} is missing required keys: "
-                f"{sorted(missing)}. Each channel must have 'channel' and 'unit'."
+                f"Channel entry {name!r} {ch!r} is missing required keys: "
+                f"{sorted(missing)}. Each channel must have 'label' and 'unit'."
             )
 
     def test_channel_names_are_nonempty_strings(self, capabilities):
-        for ch in capabilities.get("channels", []):
-            name = ch.get("channel")
+        for name in capabilities.get("channels", {}):
             assert isinstance(name, str) and name.strip(), \
-                f"Channel 'channel' field must be a non-empty string, got: {name!r}"
+                f"Channel name must be a non-empty string, got: {name!r}"
 
     def test_extended_fields_is_list_if_declared(self, capabilities):
         ef = capabilities.get("extended_fields")
@@ -331,6 +332,11 @@ class TestGetReading:
             f"get_reading()['status'] must be one of {sorted(VALID_STATUSES)}, "
             f"got: {status!r}"
         )
+
+    def test_message_is_a_string(self, reading):
+        _skip_if_no_reading(reading)
+        assert isinstance(reading.get("message"), str), \
+            "get_reading()['message'] must be a string"
 
     def test_data_is_a_dict(self, reading):
         _skip_if_no_reading(reading)

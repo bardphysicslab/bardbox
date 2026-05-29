@@ -103,7 +103,7 @@ Everything in the system depends on these contracts being strictly followed.
 
 Bard Box distinguishes between:
 
-* **UID** → physical device identity (`bb-0001`)
+* **UID** → physical device identity (`bb-gol-air-001`)
 * **App ID** → software/system identity (what the system does)
 
 ---
@@ -215,8 +215,14 @@ is:
 
 * firmware samples and caches values at a sensor-appropriate rate
 * `READ` returns the latest valid cached reading
-* the Pi driver marks readings `ok`, `stale`, or `error` based on freshness and
-  communication health
+* the Pi/backend marks readings `ok`, `stale`, `error`, or `node_unavailable`
+  based on freshness and communication health
+* stale or unavailable API readings use `null` channel values and expose the
+  previous successful timestamp separately as `last_seen`
+
+Devices may cache their most recent sample internally, but the Pi/backend must
+still apply freshness rules. Cached device samples must never cause stale data
+to appear as live dashboard/API values.
 
 This keeps dashboards responsive without forcing excessive sensor polling.
 

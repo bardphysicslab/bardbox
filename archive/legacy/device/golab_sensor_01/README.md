@@ -1,5 +1,9 @@
 # golab_sensor_01
 
+This is a legacy Arduino IDE example retained for historical reference.
+Current BardBox firmware examples live in `bardbox-project-template` and use
+VS Code + PlatformIO.
+
 **Bard Box UID:** `bb-0001`
 **Project:** GoLab Monitor
 **Location:** Go Lab, Bard College Physics Department

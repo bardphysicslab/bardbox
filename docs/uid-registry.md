@@ -1,31 +1,37 @@
-# Bard Box UID Registry
+# BardBox UID Registry
 
-Every Bard Box device must have a unique identifier (UID).
-
----
+Every BardBox device must have a unique immutable identifier.
 
 ## UID Format
 
+New UIDs use:
+
+```text
+bb-<site>-<type>-<instance>
 ```
-bb-0001, bb-0002, bb-0003, ...
-```
+
+Examples:
+
+- `bb-gol-air-001`
+- `bb-rkc-frz-014`
+- `bb-sol-sol-001`
 
 Rules:
 
-* Prefix is always `bb-`
-* Numeric portion is zero-padded to 4 digits
-* Do not invent alternate formats
+- Prefix is always `bb`.
+- Site code is exactly 3 lowercase letters.
+- Type code is exactly 3 lowercase letters.
+- Instance is exactly 3 digits with leading zeros.
+- Use hyphens only.
+- UID must not change after deployment.
 
----
+See `node-naming-standard.md` for site and type code examples.
 
-## Core Rules
+## Legacy IDs
 
-* UIDs are globally unique across all Bard Box deployments
-* Once assigned, a UID must never be reused
-* UIDs must remain stable — do not change a UID after deployment
-* Do not use project-local names as UIDs (e.g. `sensor_01`, `golab_pms`)
-
----
+Legacy IDs like `bb-0001`, `bb-0002`, and `bb-0003` remain supported for
+existing deployments, but are deprecated. Do not assign legacy-format IDs to new
+devices.
 
 ## Source of Truth
 
@@ -33,64 +39,31 @@ The authoritative UID registry is maintained in Google Sheets:
 
 **[INSERT UID REGISTRY LINK HERE]**
 
-Rules:
-
-* Always check the registry before assigning a new UID
-* Do not assign UIDs outside the registry
-* Do not rely on local copies of this file for UID assignment
-
----
+Always check the registry before assigning a new UID, and do not reuse retired
+UIDs.
 
 ## Where the UID Lives
 
-### Programmable Devices (Arduino, ESP32)
-
-Store in firmware:
+Programmable devices store the UID in firmware:
 
 ```cpp
-#define DEVICE_UID "bb-0001"
+#define DEVICE_UID "bb-gol-air-001"
 ```
 
-* Physically label the device with the UID
+Non-programmable instruments should have their UID assigned in Raspberry Pi
+driver configuration.
 
----
-
-### Non-Programmable Devices (instruments, external systems)
-
-* Assign UID in the Raspberry Pi driver configuration
-* Physically label the device with the UID if possible
-
----
-
-## Assignment Process
-
-1. Open the UID registry (Google Sheet)
-2. Find the next available UID
-3. Assign it to the device
-4. Add the device entry to the registry
-5. Commit and deploy
-
----
+Physically label devices with their UID whenever possible.
 
 ## Example Entries
 
-| UID     | Description              | Project       | Status |
-| ------- | ------------------------ | ------------- | ------ |
-| bb-0001 | GT-521S particle counter | GoLab Monitor | Active |
+| UID | Description | Project | Status |
+| --- | --- | --- | --- |
+| `bb-gol-air-001` | Air monitor node | GoLab Monitor | Active |
+| `bb-rkc-frz-001` | Freezer monitor node | RKC Monitor | Active |
 
----
+Status values:
 
-## Status Definitions
-
-* **Active** — currently deployed and in use
-* **Retired** — no longer in use, UID remains reserved
-* **Reserved** — assigned but not yet deployed
-
----
-
-## Notes
-
-* The Google Sheet is the single source of truth
-* This document defines rules and workflow only
-* Do not reuse retired UIDs
-* Always assign UIDs before flashing or deploying devices
+- **Active**: currently deployed and in use.
+- **Retired**: no longer in use, UID remains reserved.
+- **Reserved**: assigned but not yet deployed.

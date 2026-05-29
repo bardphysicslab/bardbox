@@ -109,7 +109,7 @@ Minimum required fields:
   "drivers": [
     {
       "driver": "gt521s",
-      "uid": "bb-0001",
+      "uid": "bb-gol-air-001",
       "config": {
         "port": "/dev/ttyUSB0",
         "baud": 9600
@@ -200,7 +200,7 @@ The Pi app MUST validate all readings returned by drivers.
 
 ```json
 {
-  "uid": "bb-0001",
+  "uid": "bb-gol-air-001",
   "timestamp": "2026-03-27T18:00:00Z",
   "status": "ok",
   "data": { ... },
@@ -215,7 +215,7 @@ The Pi app MUST enforce:
 
 * `uid` exists and matches driver
 * `timestamp` exists and is ISO 8601
-* `status` is one of: `ok`, `stale`, `error`
+* `status` is one of: `ok`, `stale`, `error`, `node_unavailable`
 * `data` is an object
 * all keys in `data` match declared channel names from `get_capabilities()`
 * all declared channels must appear in `data` (use `null` if unavailable)
@@ -242,11 +242,11 @@ Example:
   "mode": "sensor_monitor",
   "status": "ok",
   "drivers": {
-    "bb-0001": {
+    "bb-gol-air-001": {
       "info": { ... },
       "capabilities": { ... },
       "latest": {
-        "uid": "bb-0001",
+        "uid": "bb-gol-air-001",
         "timestamp": "2026-03-27T18:00:00Z",
         "status": "ok",
         "data": { ... },
@@ -333,18 +333,18 @@ Rules:
 * polling must not block the app
 * one driver failure must not affect others
 * server polling frequency does not need to equal hardware sampling frequency
-* drivers may return latest valid cached readings from sensors that sample on
-  their own cadence
+* drivers may use cached device samples internally, but API responses must not
+  present stale cached values as live
 
 Behavior:
 
-* success → update latest state
-* temporary failure → mark `stale`
-* repeated failure → mark `error`
+* fresh valid reading → `ok`
+* old valid reading past freshness timeout → `stale` with `null` data values
+* malformed or unparseable response → `error` with `null` data values
+* no response or unreachable device → `node_unavailable` with `null` data values
 
-Cached latest-valid readings are recommended for slower I2C, particle, or
-warm-up-sensitive sensors. This keeps the dashboard responsive while avoiding
-excessive hardware polling.
+Cached latest-valid readings may be used to determine `last_seen`, but must not
+be displayed or returned as current metric values after the freshness timeout.
 
 ---
 
@@ -355,6 +355,7 @@ excessive hardware polling.
 * `ok`
 * `stale`
 * `error`
+* `node_unavailable`
 
 ### App status
 

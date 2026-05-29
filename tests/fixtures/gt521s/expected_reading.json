@@ -1,7 +1,8 @@
 {
-  "uid": "bb-0001",
+  "uid": "bb-gol-air-001",
   "timestamp": "2026-03-30T14:32:01",
   "status": "ok",
+  "message": "Fresh valid reading",
   "data": {
     "c03": 1452,
     "c50": 87

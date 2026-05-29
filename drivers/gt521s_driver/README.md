@@ -62,6 +62,9 @@ Count values are in whatever unit is active — always send `CU 0` before starti
 | `start()` | — | Open serial, send setup commands, start reader thread |
 | `stop()` | — | Stop sampling, stop reader thread |
 
-## Used by
+## Example deployment
 
-- `device/golab_sensor_01` (`bb-0001`, GoLab Monitor)
+Canonical UID example: `bb-gol-air-001`.
+
+Historical GoLab Arduino IDE notes were moved under `archive/legacy/` and are
+not current implementation guidance.
