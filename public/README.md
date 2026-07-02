@@ -1,6 +1,6 @@
 # Public Static Pages
 
-This directory contains static HTML pages for the BardBox Monitoring Platform.
+This directory contains static HTML and PDF files for the BardBox Monitoring Platform.
 They are intended to be served directly by Nginx on `bard-box.org`,
 independent of any BardBox monitoring application.
 
@@ -12,6 +12,7 @@ Expected public URLs after deployment:
 - `https://bard-box.org/privacy`
 - `https://bard-box.org/terms`
 - `https://bard-box.org/consent`
+- `https://bard-box.org/consent.pdf`
 
 Suggested Nginx deployment, assuming the repository is cloned to `/opt/bardbox`:
 
@@ -27,4 +28,14 @@ location = /terms {
 location = /consent {
     alias /opt/bardbox/public/consent.html;
 }
+
+location = /consent.pdf {
+    alias /opt/bardbox/public/consent.pdf;
+}
+```
+
+Regenerate the RKC Monitor SMS Alert consent PDF after changing the form copy:
+
+```bash
+python3 scripts/generate_consent_pdf.py
 ```
