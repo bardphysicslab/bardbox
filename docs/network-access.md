@@ -55,7 +55,27 @@ Users access the dashboard via a web browser while:
 * connected to the Bard network, or
 * connected through Bard VPN
 
-No additional software is required beyond the standard Bard VPN client.
+No additional software is required beyond the standard Bard VPN client for
+dashboard access.
+
+## Remote administration with Tailscale
+
+Tailscale is the recommended remote-management path for Raspberry Pi
+deployments. It is additive: existing Ethernet, static addressing, LAN access,
+and Bard VPN access remain intact.
+
+Install and enroll the Pi according to the approved deployment account:
+
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+```
+
+Prefer the Pi's MagicDNS hostname over a numeric Tailscale address. Administrators
+may create convenient local aliases such as `ssh cesh`, `ssh solar`, `ssh rkc`,
+or `ssh golab`, but hostnames, addresses, usernames, and keys belong in each
+administrator's local `~/.ssh/config`, never in a shared repository or app
+configuration.
 
 ---
 
@@ -65,6 +85,8 @@ No additional software is required beyond the standard Bard VPN client.
 * Do not open external ports or configure port forwarding
 * Do not bypass Bard IT network policies
 * Treat the Pi as an internal infrastructure device, not a public server
+* Keep Tailscale additive; do not remove working LAN/VPN networking
+* Do not commit administrator-specific SSH aliases, hosts, addresses, or keys
 
 ---
 

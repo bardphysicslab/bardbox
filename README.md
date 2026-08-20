@@ -50,6 +50,9 @@ Goal: one documented standard, one reference implementation, many project instan
 - Standard device commands: `INFO`, `HEADER`, `READ`
 - Optional device commands: `START`, `STOP`, `PING`
 - RKC Monitor is the current visual reference for BardBox dashboards
+- CESH Air and RKC jointly define the BardBox web UI reference
+- FastAPI/Uvicorn services require process restart and application watchdog layers
+- Historical Data APIs are read-only and enabled only for clean readings roots
 - Firmware development uses VS Code + PlatformIO
 
 ## Key Docs
@@ -62,6 +65,28 @@ Goal: one documented standard, one reference implementation, many project instan
 - [Channel names](docs/channel-names.md)
 - [Time sync standard](docs/time-sync-standard.md)
 - [Testing guide](docs/testing-guide.md)
+- [Service operations standard](docs/service-operations-standard.md)
+- [Web UI standard](docs/web-ui-standard.md)
+- [Remote/network access](docs/network-access.md)
+- [Promotion governance](docs/promotion-governance.md)
+
+## Standards Classification
+
+| Standard | Classification |
+| --- | --- |
+| Safe config synchronization | REQUIRED where `app_config` is used |
+| `/health`, systemd restart, and watchdog | REQUIRED for web services |
+| Read-only Data API | REQUIRED WHEN APPLICABLE |
+| Verified backup/retention | REQUIRED WHEN local historical data is retained and pruned |
+| Tailscale remote administration | RECOMMENDED for Pi deployments |
+| Central Data API/MCP boundary | REQUIRED architectural boundary |
+| BardBox web layout | REQUIRED for web applications |
+
+## Promotion Rule
+
+When reusable infrastructure or UI is proven in a production BardBox
+repository, completion includes evaluating it for promotion into this standard
+and `bardbox-project-template`. See the governance document for the full rule.
 
 ## Current Deployments
 
