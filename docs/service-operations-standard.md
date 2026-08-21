@@ -22,13 +22,24 @@ schema and default-value template. It must contain no real credentials.
 secrets, and must be ignored by Git.
 
 Every repository using this pattern must carry the canonical
-`scripts/sync_app_config.py`. Preview after a source update:
+`scripts/sync_app_config.py`. A deployment is not complete until the
+synchronizer reports both:
 
-```bash
-python3 scripts/sync_app_config.py
+```text
+Added keys: none
+Added node fields: none
 ```
 
-Apply only after reviewing the result:
+After every `git pull`, and before restarting the service, run the explicit
+deployment check:
+
+```bash
+python3 scripts/sync_app_config.py --check
+```
+
+The check is a dry run: it must never modify the ignored live configuration.
+It exits non-zero when deployable keys or fields on matching node UIDs are
+missing. Operators must review those additions and apply them when appropriate:
 
 ```bash
 python3 scripts/sync_app_config.py --write
@@ -39,6 +50,24 @@ by the example, preserves deployment values and unknown local fields, matches
 configured nodes by UID without creating new enabled deployments, creates a
 timestamped backup, and atomically replaces the live file. Example files use
 empty secret placeholders; real secrets are never copied into Git.
+
+Example-only and production-only node UIDs are deliberately not merged. A
+local-only production node may therefore need an explicit, reviewed migration
+when the example introduces a new node field. Production/site-specific values
+must never be overwritten automatically.
+
+The required deployment sequence is:
+
+```text
+git pull
+config sync --dry-run/check
+review/apply required config additions
+confirm Added keys: none
+confirm Added node fields: none
+restart service
+health check
+smoke test
+```
 
 ## Two independent availability layers
 

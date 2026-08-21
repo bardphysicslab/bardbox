@@ -11,3 +11,6 @@ security-sensitive outside its original scope, or not yet proven. The decision
 and reason should still be recorded. Reusable code should be copied from the
 mature implementation with only necessary path/configuration adaptation; do not
 create independent versions of an established BardBox pattern.
+When an operational standard depends on reusable deployment or configuration-
+migration tooling, promote the tooling with the standard so the project
+template demonstrates the required workflow rather than documenting it alone.
