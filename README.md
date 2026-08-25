@@ -46,7 +46,8 @@ Goal: one documented standard, one reference implementation, many project instan
 - Stale or unavailable API values are `null`
 - Dashboards render `null` as `—`
 - Pi/backend owns freshness detection
-- Devices report readings and protocol errors only
+- Base protocol devices report readings and protocol errors; Web Nodes also
+  own documented delivery, retry, queue, and communication-diagnostic state
 - Standard device commands: `INFO`, `HEADER`, `READ`
 - Optional device commands: `START`, `STOP`, `PING`
 - RKC Monitor is the current visual reference for BardBox dashboards
@@ -60,6 +61,7 @@ Goal: one documented standard, one reference implementation, many project instan
 - [Reading format](docs/reading-format.md)
 - [Node naming standard](docs/node-naming-standard.md)
 - [Device instructions](docs/device-instructions.md)
+- [Web Node protocol](docs/web-node-protocol.md)
 - [Pi driver instructions](docs/pi-driver-instructions.md)
 - [Monitor/UI instructions](docs/monitor-instructions.md)
 - [Channel names](docs/channel-names.md)

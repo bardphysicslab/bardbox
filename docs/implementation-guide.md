@@ -7,6 +7,7 @@ This document explains the core architecture of Bard Box and how the pieces fit 
 For writing code, use the specific instruction documents:
 
 * `device-instructions.md` — Arduino/ESP32 sensor nodes
+* `web-node-protocol.md` — network nodes with upload, buffering, and retry
 * `pi-driver-instructions.md` — Raspberry Pi drivers
 * `channel-names.md` — normalized channel name reference
 * `reading-format.md` — standard reading object format
@@ -86,9 +87,11 @@ object consumed by APIs, dashboards, logging, and alerts.
 
 ## System Contract
 
-Bard Box relies on four enforced interfaces:
+Bard Box relies on four core interfaces, plus the Web Node delivery contract
+when a node uploads directly to a remote service:
 
 * **Device → Pi:** Bard Box wire protocol (`INFO`, `HEADER`, `READ`, optional `START` / `STOP`, `HDR`, `DAT`, `ERR`) — see `device-instructions.md`
+* **Web Node → remote service (when applicable):** persistent delivery, acknowledgment, retry, and diagnostics — see `web-node-protocol.md`
 * **Driver → Backend:** normalized driver interface (`get_info`, `get_capabilities`, `get_reading`) — see `pi-driver-instructions.md`
 * **Data model:** standardized reading format and channel names — see `reading-format.md` and `channel-names.md`
 * **Capabilities:** driver capabilities schema (`channels` dict, sampling mode, controls) — see `capabilities-schema.md`
@@ -261,6 +264,7 @@ These are recommended UI conventions, not protocol requirements.
 1. Register a UID for each device — see `uid-registry.md`
 2. Assign an App ID for the system
 3. Write device firmware using `device-instructions.md`
+   and, for a network-uploading node, `web-node-protocol.md`
 4. Write a Pi driver using `pi-driver-instructions.md`
 5. Ensure driver conforms to `reading-format.md` and `capabilities-schema.md`
 6. If the device uses timed sampling, follow `session-model.md`
@@ -272,9 +276,10 @@ These are recommended UI conventions, not protocol requirements.
 
 ## Final Principle
 
-If something breaks, it is almost always because one of the four contracts was violated:
+If something breaks, it is almost always because an applicable contract was violated:
 
 * device protocol
+* Web Node delivery protocol
 * driver interface
 * reading format or channel naming
 * capabilities schema

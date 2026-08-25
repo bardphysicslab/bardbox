@@ -4,6 +4,13 @@ BardBox devices are data sources. They read sensors and answer a compact,
 deterministic protocol. They do not implement dashboards, logging, freshness
 policy, or deployment-specific backend behavior.
 
+Network-connected nodes that upload and buffer measurements must also follow
+the canonical [BardBox Web Node Protocol](web-node-protocol.md). That document
+adds delivery, acknowledgment, retry, persistent-buffering, and quiet
+background-operation requirements without changing the compact commands below.
+Its persistent delivery queue is transport state, not a replacement for
+backend historical logging.
+
 ## Development Environment
 
 Firmware development standard:
@@ -66,6 +73,12 @@ Optional:
 Simple polled environmental nodes can implement `INFO`, `HEADER`, `READ`, and
 optionally `PING`.
 
+Web Nodes may additionally implement the optional `UPLOAD`, `PAYLOAD`, and
+`BUFFER` diagnostic/maintenance commands. `BUFFER_CLEAR`, when present, is a
+destructive maintenance command because it discards unacknowledged readings.
+It must never be used automatically for upload recovery. `TRACE` and
+`CATCHUP_TRACE` are not standard commands.
+
 ## Response Forms
 
 ```text
@@ -87,6 +100,8 @@ Rules:
 - `START` begins continuous `DAT` streaming only for streaming devices.
 - `STOP` stops streaming only for streaming devices.
 - Debug output must not be mixed into the protocol stream.
+- Automatic network upload and catch-up activity must remain quiet by default;
+  verbose network diagnostics are operator-requested or development-only.
 
 ## Freshness
 
