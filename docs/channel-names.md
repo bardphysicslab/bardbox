@@ -31,6 +31,10 @@ Rules:
 | `c50` | Particles >= 5.0 um | count/ft3 |
 | `c100` | Particles >= 10.0 um | count/ft3 |
 | `door_open` | Door open state | boolean |
+| `voltage_v` | Voltage | V |
+| `current_a` | Current | A |
+| `power_w` | Electrical power | W |
+| `load_resistance_ohm` | Applied electronic-load resistance | ohm |
 
 Use `null` when a declared channel is unavailable, stale, or invalid.
 
