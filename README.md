@@ -28,6 +28,10 @@ monitor deployments.
 
 `bardbox-project-template` is the reference implementation/template repo.
 
+`bardbox-mcp` is the shared read-only data-access bridge for AI and other MCP
+clients. It sits above project Data APIs; individual monitor projects should not
+create project-specific MCP servers for normal historical-data access.
+
 Workflow:
 
 1. Protocol or UI rule changes are documented first in `bardbox`.
@@ -36,6 +40,7 @@ Workflow:
 4. Existing monitor repos like GoLab, RKC, Solar, and CESH Air should be updated from the template standard when practical.
 5. If an existing BardBox project is missing required shared infrastructure such as config/report tooling, add or sync it from `bardbox-project-template` before substantive configuration or deployment work continues.
 6. Project-specific repos should not invent protocol behavior unless it is promoted back into `bardbox` and `bardbox-project-template`.
+7. When historical project data needs AI/tool access, extend the central BardBox Data API/MCP boundary rather than creating a separate project-specific MCP bridge.
 
 Goal: one documented standard, one reference implementation, many project instances.
 
@@ -70,6 +75,7 @@ Goal: one documented standard, one reference implementation, many project instan
 - [Testing guide](docs/testing-guide.md)
 - [Service operations standard](docs/service-operations-standard.md)
 - [Config/report workflow](docs/config-report-workflow.md)
+- [Data API and MCP boundary](docs/data-api-mcp-boundary.md)
 - [Web UI standard](docs/web-ui-standard.md)
 - [Remote/network access](docs/network-access.md)
 - [Promotion governance](docs/promotion-governance.md)
