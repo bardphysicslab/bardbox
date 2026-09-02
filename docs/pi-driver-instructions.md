@@ -25,9 +25,18 @@ Drivers must:
 - return structured status, data, message, timestamp, and extended fields
 - return `null` values when a reading is stale, unavailable, or invalid
 - never present cached values as live data
+- treat owned transport/session objects as disposable runtime state and invalidate/recreate them after transport failure
+- implement bounded recovery appropriate to the transport rather than requiring an application restart for routine disconnects or bus faults
 
 Transport failure maps to `node_unavailable`. Parse or validation failure maps
 to `error`. A fresh valid response maps to `ok`.
+
+Transport recovery must follow `transport-recovery-standard.md`. In particular,
+serial drivers must discard stale handles after transport errors and I2C drivers
+must use bounded device/bus reinitialization where supported. Drivers must never
+synthesize zero-valued measurements from failed reads. State-changing or
+safety-critical commands must not be blindly replayed after ambiguous transport
+failure.
 
 ## Reading Result Contract
 
