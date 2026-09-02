@@ -33,8 +33,11 @@ python3 scripts/generate_reports.py \
 The report generator should:
 
 1. Run `scripts/sync_app_config.py --dry-run` to produce `reports/config_sync_report.txt`.
-2. Produce `reports/git_diff.txt` containing the current branch, HEAD, short status, unstaged diff, and staged diff.
-3. When an rclone target is configured, upload the generated `.txt` reports from `reports/` to the project report destination.
+2. Produce `reports/active_config_report.txt`, a readable snapshot of the current ignored live config with credentials and other sensitive values redacted. This report exists so maintainers and authorized remote tools can review the actual preserved deployment values rather than only the structural comparison result.
+3. Produce `reports/git_diff.txt` containing the current branch, HEAD, short status, unstaged diff, and staged diff.
+4. When an rclone target is configured, upload the generated `.txt` reports from `reports/` to the project report destination.
+
+The live config itself must remain ignored and must not be uploaded verbatim merely for diagnostics. Report generation must redact values whose keys identify credentials or secrets, including tokens, passwords, API keys, access/refresh tokens, and client secrets. Projects may extend the redaction set when they contain additional sensitive config fields.
 
 The project-specific rclone path must not be hard-coded into the shared BardBox standard. Configure it per deployment through `BARDBOX_REPORTS_RCLONE_TARGET` or `--rclone-target`.
 
@@ -68,6 +71,8 @@ python3 scripts/sync_app_config.py --check
 
 A clean config-sync report means the live config is structurally aligned with the repository-owned example. It does **not** prove that preserved local values are semantically correct, scientifically valid, or safe for the attached hardware. Hardware limits, calibration values, network settings, credentials, UIDs, and other deployment-specific settings must still be reviewed on their own merits before deployment.
 
+Use `active_config_report.txt` when the actual deployment values need review without exposing secrets. The redacted snapshot is diagnostic material, not a deployable config file and must not be copied back over the live config.
+
 Never replace an ignored live config wholesale with the example config merely to make a report clean.
 
 ## Agent and maintainer checklist
@@ -77,7 +82,7 @@ At the beginning of work in a BardBox project repository:
 1. Verify that the standard config/report tooling exists.
 2. If it is missing or stale, sync it from `bardbox-project-template` before continuing config/deployment work.
 3. After config-schema changes, run the standard report workflow.
-4. Review `config_sync_report.txt` before editing or deploying the active config.
+4. Review `config_sync_report.txt` and `active_config_report.txt` before editing or deploying the active config.
 5. Apply needed structural migrations deliberately with `sync_app_config.py --write`, then review the resulting live config.
 6. Run the report workflow again after migration.
 7. Upload reports to the project's configured BardBox report destination when available.
