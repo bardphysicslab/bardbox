@@ -63,6 +63,7 @@ Goal: one documented standard, one reference implementation, many project instan
 - [Device instructions](docs/device-instructions.md)
 - [Web Node protocol](docs/web-node-protocol.md)
 - [Pi driver instructions](docs/pi-driver-instructions.md)
+- [Optional driver controls](docs/driver-controls.md)
 - [Monitor/UI instructions](docs/monitor-instructions.md)
 - [Channel names](docs/channel-names.md)
 - [Time sync standard](docs/time-sync-standard.md)

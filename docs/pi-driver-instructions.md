@@ -13,6 +13,10 @@ class SensorDriver:
     def get_reading(self) -> dict: ...
 ```
 
+Drivers may additionally expose optional named state-changing operations. Such
+controls follow [Optional Driver Controls](driver-controls.md). Read-only
+drivers remain fully conformant without them.
+
 ## Driver Responsibilities
 
 Drivers must:
@@ -57,3 +61,8 @@ buffer is older than the freshness timeout.
 `main.py` must not construct vendor commands, parse vendor responses, or know
 device quirks. It may call driver methods and apply cross-node policy such as
 freshness timeout, logging, API response shaping, and dashboard routing.
+
+For state-changing operations, the driver owns validation, vendor
+acknowledgment/readback, transport ambiguity, and the normalized control
+outcome. The application owns authorization, sequencing, safety policy, and
+cleanup policy. See [Optional Driver Controls](driver-controls.md).

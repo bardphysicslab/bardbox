@@ -145,6 +145,9 @@ The Pi app interacts with drivers only through the defined interface and optiona
 `main.py` may expose API endpoints for named driver control actions when an
 instrument requires safe writes or stateful control.
 
+Optional state-changing operations and their normalized outcomes must follow
+[Optional Driver Controls](driver-controls.md).
+
 Rules:
 
 * endpoints must call named driver methods only

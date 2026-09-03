@@ -11,7 +11,7 @@ For writing code, use the specific instruction documents:
 * `pi-driver-instructions.md` — Raspberry Pi drivers
 * `channel-names.md` — normalized channel name reference
 * `reading-format.md` — standard reading object format
-* `capabilities-schema.md` — driver capabilities schema
+* `driver-controls.md` — optional writable driver controls and outcomes
 * `session-model.md` — session and run model for timed devices
 
 ---
@@ -94,7 +94,9 @@ when a node uploads directly to a remote service:
 * **Web Node → remote service (when applicable):** persistent delivery, acknowledgment, retry, and diagnostics — see `web-node-protocol.md`
 * **Driver → Backend:** normalized driver interface (`get_info`, `get_capabilities`, `get_reading`) — see `pi-driver-instructions.md`
 * **Data model:** standardized reading format and channel names — see `reading-format.md` and `channel-names.md`
-* **Capabilities:** driver capabilities schema (`channels` dict, sampling mode, controls) — see `capabilities-schema.md`
+* **Capabilities and controls:** `get_capabilities()` declares channels and may
+  declare optional writable controls — see `pi-driver-instructions.md` and
+  `driver-controls.md`
 
 For session-based devices, the session model also applies — see `session-model.md`.
 
@@ -266,7 +268,8 @@ These are recommended UI conventions, not protocol requirements.
 3. Write device firmware using `device-instructions.md`
    and, for a network-uploading node, `web-node-protocol.md`
 4. Write a Pi driver using `pi-driver-instructions.md`
-5. Ensure driver conforms to `reading-format.md` and `capabilities-schema.md`
+5. Ensure driver conforms to `reading-format.md` and, when it has writable
+   controls, `driver-controls.md`
 6. If the device uses timed sampling, follow `session-model.md`
 7. Reuse existing drivers where possible
 8. Use `channel-names.md` for all field naming
@@ -282,6 +285,6 @@ If something breaks, it is almost always because an applicable contract was viol
 * Web Node delivery protocol
 * driver interface
 * reading format or channel naming
-* capabilities schema
+* capability or control contract
 
 Fix the contract — not the symptom.
