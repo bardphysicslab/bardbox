@@ -1,84 +1,55 @@
 # GPT Instructions for BardBox
 
-This is a concise GPT-facing summary of the BardBox standards. Use the detailed
-docs in this repo when implementation detail is needed.
+This file is retained as a compatibility entry point for GPT-style assistants.
+It is **not** a separate source of BardBox rules.
 
-## Repo Roles
+## Canonical Agent Instructions
 
-- `bardbox` is the standards/specification repo.
-- `bardbox-project-template` is the reference implementation and GitHub template.
-- Project repos inherit from `bardbox-project-template`.
+Before helping with BardBox engineering work, read the repository-level
+`AGENTS.md` and follow it as the authoritative agent/contributor instruction
+entry point.
 
-## Update Workflow
+`AGENTS.md` defines how AI-assisted BardBox work should be performed, including:
 
-1. Document protocol, architecture, or UI standard changes in `bardbox` first.
-2. Implement those changes in `bardbox-project-template` second.
-3. Update project repos third, such as GoLab, RKC, Solar, and CESH Air.
+- repository and platform authority;
+- protocol and architecture conflict handling;
+- deterministic verification expectations;
+- Git and contributor safety;
+- consequential-action approval requirements;
+- shared-component policy;
+- contributor environment expectations;
+- MCP/AI safety;
+- planning and tracking conventions.
 
-## Node UID Standard
+## Detailed BardBox Standards
 
-New node UIDs use:
+Do not duplicate detailed technical standards in this file. Read the relevant
+canonical documentation under `docs/` for the work being performed. Examples
+include:
 
-```text
-bb-<site>-<type>-<instance>
-```
+- `device-instructions.md` for firmware/device behavior;
+- `pi-driver-instructions.md` for Raspberry Pi driver contracts;
+- `pi-runtime-instructions.md` for Pi runtime behavior;
+- `monitor-instructions.md` for monitor/backend behavior;
+- `node-naming-standard.md` for node identity;
+- `channel-names.md` for normalized channel names;
+- `reading-format.md` for reading/status representation;
+- `service-operations-standard.md` for service operations;
+- `promotion-governance.md` for promoting BardBox-wide behavior;
+- applicable protocol documents, including the Web Node Protocol where relevant.
 
-Example: `bb-gol-air-001`
+## Rule of Precedence
 
-Rules:
+For AI-assisted work:
 
-- `site` is exactly 3 lowercase letters.
-- `type` is exactly 3 lowercase letters.
-- `instance` is exactly 3 digits.
-- Legacy IDs are supported for existing deployments but deprecated.
+1. Follow `AGENTS.md` for engineering/contributor behavior.
+2. Follow accepted ADRs for architecture decisions.
+3. Follow the applicable BardBox protocol and detailed standards under `docs/`.
+4. Follow project-specific instructions where they do not conflict with BardBox-wide standards.
 
-## Firmware Standard
+If an implementation conflicts with BardBox standards, do not silently choose
+one side. Follow the conflict-handling process in `AGENTS.md` and surface the
+conflict for review.
 
-- Use VS Code + PlatformIO.
-- Arduino framework is allowed through PlatformIO.
-- Arduino IDE is not the BardBox standard.
-- Firmware supports `INFO`, `HEADER`, and `READ`.
-- `START` and `STOP` are only required for session or streaming devices.
-
-## Reading and Status Standard
-
-Statuses:
-
-- `ok`: fresh valid reading.
-- `stale`: last valid reading exists but is older than the freshness timeout.
-- `error`: device responded with invalid, malformed, or unparseable data.
-- `node_unavailable`: device could not be reached or did not respond.
-
-Stale, error, and unavailable values are `null` in API responses. Dashboards
-render `null` as `—`. Never show cached values as live.
-
-## Driver Standard
-
-- Pi/backend determines freshness.
-- Drivers track `last_seen` and last valid reading where applicable.
-- Transport failure maps to `node_unavailable`.
-- Parse failure maps to `error`.
-- API responses use normalized new UIDs, including when legacy UIDs are aliased.
-
-## UI Standard
-
-RKC Monitor dark theme is the BardBox visual standard:
-
-- compact cards
-- status badges
-- Bard logo/header
-- `system-ui, sans-serif`
-- dark background and panel styling
-- red error/unavailable states
-
-## Time Standard
-
-- Pi time must be valid before trusted logging or session start.
-- Use UTC timestamps in APIs and logs where possible.
-- Local time display is fine on dashboards.
-
-## Future GPT Rule
-
-When helping with BardBox, follow these standards unless the user explicitly
-says they are changing the standard. If a project repo conflicts with `bardbox`,
-treat `bardbox` as authoritative and recommend updating the project/template.
+This compatibility file should remain intentionally short so GPT-specific
+instructions cannot drift into a second copy of BardBox policy.
