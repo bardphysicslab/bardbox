@@ -11,7 +11,9 @@ The roadmap is intentionally ordered by dependency rather than by fixed dates. C
 - Project-specific repositories should declare how they use BardBox rather than redefine BardBox-wide behavior.
 - Protocol and architectural changes should be explicit and reviewed rather than silently introduced by one project.
 - Human approval should remain required for consequential changes such as production configuration changes, deployments, pushes, service restarts, firmware updates, and destructive operations.
-- Local development, CI, and deployment environments should be reproducible where practical, while hardware-facing runtime components may remain native when containerization would add unnecessary complexity.
+- Contributor development environments should be reproducible so contributors and AI agents are working against the same toolchain and dependency versions.
+- Docker/Dev Containers are primarily a contributor-development and CI consistency mechanism, not a blanket requirement for hardware-facing production runtimes.
+- Hardware-facing runtime components may remain native when containerization would add unnecessary complexity.
 - AI integrations should be agent-agnostic through MCP wherever possible.
 
 ## Phase 1 — BardBox Tools Foundation
@@ -42,9 +44,9 @@ bardbox-tools/
 └── mcp/
 ```
 
-## Phase 2 — Project Manifest and Standard Audit
+## Phase 2 — Project Manifest, Standard Audit, and Dev-Environment Prototype
 
-Goal: make every BardBox project self-describing and machine-auditable.
+Goal: make every BardBox project self-describing and machine-auditable, while proving the reproducible contributor-environment approach early enough to prevent contributor drift.
 
 - [ ] Define a small project manifest, tentatively `bardbox.toml`.
 - [ ] Record project name, project type, protocol version, config locations, test commands, deployment/service metadata, and shared-library dependencies.
@@ -58,6 +60,9 @@ Goal: make every BardBox project self-describing and machine-auditable.
 - [ ] Check BardBox protocol compliance.
 - [ ] Check deployment/service state where available.
 - [ ] Add `bardbox doctor` for contributor environment checks.
+- [ ] Prototype one BardBox Dev Container in a suitable repo before broad rollout.
+- [ ] Use the prototype to establish the standard Python/tooling baseline and prove that local tests and GitHub Actions can run against equivalent environments.
+- [ ] Keep hardware access out of the prototype unless it is genuinely needed for the development/test workflow.
 
 Example audit areas:
 
@@ -211,18 +216,42 @@ config/schema helpers
 
 The project template should demonstrate how to consume shared libraries; it should not contain duplicated canonical copies of every driver.
 
-## Phase 8 — Reproducible Contributor Environments
+## Phase 8 — Reproducible Contributor Environment Rollout
 
-Goal: reduce environment drift and make collaboration predictable.
+Goal: roll the proven Dev Container approach out across BardBox repositories so contributors, AI agents, and CI use a consistent toolchain.
 
-- [ ] Define a shared BardBox development environment.
-- [ ] Add Dev Container support where useful.
+- [ ] Turn the Phase 2 prototype into a shared/versioned BardBox development-environment definition.
+- [ ] Add Dev Container support to relevant BardBox repositories.
 - [ ] Pin Python versions and important dependencies.
 - [ ] Pin/test PlatformIO and firmware tooling where practical.
 - [ ] Align local development tooling with GitHub Actions CI.
 - [ ] Include linters, formatters, type checks, tests, and `bardbox-tools` in the standard environment.
+- [ ] Make onboarding a one-command or one-action workflow wherever practical.
 - [ ] Keep direct hardware runtime native where Docker/device mapping would create unnecessary complexity.
 - [ ] Use `bardbox doctor` to verify contributors who work outside the container.
+
+The intended split is:
+
+```text
+Contributor laptop / AI coding environment
+        ↓
+BardBox Dev Container
+        ├── pinned Python
+        ├── pinned dependencies
+        ├── test/lint/type tools
+        ├── bardbox-tools
+        └── firmware tooling where needed
+        ↓
+GitHub Actions runs equivalent checks
+
+Actual Raspberry Pi / hardware host
+        ↓
+native BardBox runtime where appropriate
+        ├── GPIO
+        ├── USB/serial
+        ├── hardware drivers
+        └── system services
+```
 
 ## Phase 9 — Project Template Alignment
 
@@ -286,15 +315,16 @@ Do not attempt the whole roadmap at once. Start with this sequence:
 4. Define the project manifest.
 5. Move the config comparator into `bardbox-tools`.
 6. Add Git/local-vs-GitHub audit support.
-7. Implement `bardbox audit`.
-8. Expose the audit through CLI and MCP.
-9. Validate the workflow across `solar-monitor`, `rkc-monitor`, and `cesh-air-monitor`.
-10. Add automatic project-health monitoring.
-11. Add unified BardBox data/archive access and report generation.
-12. Add protocol-governance automation.
-13. Refactor reusable drivers and node code into shared versioned libraries.
-14. Add reproducible contributor environments and align CI.
-15. Bring `bardbox-project-template` fully under automated compliance checks.
+7. Implement `bardbox audit` and `bardbox doctor`.
+8. Prototype the Dev Container in one suitable BardBox repo and align its checks with CI.
+9. Expose the audit through CLI and MCP.
+10. Validate the workflow across `solar-monitor`, `rkc-monitor`, and `cesh-air-monitor`.
+11. Add automatic project-health monitoring.
+12. Add unified BardBox data/archive access and report generation.
+13. Add protocol-governance automation.
+14. Refactor reusable drivers and node code into shared versioned libraries.
+15. Roll the proven Dev Container environment out across relevant BardBox repositories.
+16. Bring `bardbox-project-template` fully under automated compliance checks.
 
 ## Near-Term Definition of Done
 
@@ -307,6 +337,7 @@ The first major milestone is complete when a contributor or AI agent can ask Bar
 - local-vs-GitHub status;
 - protocol compliance;
 - relevant dependency state;
+- contributor-environment health;
 - enough structured output for an AI agent to explain problems without needing unrestricted shell access.
 
 At that point, BardBox will have the foundation of a maintainable multi-repository platform rather than relying on individual contributors to remember conventions manually.
