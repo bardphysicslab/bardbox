@@ -15,6 +15,35 @@ docs in this repo when implementation detail is needed.
 2. Implement those changes in `bardbox-project-template` second.
 3. Update project repos third, such as GoLab, RKC, Solar, and CESH Air.
 
+## Git Identity Preflight
+
+Before creating or amending a commit in any BardBox/Bard Physics repository,
+verify the repository's Git remote and the effective commit identity. This is
+especially important on development machines that are also used for personal
+GitHub projects.
+
+Run:
+
+```bash
+git remote -v
+git config --get user.name
+git config --get user.email
+```
+
+For BardBox/Bard Physics work, confirm that the repository points to the
+`bardphysicslab` GitHub organization/account and that the commit author identity
+is the approved Bard Physics identity before committing or pushing. If the
+identity is personal or otherwise unexpected, stop and correct the repo-local
+Git configuration first. Do not change global Git configuration just to repair
+one repository.
+
+Likewise, do not assume that the SSH identity used for transport determines the
+commit author: SSH authentication and Git `user.name`/`user.email` are separate.
+
+Never put personal GitHub usernames, personal email addresses, SSH aliases, key
+filenames, or other account-specific workstation configuration into this public
+BardBox repository. Keep those details local/private.
+
 ## Node UID Standard
 
 New node UIDs use:
