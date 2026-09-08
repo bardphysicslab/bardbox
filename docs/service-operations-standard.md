@@ -12,44 +12,47 @@ Project-specific sensor, alert, and analysis logic does not belong here.
 | Read-only Data API | REQUIRED WHEN APPLICABLE |
 | Verified archive backup and retention | REQUIRED WHEN local historical data is retained and pruned |
 | Tailscale remote administration | RECOMMENDED for Raspberry Pi deployments |
-| Central MCP/query boundary | REQUIRED architectural boundary |
+| Central BardBox Tools / MCP boundary | REQUIRED architectural boundary |
 
 ## Safe configuration synchronization
 
-`raspi/config/app_config.example.json` is the sanitized, version-controlled
-schema and default-value template. It must contain no real credentials.
-`raspi/config/app_config.json` contains local or production values, including
-secrets, and must be ignored by Git.
+A repository using deployment-local `app_config` must keep a sanitized,
+version-controlled example/schema file and an ignored live runtime file. The
+exact paths may vary by project and should ultimately be declared in
+`bardbox.toml` rather than hard-coded into shared tooling.
 
-Every repository using this pattern must carry the canonical
-`scripts/sync_app_config.py`. A deployment is not complete until the
-synchronizer reports both:
+Typical monitor paths are:
 
 ```text
-Added keys: none
-Added node fields: none
+raspi/config/app_config.example.json
+raspi/config/app_config.json
 ```
 
-After every `git pull`, and before restarting the service, run the explicit
-deployment check:
+The example file must contain no real credentials. The live runtime file may
+contain deployment-specific values and secrets and must be ignored by Git.
 
-```bash
-python3 scripts/sync_app_config.py --check
-```
+The **canonical config comparison and synchronization logic belongs in shared
+BardBox tooling**, not in separately maintained copies in every project repo.
+During migration, repositories may retain thin compatibility wrappers such as
+`scripts/sync_app_config.py`, but those wrappers should call the shared
+implementation rather than fork its behavior.
 
-The check is a dry run: it must never modify the ignored live configuration.
-It exits non-zero when deployable keys or fields on matching node UIDs are
-missing. Operators must review those additions and apply them when appropriate:
+A deployment is not complete until the config check reports no deployable keys
+or node fields missing from the live configuration.
 
-```bash
-python3 scripts/sync_app_config.py --write
-```
+The required behavior is:
 
-The synchronizer validates both JSON inputs, recursively adds fields introduced
-by the example, preserves deployment values and unknown local fields, matches
-configured nodes by UID without creating new enabled deployments, creates a
-timestamped backup, and atomically replaces the live file. Example files use
-empty secret placeholders; real secrets are never copied into Git.
+- validate both example and live JSON;
+- recursively add fields introduced by the example;
+- preserve deployment values and unknown local fields;
+- match configured nodes by UID rather than list order;
+- do not create new enabled deployments merely because an example contains a
+  new node;
+- create a timestamped backup before modifying live config;
+- atomically replace the live file;
+- never copy real secrets into Git;
+- provide a dry-run/check mode that never modifies the live configuration;
+- exit non-zero when reviewed config migration is still required.
 
 Example-only and production-only node UIDs are deliberately not merged. A
 local-only production node may therefore need an explicit, reviewed migration
@@ -60,14 +63,16 @@ The required deployment sequence is:
 
 ```text
 git pull
-config sync --dry-run/check
+bardbox config check
 review/apply required config additions
-confirm Added keys: none
-confirm Added node fields: none
+confirm config check passes
 restart service
 health check
 smoke test
 ```
+
+Until the shared CLI command is available in a migrated repository, its
+compatibility wrapper may provide the equivalent check/write workflow.
 
 ## Two independent availability layers
 
@@ -101,6 +106,10 @@ failures. A success resets the count. Project-specific alerts and sensor checks
 must not be embedded in this watchdog. This layer is required because a live
 Uvicorn process can remain running while the application no longer responds.
 
+A project may also expose a richer application-health endpoint, but it must be
+kept separate from the inexpensive liveness endpoint when it performs device,
+filesystem, network, freshness, or other operational checks.
+
 ## Read-only historical Data API
 
 Services with a clean historical readings root expose:
@@ -110,9 +119,9 @@ GET /api/data/files
 GET /api/data/files/{path:path}
 ```
 
-The canonical CESH Air router is the reference. Requirements:
+The canonical CESH Air router is the current reference. Requirements:
 
-- a dedicated token in ignored `app_config.json`; empty or missing means 503;
+- a dedicated token in ignored runtime config; empty or missing means 503;
 - Bearer authentication with constant-time comparison before filesystem work;
 - recursive `.csv` and `.csv.gz` listing using relative paths only;
 - canonical-path confinement; reject traversal, outside symlinks, directories,
@@ -128,8 +137,8 @@ example of a mixed tree that must not be exposed wholesale.
 ## Verified backup and safe retention
 
 When local historical readings are archived and later pruned, the backup job
-must be separate from application code and configured by a deployment-local
-environment file. The reusable lifecycle is:
+must be separate from application code and configured by deployment-local
+settings. The reusable lifecycle is:
 
 ```text
 discover new/changed stable file
@@ -146,17 +155,52 @@ closed candidates. Changed files invalidate older manifest versions. Archive
 destinations use copy semantics, never sync semantics that delete remote
 history. Services without local historical archives do not need this component.
 
-## Data access and MCP boundary
+A project may create a stable local snapshot before network transfer when its
+writer needs that separation, but the remote archive still must obey the
+non-destructive copy and verified-retention invariants above.
+
+Generic backup verification/manifest logic should move toward a shared BardBox
+implementation or a manifest-driven deployment component rather than diverging
+shell implementations in each repo. Project-specific source locking or snapshot
+hooks may remain local when necessary.
+
+## Data access and BardBox Tools / MCP boundary
 
 ```text
 Monitoring service
     -> authenticated read-only Data API
-    -> bardbox-mcp
-    -> bardbox-query / MCP client / analysis tools
+    -> bardbox-tools deterministic core
+       -> bardbox CLI / bardbox-query
+       -> MCP tools / AI clients
+       -> downstream analysis/reporting
 ```
 
-Service repositories expose generic files. The central local project
-`~/Code/bardcollege/bardbox-mcp` retrieves and packages them. MCP tools, dataset
-merging, statistics, filtering, plots, and analysis must not be duplicated in
-monitoring servers. `bardbox-query` is a retrieval/packaging tool, not an
-analysis engine.
+Monitoring service repositories expose generic operational data and
+project-specific behavior. Shared dataset discovery, retrieval/packaging,
+config comparison, Git inspection, project audits, protocol checks, and similar
+cross-repository engineering functions belong in `bardbox-tools` rather than
+being duplicated in monitoring servers.
+
+CLI and MCP interfaces should call the same deterministic implementation.
+MCP should remain a narrow interface over approved BardBox capabilities rather
+than providing arbitrary shell execution.
+
+The repository/distribution is `bardbox-tools`. Transitional executable names
+such as `bardbox-mcp` or `bardbox-query` may remain for compatibility while the
+package migration is completed, but new documentation and architecture should
+not treat the former `bardbox-mcp` repository/path as the canonical home.
+
+## Source of truth and production drift
+
+Git is the source of truth for code, deployment assets, schemas, and templates.
+Production hosts may contain ignored deployment config, credentials, data,
+logs, manifests, caches, and other runtime state, but they should not accumulate
+unique source code or unique infrastructure behavior.
+
+Production inspection should therefore be read-only by default. Drift should be
+reported, fixed in Git, reviewed, and then deployed through the repository
+workflow rather than repaired first by editing the production host.
+
+As `bardbox-tools` matures, deployment/service inspection should be
+manifest-driven so a contributor or AI agent can obtain a deterministic report
+without needing unrestricted production shell access.
