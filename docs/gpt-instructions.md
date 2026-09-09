@@ -69,6 +69,10 @@ Rules:
 - Firmware supports `INFO`, `HEADER`, and `READ`.
 - `START` and `STOP` are only required for session or streaming devices.
 
+## Web Node Network Recovery
+
+For HTTP/HTTPS push nodes, follow `transport-recovery-standard.md`: acquisition, persistent queueing, and uploading are separate; every network operation has a finite deadline; unacknowledged records stay queued oldest-first; failure recovery is bounded and observable. Do not copy CESH-specific firmware or impose HTTP code on other transport types. Promote reusable behavior into the canonical standard and template before applying it broadly.
+
 ## Reading and Status Standard
 
 Statuses:
