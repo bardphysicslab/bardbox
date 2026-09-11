@@ -37,6 +37,30 @@ Read-only/idempotent operations may reconnect and retry once when safe. State-ch
 
 Where practical, drivers should verify device identity after reconnect (for example with an instrument identity query) before accepting the connection as the configured source. Port rediscovery by stable USB identity/serial number may be added when device paths are not stable, but simple close/discard/reopen of the configured port is the required baseline behavior.
 
+## Network-Push Web Node Recovery
+
+This section applies to a Web Node that sends measurements to a server over HTTP/HTTPS or another network transport. It does not prescribe the same code for serial-poll, TCP-pull, BLE, or MQTT nodes; those implementations must meet the same outcome using their own transport boundary.
+
+A reporting outage must never stop sensor acquisition, timestamping, or persistence. Treat acquisition, completed-record storage, and upload as separate responsibilities:
+
+1. sample at the sensor-appropriate cadence and validate each observation;
+2. complete an immutable record and persist it before it becomes eligible for upload;
+3. upload the oldest unacknowledged record first;
+4. remove that record only after the configured acknowledgement is received (HTTP/HTTPS: any 2xx response);
+5. keep sampling and appending while an upload, retry, or catch-up is pending.
+
+Every network operation—association, DNS, TLS, request write, response wait, and acknowledgement—must have an explicit, finite deadline. A timeout, non-success response, or lost connection leaves the record queued and records a classified failure; it must not create an unbounded wait or a busy retry loop.
+
+Use a bounded recovery ladder supported by the node:
+
+1. retry the connection/request with backoff;
+2. reinitialize the local network client or interface;
+3. where the platform has a reliable software watchdog or restart mechanism, escalate after a documented failure budget.
+
+A firmware may not claim that a hardware power cycle exists unless its deployed PCB actually supports it. A software restart is a last-resort recovery tool, not a substitute for preserving queued data or for sensor-specific recovery. Before enabling it, verify that it cannot turn a recoverable outage into a restart loop.
+
+Expose additive diagnostics through the node's normal health/INFO path: queue usage, last transport failure class, consecutive failure count, last successful acknowledgement, boot/reset reason where available, and whether buffered records are being replayed. Automatic uploads and recovery remain quiet in production; verbose traces belong to an explicit operator diagnostic or development build.
+
 ## I2C Recovery
 
 I2C failures are different from stale serial handles because the sensor or bus itself may be wedged. A driver should treat repeated I2C read/write failure as a recoverable device/bus fault rather than returning invalid or zero-valued measurements.
