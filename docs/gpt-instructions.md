@@ -115,3 +115,7 @@ RKC Monitor dark theme is the BardBox visual standard:
 When helping with BardBox, follow these standards unless the user explicitly
 says they are changing the standard. If a project repo conflicts with `bardbox`,
 treat `bardbox` as authoritative and recommend updating the project/template.
+
+## Optional live previews during catch-up
+
+Read [web-node-live-preview.md](web-node-live-preview.md) before adding live display alongside archival replay. Preserve FIFO archival and separate preview acknowledgments, measurement freshness, operational progress and durable acceptance. Require capability-safe legacy fallback, restart-safe deduplication and exact-version backup/retention evidence. Do not claim support or deployment based on documentation alone.
