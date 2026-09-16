@@ -73,6 +73,12 @@ Rules:
 
 For HTTP/HTTPS push nodes, follow `transport-recovery-standard.md`: acquisition, persistent queueing, and uploading are separate; every network operation has a finite deadline; unacknowledged records stay queued oldest-first; failure recovery is bounded and observable. Do not copy CESH-specific firmware or impose HTTP code on other transport types. Promote reusable behavior into the canonical standard and template before applying it broadly.
 
+For ESP32 Wi-Fi nodes, use the template's Wi-Fi recovery component by default:
+bounded reconnects, continued local acquisition, and a 15-minute continuous
+offline restart after target-hardware validation. For pushing nodes, prove
+queued-record survival across restart before enabling that escalation. RKC's
+Pi-polled nodes do not have an outbound queue; CESH's Web Nodes do.
+
 ## Reading and Status Standard
 
 Statuses:
