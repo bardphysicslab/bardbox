@@ -27,6 +27,12 @@ The signature must bind the compatibility metadata to the image digest and size.
 Specify signature algorithm, canonical encoding and test vectors before shipping.
 Never treat a checksum alone as authorization to run an image.
 
+The release SHA-256 covers the complete downloadable artifact, including any
+appended platform digest. ESP32's `esp_partition_get_sha256()` may return an
+appended image digest instead, so it is not a substitute for this artifact hash.
+Persist candidate and previous artifact byte lengths with their hashes; hash
+exactly those bytes when identifying the running image after restart.
+
 The reference assignment parser accepts at most 4,096 bytes, exact fields without
 duplicates, and positive 32-bit assignment generations. It accepts the server's
 unescaped ASCII JSON values and rejects numeric coercions, escapes and unexpected
