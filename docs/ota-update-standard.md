@@ -163,3 +163,9 @@ acquisition at that boundary, retain an audit marker in NVS, then restart. Bound
 the wait to one reporting interval plus margin; failed storage/boundary persistence
 must cancel the planned restart and restore the running boot selection where
 possible. Never clear the measurement queue to satisfy this gate.
+
+
+Skill synchronization checked: the reusable BardBox change skill already requires
+optional-capability classification, canonical-first propagation, documentation,
+recovery testing and deployment gates. These OTA-specific contracts introduce no
+new general agent workflow, so no skill rewrite is required.
