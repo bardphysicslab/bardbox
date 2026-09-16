@@ -27,6 +27,12 @@ The signature must bind the compatibility metadata to the image digest and size.
 Specify signature algorithm, canonical encoding and test vectors before shipping.
 Never treat a checksum alone as authorization to run an image.
 
+The reference assignment parser accepts at most 4,096 bytes, exact fields without
+duplicates, and positive 32-bit assignment generations. It accepts the server's
+unescaped ASCII JSON values and rejects numeric coercions, escapes and unexpected
+download paths. Artifact paths must equal `/ota/v1/device/artifact/<release_id>`
+on the configured origin. Release IDs `.` and `..` are invalid URL path segments.
+
 Device registrations declare component, target, partition layout, configuration
 schema, queue schema and slot capacity. Require matching values on both server
 and device. An image for another component is ineligible even if its target matches.
