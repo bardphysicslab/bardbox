@@ -95,3 +95,31 @@ configuration.
 As deployments grow, a centralized Bard Box portal aggregating multiple dashboards behind a single authenticated interface may be useful.
 
 This is out of scope for current deployments.
+
+## Optional authenticated campus dashboards
+
+A project may add HTTPS authentication for campus/VPN viewers while preserving
+internal-only network access. Authentication does not authorize public exposure
+or routing campus clients onto the sensor network.
+
+- Separate read-only viewers from administrators. Enforce roles on every route,
+  including legacy control endpoints, logs and generated API documentation.
+- Require a configured HTTPS origin and trusted proxy boundary. Bind the app to
+  loopback; trust forwarded headers only from the local proxy. Keep credentials
+  outside Git and reject incomplete enabled configuration.
+- Browser mutations require same-origin checks and a custom request header;
+  Basic authentication alone does not prevent cross-site requests.
+- Keep a minimal side-effect-free local health endpoint for the watchdog.
+- Provider webhooks need their own signature verification; browser credentials
+  are not a substitute. An outbound-polling deployment can explicitly disable
+  unused inbound webhook routes.
+- Document the campus/VPN allowlist, certificate ownership, sensor interface
+  isolation, credential rotation and rollback before deploying. Check actual
+  IPv4 and IPv6 reachability with Bard IT; never infer firewall safety from code.
+
+The optional template `software/app/dashboard_access.py` provides a small access
+boundary; projects supply their environment prefix, viewer routes and disabled
+webhooks. RKC is the first consumer. CESH's ingestion and OTA authentication are
+separate contracts and do not automatically adopt this dashboard gate. No
+firmware or measurement protocol changes are required. Existing AI skill
+propagation guidance covers this capability; no skill rewrite is needed.
