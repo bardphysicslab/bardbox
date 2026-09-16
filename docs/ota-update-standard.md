@@ -27,6 +27,10 @@ The signature must bind the compatibility metadata to the image digest and size.
 Specify signature algorithm, canonical encoding and test vectors before shipping.
 Never treat a checksum alone as authorization to run an image.
 
+Device registrations declare component, target, partition layout, configuration
+schema, queue schema and slot capacity. Require matching values on both server
+and device. An image for another component is ineligible even if its target matches.
+
 An assignment binds a registered device to an immutable release and has a unique
 identifier and monotonically increasing device assignment generation. A rollback
 is a new authorized assignment to a compatible older release. Do not infer
