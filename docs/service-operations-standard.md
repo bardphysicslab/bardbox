@@ -160,3 +160,31 @@ Service repositories expose generic files. The central local project
 merging, statistics, filtering, plots, and analysis must not be duplicated in
 monitoring servers. `bardbox-query` is a retrieval/packaging tool, not an
 analysis engine.
+
+## Declared runtime drift checks
+
+Projects may declare exact expected Python and installed Python distribution
+versions plus SHA-256 hashes of deployed driver/service/executable files under
+`[runtime]` in `bardbox.toml`. Shared BardBox Tools audits report mismatches and
+unavailable files as failures. Missing expectations preserve older audit behavior
+and provide no runtime verification; they must not be represented as a clean
+runtime inventory.
+
+Run the audit with the deployed service's Python interpreter on the Pi. An audit
+of a checkout on a workstation does not inspect a remote Pi or the running
+process. File hashes verify bytes on disk, not loaded code, active systemd state,
+drop-in precedence, enabled timers or successful backups. Inspect those separately
+before signing off a reconciliation. Capture the effective unit and drop-ins
+privately: they can contain credentials and must not be published in reports.
+
+The manifest never supplies executable commands. Audits do not install packages,
+copy service files, restart/enable units, upgrade rclone or modify measurements.
+Use a reviewed maintenance change to reconcile drift, preserving deployment
+values and rollback copies; then repeat the audit and relevant operational checks.
+Only inventory files approved for inspection; audit output includes status, not
+file contents. Per-file reads are limited to 32 MiB and reject nonregular files.
+
+Shared tooling is the implementation owner. The template documents opt-in
+expectations; existing projects adopt their actual approved versions separately.
+No guessed watchdog/rclone versions are promoted into CESH or RKC. Existing AI
+skill instructions already require drift checks; no skill change is needed.
