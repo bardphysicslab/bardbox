@@ -37,6 +37,13 @@ is a new authorized assignment to a compatible older release. Do not infer
 authorization from semantic version ordering. Persist the last handled generation
 and failed assignment across restart; do not repeatedly install a failed release.
 
+Commit complete assignment state before starting download or choosing a boot slot.
+If a persistence outcome is uncertain, stop update actions until a verified reload.
+Missing or corrupt update state must not silently become a new idle device. Initial
+state creation belongs to deliberate commissioning. Reserve status-event sequences
+durably before emission, including a new sequence after restart, and bound progress
+report frequency to avoid excessive flash writes.
+
 The server authenticates devices individually and derives identity from their
 credentials, not a caller-supplied UID alone. Devices may read only their own
 assignment and report only their own status. Artifact access must not expose
