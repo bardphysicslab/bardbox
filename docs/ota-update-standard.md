@@ -72,6 +72,12 @@ States: idle, assigned, waiting_for_transport, downloading, verifying,
 pending_reboot, validating, confirmed, failed, rolled_back.
 Offline/stale is a separate observation, not evidence of installation failure.
 Report byte progress and bounded failure codes without credentials or raw secrets.
+Assignment generations and event sequences are unsigned 32-bit values. Stop before
+wraparound; never reuse a generation or sequence. A prepared event is immutable:
+retry the same body after a lost response. After restart, reserve a fresh durable
+sequence before creating a replacement report. HTTP 200 acknowledges a status;
+retry transport errors, 408, 429 and server failures with backoff. Other 4xx needs
+assignment/config reconciliation, not repeated unchanged submission.
 
 An ESP32 installer writes only the inactive application slot. Reject oversized,
 truncated, unsigned, modified or incompatible images before selecting the new slot.
