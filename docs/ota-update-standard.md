@@ -145,3 +145,21 @@ migrated. Shared release builds must instead require a valid commissioned record
 and contain no per-device credentials. Keep rollback targets compatible with that
 configuration format. Certificate/key/Wi-Fi rotation needs an explicit maintenance
 flow; initial commissioning is not a general remote configuration interface.
+
+
+### ESP32 local validation and restart boundary
+
+The reference local acceptance policy requires valid persistent configuration,
+healthy storage and at least one newly persisted reporting window while acquisition
+continues to progress. A 150-second budget covers the CESH 120-second interval;
+other reporting intervals must select an explicit compatible bound. Network
+availability and individual degraded sensors do not decide firmware acceptance.
+Only mark an SDK-pending candidate valid after these local checks. Unexpected
+pending images or missing/corrupt lifecycle state fail closed to the SDK rollback
+path rather than being implicitly accepted.
+
+Before a planned update restart, wait for a completed window to persist and pause
+acquisition at that boundary, retain an audit marker in NVS, then restart. Bound
+the wait to one reporting interval plus margin; failed storage/boundary persistence
+must cancel the planned restart and restore the running boot selection where
+possible. Never clear the measurement queue to satisfy this gate.
