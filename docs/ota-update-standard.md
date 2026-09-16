@@ -123,3 +123,25 @@ for interrupted power/download, failed startup, wrong target, rollback, preserve
 credentials/queue and sampling during flash writes. Measure actual record sizes,
 offline retention, firmware growth headroom and reboot gap. A cached build or host
 test is not evidence of successful device recovery. Record those results separately.
+
+### Reference USB configuration storage
+
+The ESP32 reference keeps an explicitly commissioned configuration record in its
+own NVS namespace, separate from OTA lifecycle state and the measurement queue.
+It contains stable UID, Wi-Fi credentials, telemetry endpoint/authentication,
+verified HTTPS trust, OTA origin/device credential/signing public key, and the
+known-good artifact's exact length and SHA256. Signing private keys remain off
+node. The record is bounded, versioned and checked for accidental corruption;
+CRC is not authentication or encryption. Physical USB access is a trusted
+commissioning boundary. Never echo the record or credentials in diagnostics.
+
+First provisioning may resume an interrupted identical write but must not replace
+an existing different record or reset handled assignment state. Missing/corrupt
+configuration disables OTA; it never triggers erasure or automatic reprovisioning.
+Load the commissioned record at boot; serial commissioning does not silently
+change the identity of a running acquisition session or reboot the device.
+Legacy builds may retain their existing compiled configuration until deliberately
+migrated. Shared release builds must instead require a valid commissioned record
+and contain no per-device credentials. Keep rollback targets compatible with that
+configuration format. Certificate/key/Wi-Fi rotation needs an explicit maintenance
+flow; initial commissioning is not a general remote configuration interface.
