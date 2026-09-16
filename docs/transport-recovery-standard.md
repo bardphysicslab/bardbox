@@ -59,6 +59,31 @@ Use a bounded recovery ladder supported by the node:
 
 A firmware may not claim that a hardware power cycle exists unless its deployed PCB actually supports it. A software restart is a last-resort recovery tool, not a substitute for preserving queued data or for sensor-specific recovery. Before enabling it, verify that it cannot turn a recoverable outage into a restart loop.
 
+### ESP32 Wi-Fi node default
+
+Every BardBox ESP32 node that owns a Wi-Fi connection should use the reusable
+Wi-Fi recovery component in `bardbox-project-template`. The reference policy
+retries association every 30 seconds while continuing sensor acquisition and
+local commands, and escalates after 15 minutes continuously offline to an
+ESP32 software restart. These timings were observed on RKC node 010 with
+firmware 1.8; they are defaults, not universal physical guarantees. Projects
+must document any different thresholds and validate the behavior on their
+hardware before deployment. A reboot must never replace normal retry or
+trigger on a single server request failure while Wi-Fi remains connected.
+
+Wi-Fi recovery is independent of application delivery. A TCP-pull node such
+as RKC has no outbound record queue to preserve. A pushing node with a local
+queue must persist completed records before upload and demonstrate that the
+queue survives an outage and forced restart and drains without loss or
+duplicate archival. Until that is verified on the target hardware, disable
+the restart stage while retaining bounded Wi-Fi reconnects. Close stale
+sessions on disconnect, expose the continuous offline duration and recovery
+reason, and require fresh communication before reporting restored service.
+
+The reference implementation does not itself provide a hardware watchdog or
+prove that explicit interface reinitialization is needed. Add those stages
+only when a target device and fault test justify them.
+
 Expose additive diagnostics through the node's normal health/INFO path: queue usage, last transport failure class, consecutive failure count, last successful acknowledgement, boot/reset reason where available, and whether buffered records are being replayed. Automatic uploads and recovery remain quiet in production; verbose traces belong to an explicit operator diagnostic or development build.
 
 ## I2C Recovery
