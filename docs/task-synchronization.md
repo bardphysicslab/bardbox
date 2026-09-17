@@ -54,10 +54,17 @@ and operation result, and suppress its own event echoes. Conflicting source
 changes, partial pagination, access failures and rate limits halt the affected
 operation. Do not treat missing read access as deleted tasks.
 
-This change supplies policy and a tested offline audit only. It does not install
-labels, create missing Blocked lists, schedule network synchronization, or perform
-bulk changes. Live connector collection, concurrency-safe writes and existing-card
-migration remain follow-up work. Deployment requires reviewed board/list mappings
-and credentials. Template/project instructions should link this canonical policy;
-do not maintain independent mappings in firmware or dashboards. The existing
-BardBox change skill already covers tracking and propagation; no rewrite needed.
+BardBox Tools now supplies the offline audit, bounded live-read adapters,
+reviewed identity policy, durable operation journal and an opt-in Trello writer.
+The writer is disabled by default. It requires a fresh complete read, a durable
+single-attempt claim and read-back confirmation; ambiguous outcomes remain
+pending. Its explicit best-effort race policy does not make remote writes atomic.
+
+These are building blocks for reviewed one-shot actions. Unattended synchronization
+still needs the two-sided baseline/conflict policy above, reviewed adoption of new
+card identities, proved-not-applied recovery and deployment configuration. No labels,
+Blocked lists, schedules, credentials or bulk migration are installed automatically.
+Deployment requires reviewed board/list mappings and credentials. Template/project
+instructions should link this canonical policy; do not maintain independent mappings
+in firmware or dashboards. The existing BardBox change skill already covers tracking
+and propagation; no rewrite is needed.
