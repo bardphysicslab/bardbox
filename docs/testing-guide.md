@@ -29,3 +29,9 @@ Dashboard checks should verify:
 - unavailable/error nodes show red status
 - stale nodes do not display old metric values as current
 - `last_seen` appears separately when shown
+
+## Isolated and clean Linux validation
+
+Follow [reproducible development and Linux validation](reproducible-development.md)
+for repository-owned environments, Dev Container applicability, CI parity and the
+separation between portable software tests and physical hardware evidence.
