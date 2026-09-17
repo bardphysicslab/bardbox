@@ -67,7 +67,8 @@ reference implementation. Promote through review; do not silently merge it or co
 unrelated template application code into consumers. Known Python consumers include
 BardBox Tools, CESH and RKC; each needs its own dependency and test-path assessment.
 
-A future audit declaration should identify Python version, dependency input and
-validation entrypoint. Static checks can verify files/declared alignment, but must
+The optional `[development]` manifest section declares `python`, `dependencies`,
+`devcontainer` and `validation_script`. All four fields are required when enabled;
+paths must stay within the repository. Static checks verify declared file presence, but must
 not claim that Docker ran, that tests passed, or that the production host matches.
 Keep audit execution read-only unless the operator explicitly invokes validation.
