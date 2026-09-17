@@ -64,6 +64,8 @@ Goal: one documented standard, one reference implementation, many project instan
 
 ## Key Docs
 
+- [Repository layout and configuration filenames](docs/repository-layout.md)
+
 - [Reading format](docs/reading-format.md)
 - [Node naming standard](docs/node-naming-standard.md)
 - [Device instructions](docs/device-instructions.md)
