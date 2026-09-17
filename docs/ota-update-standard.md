@@ -90,7 +90,12 @@ Document partial-window handling and measure the acquisition gap. Do not clear
 the queue to make an update succeed. Preserve configuration and queue compatibility
 with the rollback firmware. Firmware images must not embed per-device credentials.
 
-Verify the actual bootloader supports rollback. Confirm a new application only
+Verify the actual bootloader supports rollback and the application framework does
+not accept the image before project validation. In Arduino ESP32, the installer
+must override the weak `verifyRollbackLater()` hook with a strong C-linkage
+implementation returning true; verify the linked artifact and physical behavior.
+Initialize/recover persistent queue metadata before evaluating storage readiness.
+Confirm a new application only
 after bounded local checks show that acquisition progresses and persistent storage
 and configuration work. Known degraded sensors need not make firmware invalid.
 Network outages alone must not cause endless reboot/rollback cycles. Record cloud
