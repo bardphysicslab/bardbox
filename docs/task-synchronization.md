@@ -54,18 +54,22 @@ and operation result, and suppress its own event echoes. Conflicting source
 changes, partial pagination, access failures and rate limits halt the affected
 operation. Do not treat missing read access as deleted tasks.
 
-BardBox Tools now supplies the offline audit, bounded live-read adapters,
-reviewed identity policy, durable operation journal and an opt-in Trello writer.
-The writer is disabled by default. It requires a fresh complete read, a durable
-single-attempt claim and read-back confirmation; ambiguous outcomes remain
-pending. Its explicit best-effort race policy does not make remote writes atomic.
+BardBox Tools supplies the offline audit, bounded live-read adapters, reviewed
+identity policy, durable operation journal and opt-in Trello/GitHub senders.
+Both senders are disabled by default. They require fresh source checks, a durable
+single-attempt claim and read-back confirmation; ambiguous outcomes remain pending.
+Their explicit best-effort race policy does not make remote writes atomic. GitHub
+label replacement can overwrite a concurrent label edit after the source read.
 
-These are building blocks for reviewed actions. The tooling now includes durable revision-pair guards, explicit reviewed card-link and first-baseline
-adoption helpers, and read-only two-sided direction planning. GitHub status writes,
-adoption orchestration, durable policy persistence, proved-not-applied recovery and
-deployment configuration remain unfinished. No labels,
-Blocked lists, schedules, credentials or bulk migration are installed automatically.
-Deployment requires reviewed board/list mappings and credentials. Template/project
-instructions should link this canonical policy; do not maintain independent mappings
-in firmware or dashboards. The existing BardBox change skill already covers tracking
-and propagation; no rewrite is needed.
+These are building blocks for reviewed actions. The tooling includes durable
+revision-pair guards, reviewed card-link and initial-baseline adoption, two-sided
+direction planning and version-checked local policy storage. Coordinating policy,
+journal and adoption during a complete run, proved-not-applied recovery and live
+deployment validation remain unfinished. No status labels, Blocked lists,
+schedules, credentials or bulk migration are installed automatically.
+
+Deployment requires reviewed board/list mappings, classifications and credentials,
+plus a live smoke test and an explicit operational choice about remaining remote
+races. Template/project instructions should link this policy; do not copy mappings
+or synchronization code into firmware or dashboards. The existing BardBox change
+skill covers tracking and propagation; no rewrite is needed.
