@@ -1,13 +1,17 @@
 # Shared agent practice
 
-General engineering rules for Bard Physics Lab repositories. This file
-was moved unchanged from the BardBox root `AGENTS.md` sections of the same
-names; see `README.md` in this directory for when to read it.
+General engineering rules for Bard Physics Lab repositories. The sections
+"Decisions and proportional workflow", "Verification and documentation",
+"Architectural self-check" and "Refactoring with little test coverage" came
+from the BardBox root `AGENTS.md`. "Change discipline" and the
+focused-test and completion-report rules were promoted from Beaker. See
+`README.md` in this directory for when to read it.
 
 ## Decisions and proportional workflow
 
-Use **Design → Decompose → Define done → Generate → Verify → Commit** for
-meaningful new work. Keep changes small enough for human review, with durable
+Use **Define done → Design → Decompose → Implement → Verify → Commit** for
+meaningful new work. Generating code with an agent is one way to implement,
+not a separate step. Keep changes small enough for human review, with durable
 notes and verified recovery checkpoints. Course reference:
 [CMU Agentic Software Development](https://github.com/CMU-17-214/f2026).
 Consult relevant material before attributing a rule to it; the course is a
@@ -43,7 +47,24 @@ unrelated refactor a release prerequisite or waive safety/data-integrity checks
 because of a deadline. Repeated failed fixes are a reason to reassess scope and
 the recovery checkpoint, not to continue generating ever-larger changes.
 
+## Change discipline
+
+- Do not invent missing facts. A reasonable assumption is allowed when you
+  state it.
+- Do not silently introduce new schemas, architectural patterns,
+  dependencies, or sources of truth.
+- Preserve existing architectural decisions unless the task authorizes
+  reconsidering them. Re-examining a decision in an assessment is not
+  changing it.
+- Do not refactor unrelated code while implementing a feature or fix.
+- Avoid speculative abstractions. Build a boundary when there is a real
+  need for it.
+- Keep secrets and credentials out of source control.
+
 ## Verification and documentation
+
+- Add or update focused tests when changed behavior warrants them. Avoid
+  tests that merely mirror the implementation.
 
 - Run relevant existing tests; identify changed assumptions and credible gaps in
   the tests themselves. Recommend additional checks with their purpose. Verify
@@ -60,7 +81,8 @@ the recovery checkpoint, not to continue generating ever-larger changes.
   relevant. Skip a formal scan for genuinely trivial changes.
 - Flag expensive, destructive, or unusual tests for a scope/authorization
   decision; do not run them automatically. Broaden tests when a concrete risk
-  warrants it, not as an unbounded ritual.
+  warrants it, not as an unbounded ritual, and explain the reason in plain
+  language.
 - Every material change checks documentation impact, including an explicit
   “no documentation change required” result when appropriate. Update affected
   user guidance, architecture/data flow, setup/maintenance instructions,
@@ -69,6 +91,9 @@ the recovery checkpoint, not to continue generating ever-larger changes.
 - Explain derived values plainly to users. Document mathematical methods and
   thresholds where relevant: formula, implementation, and tests must agree.
   Record meaningful decisions with their reason, alternatives, and consequences.
+- Report completion concisely: what changed, how it was verified, and
+  material limitations or remaining risks. Mention what did not change only
+  when it clarifies scope.
 
 ## Architectural self-check
 

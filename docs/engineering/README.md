@@ -46,8 +46,9 @@ governing SHA, for example
 
 Record `Shared guidance: bardphysicslab/bardbox@<sha>` once, in the task's
 durable evidence: the handoff, pull request, commit message or the
-repository's dated evidence record. Keep using that SHA for the rest of the
-task.
+repository's dated evidence record. If a review or proposal produces no
+such artifact, state it once in your response. Keep using that SHA for the
+rest of the task.
 
 Copies are not authoritative and do not substitute for the governing SHA.
 That includes desktop files, chat project sources, agent memory and earlier

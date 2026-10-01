@@ -26,7 +26,8 @@ read the shared guidance. Your tool does not load it automatically.
    only after merge to `main`. If `docs/engineering/` does not exist at that
    SHA, that SHA's `AGENTS.md` is the complete governing guidance.
 4. Record `Shared guidance: bardphysicslab/bardbox@<sha>` once in the task's
-   durable evidence.
+   durable evidence. If a review or proposal produces no such artifact, state
+   it once in your response.
 
 Copies (desktop files, chat project sources, memory) do not substitute for
 the governing SHA. If a required file that exists at the resolved SHA cannot

@@ -63,7 +63,7 @@ Work from a known-good state.
 
 For each task:
 
-Design → Decompose → Implement → Verify → Commit
+Define done → Design → Decompose → Implement → Verify → Commit
 
 Each implementation step should be small enough to:
 - understand,
