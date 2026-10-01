@@ -9,24 +9,26 @@ credentials or personal contact details here.
 
 ## What to read
 
-Agent tools do not load these files automatically, and a Markdown link loads
-nothing. Open and read each file that applies:
+Read all four shared files before planning, proposing, reviewing, delegating
+or implementing changes:
 
-| File | When |
-| --- | --- |
-| `development-workflow.md` | Always, before planning or delegating work |
-| `agent-practice.md` | Before any change |
-| `checkouts-and-worktrees.md` | Before choosing, creating or ending a checkout |
+1. `README.md` (this file)
+2. `development-workflow.md`
+3. `agent-practice.md`
+4. `checkouts-and-worktrees.md`
 
-Then read the repository's own root `AGENTS.md` and `ARCHITECTURE.md`, and the
-documents they require. BardBox device and platform projects also read this
-repository's root `AGENTS.md` and `ARCHITECTURE.md`.
+Each repository's root `AGENTS.md` repeats this list and the read commands,
+because these files are not loaded automatically. A Markdown link loads
+nothing; open each file. Then read the repository's own root `AGENTS.md` and
+`ARCHITECTURE.md`, and the documents they require. BardBox device and
+platform projects also read this repository's root `AGENTS.md` and
+`ARCHITECTURE.md`.
 
-## Version: one SHA per task
+## Which version governs: one SHA per task
 
 At the start of each task, resolve `main` of `bardphysicslab/bardbox` to one
-commit SHA. Read every shared file at that SHA, never from a working tree,
-which may hold unpublished edits.
+commit SHA. Read every shared file at that SHA. Do not read them from a working
+tree, which may hold unpublished edits.
 
 - **Local clone:** run `git -C <clone> fetch origin main`, then
   `git -C <clone> rev-parse origin/main`. Read files with
@@ -35,22 +37,31 @@ which may hold unpublished edits.
   `gh api repos/bardphysicslab/bardbox/commits/main --jq .sha`. Read files with
   `gh api "repos/bardphysicslab/bardbox/contents/docs/engineering/<file>?ref=<sha>" -H "Accept: application/vnd.github.raw"`.
 
+The guidance at that SHA governs the whole task, including a task that changes
+this guidance. Edits on a branch, including this repository's root
+`AGENTS.md` that your tool loaded from the working tree, are proposals. They
+are not policy until merged to `main`. Review them as a diff against the
+governing SHA, for example
+`git diff <sha> -- AGENTS.md CLAUDE.md docs/engineering`.
+
 Record `Shared guidance: bardphysicslab/bardbox@<sha>` once, in the task's
 durable evidence: the handoff, pull request, commit message or the
 repository's dated evidence record. Keep using that SHA for the rest of the
 task.
 
-Copies are not authoritative. That includes chat project sources, desktop
-files, agent memory and earlier conversations.
+Copies are not authoritative and do not substitute for the governing SHA.
+That includes desktop files, chat project sources, agent memory and earlier
+conversations.
 
 ## If the guidance cannot be read
 
 - **The fetch fails but a local `origin/main` exists:** resolve the SHA from
   it. Record that SHA and say it may be stale.
-- **No shared file can be read at a resolved SHA:** read-only investigation
-  and reporting may continue. Do not implement, commit, push, deploy or end
-  checkouts until the guidance has been read, or until the maintainer
-  explicitly says to proceed without it. Report which file could not be read.
+- **A required file cannot be read at the resolved SHA:** read-only
+  investigation and reporting may continue. Do not implement, commit, push,
+  deploy or end checkouts until the guidance has been read, or until the
+  maintainer explicitly says to proceed without it. Report which file could
+  not be read.
 
 ## Precedence
 
@@ -69,7 +80,9 @@ not resolve conflicts themselves, so these rules decide:
 
 ## Changing this guidance
 
-Change it here, by pull request. In the pull request, list the repositories
-affected and any effect on how the tools load instructions. Keep an unchanged
+Change it here, by pull request. A proposed change takes effect only when it
+is merged to `main`; until then the governing SHA applies, even to the task
+proposing the change. In the pull request, list the repositories affected and
+any effect on how the tools load instructions. Keep an unchanged
 move of existing text separate from a change in what the text requires. When
 moving a file or section, leave a pointer at the old location.

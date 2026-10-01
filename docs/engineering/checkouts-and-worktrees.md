@@ -1,9 +1,9 @@
 # Checkouts and worktrees
 
 These rules cover where agents write and how a checkout is ended. The tool
-behavior described here was checked on 2026-10-01 against the Claude Code
-documentation, the Codex documentation, and the maintainer's report of the
-current Codex app. Recheck it when either tool changes.
+behavior described here was checked on 2026-10-01 against the Claude Code and
+Codex documentation and the current Codex app. Recheck it when either tool
+changes.
 
 ## Terms
 
@@ -53,12 +53,19 @@ current Codex app. Recheck it when either tool changes.
 
    If anything is unresolved, keep the checkout and ask.
 8. **Ending a checkout, by kind:**
-   - **Codex-managed:** use the app's managed-worktree archive operation
-     (`archive_worktree`). It keeps a recoverable snapshot while the chat
-     stays open. Do not delete the directory yourself. Codex also removes
-     older managed worktrees automatically, except those of pinned or active
-     chats and permanent worktrees, so rule 5 applies before work is left
-     there.
+   - **Codex-managed:** the Codex app provides an `archive_worktree` tool. It
+     archives a managed worktree and keeps a recoverable snapshot while the
+     chat stays open.
+     - **If it is available,** meaning `archive_worktree` is in your current
+       tool list, apply rule 7, then use it.
+     - **If it is not available,** for example in the Codex CLI, a cloud task
+       or another tool, do not delete the directory or run
+       `git worktree remove` on it. Leave it in place, record the rule 7
+       results, and ask the maintainer to archive it from the Codex app.
+
+     Codex also removes older managed worktrees automatically, except those
+     of pinned or active chats and permanent worktrees. So rule 5 applies
+     before work is left in one.
    - **Claude Code `--worktree`:** at exit, choose Keep unless all unique work
      is recoverable. Choosing Remove deletes the worktree and its local
      branch. Claude Code sweeps subagent and background-session worktrees only

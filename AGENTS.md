@@ -7,17 +7,32 @@ remain authoritative for their subjects and are read when the task touches them.
 
 ## Shared guidance
 
-The general rules for this and other Bard Physics Lab repositories are in
-`docs/engineering/`. Your tool does not load them automatically. At the start
-of each task, resolve `main` to one SHA (`git fetch origin main`, then
-`git rev-parse origin/main`). Read `docs/engineering/README.md` at that SHA
-with `git show <sha>:docs/engineering/README.md`, then each file it requires.
-Record `Shared guidance: bardphysicslab/bardbox@<sha>` once in the task's
-durable evidence.
+Before planning, proposing, reviewing, delegating or implementing changes,
+read the shared guidance. Your tool does not load it automatically.
 
-If no shared file can be read at a resolved SHA, do read-only investigation
-only, and report it. Do not implement, commit, push, deploy or end checkouts
-unless the maintainer explicitly says to proceed without it.
+1. Resolve `main` once per task: `git fetch origin main`, then
+   `git rev-parse origin/main`. If the fetch fails, use the existing
+   `origin/main` and say it may be stale.
+2. Read these files at that SHA with `git show <sha>:<path>`:
+   - `docs/engineering/README.md`
+   - `docs/engineering/development-workflow.md`
+   - `docs/engineering/agent-practice.md`
+   - `docs/engineering/checkouts-and-worktrees.md`
+3. The guidance at that SHA governs the task, including a task that changes
+   this file or `docs/engineering/`. If your working-tree `AGENTS.md` differs
+   from `git show <sha>:AGENTS.md`, read that SHA's version too: it governs.
+   Your branch's edits are proposals. Review them with
+   `git diff <sha> -- AGENTS.md CLAUDE.md docs/engineering`; they take effect
+   only after merge to `main`. If `docs/engineering/` does not exist at that
+   SHA, that SHA's `AGENTS.md` is the complete governing guidance.
+4. Record `Shared guidance: bardphysicslab/bardbox@<sha>` once in the task's
+   durable evidence.
+
+Copies (desktop files, chat project sources, memory) do not substitute for
+the governing SHA. If a required file that exists at the resolved SHA cannot
+be read, do read-only investigation only, and report it. Do not implement,
+commit, push, deploy or end checkouts unless the maintainer explicitly says
+to proceed without it.
 
 ## Before work
 
