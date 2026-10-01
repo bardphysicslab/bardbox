@@ -107,8 +107,10 @@ authorized, the check informs that work; it is not an additional approval step.
    approval is not evidence. Cite the files and functions involved.
 2. Trace a normal path and a relevant failure path through the behavior being
    changed, including its most recent change.
-3. Check against the project's `ARCHITECTURE.md` (or
-   `docs/architecture-principles.md` where a project has none):
+3. Check against the project's `ARCHITECTURE.md`. Where a project has none,
+   use `docs/architecture-principles.md` in `bardphysicslab/bardbox`, read at
+   the governing SHA (`git show <sha>:docs/architecture-principles.md`). It
+   directs to bardbox's root `ARCHITECTURE.md`, read the same way:
    - each module has a cohesive responsibility: related operations that change
      for the same reason;
    - each piece of authoritative state has a named owner that performs its
