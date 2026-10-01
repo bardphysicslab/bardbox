@@ -42,7 +42,10 @@ Workflow:
 6. Project-specific repos should not invent protocol behavior unless it is promoted back into `bardbox` and `bardbox-project-template`.
 7. When historical project data needs AI/tool access, extend the central BardBox Data API/MCP boundary rather than creating a separate project-specific MCP bridge.
 
-Goal: one documented standard, one reference implementation, many project instances.
+Goal: one documented standard, maintained reusable capabilities demonstrated by
+the reference template, and many configured project instances. Existing copied
+implementations transition incrementally; this direction does not authorize a
+broad refactor or deployment.
 
 ## Current Standards
 
@@ -61,6 +64,16 @@ Goal: one documented standard, one reference implementation, many project instan
 - FastAPI/Uvicorn services require process restart and application watchdog layers
 - Historical Data APIs are read-only and enabled only for clean readings roots
 - Firmware development uses VS Code + PlatformIO
+
+## Start here
+
+- [AGENTS.md](AGENTS.md): the single working checklist for agents and maintainers.
+- [ARCHITECTURE.md](ARCHITECTURE.md): ownership, reuse, composition, UI templates,
+  and an index of applicable detailed standards.
+
+The former BardBox Change Skill and GPT-facing checklist are consolidated into
+these root documents. Existing detailed standards remain technical references;
+there is no separate change-skill checklist to follow.
 
 ## Key Docs
 
