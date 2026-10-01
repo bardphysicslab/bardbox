@@ -92,6 +92,12 @@ in plain language:
 Do not begin implementation until unresolved questions that materially
 affect the design or verification have been resolved.
 
+Presenting the checkpoint is not a request for new authorization. If the
+maintainer has already authorized the task and no question that materially
+affects the design or verification is open, present the checkpoint and
+proceed. Do not ask again for authorization already given. Authorization
+covers only the actions it names.
+
 ## 5. Recovery Rule
 
 If either the maintainer or the agent can no longer clearly explain:

@@ -5,6 +5,20 @@ former `docs/ai/bardbox-change-skill.md` (v0.1); that separate checklist is no l
 required. `ARCHITECTURE.md` owns architectural direction. Detailed standards
 remain authoritative for their subjects and are read when the task touches them.
 
+## Shared guidance
+
+The general rules for this and other Bard Physics Lab repositories are in
+`docs/engineering/`. Your tool does not load them automatically. At the start
+of each task, resolve `main` to one SHA (`git fetch origin main`, then
+`git rev-parse origin/main`). Read `docs/engineering/README.md` at that SHA
+with `git show <sha>:docs/engineering/README.md`, then each file it requires.
+Record `Shared guidance: bardphysicslab/bardbox@<sha>` once in the task's
+durable evidence.
+
+If no shared file can be read at a resolved SHA, do read-only investigation
+only, and report it. Do not implement, commit, push, deploy or end checkouts
+unless the maintainer explicitly says to proceed without it.
+
 ## Before work
 
 1. Identify the target repository, checkout, scope, and existing local changes.
