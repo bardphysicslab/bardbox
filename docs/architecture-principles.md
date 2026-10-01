@@ -23,6 +23,8 @@ A communication component can independently decide whether a reading can be sent
 
 This principle applies at several scales: functions, modules, drivers, services, and state machines.
 
+Each piece of authoritative state has a named owning component that performs its mutations and enforces its invariants; other components read it or request changes through that owner.
+
 ## 3. Prefer independent state machines for independent concerns
 
 Do not force unrelated concerns into one large state machine simply because they occur in the same product.

@@ -260,6 +260,8 @@ Keep the process proportional to the change.
 
 For a trivial change, stay lightweight.
 
+For refactors and architectural assessments, also read and apply the "Architectural self-check" and "Refactoring with little test coverage" sections of the root `AGENTS.md`.
+
 For a consequential change, think like a systems engineer: trace the effect through architecture, implementation, tests, documentation, deployment, and future maintenance.
 
 Prefer deterministic rules, explicit contracts, and testable behavior over relying on an agent to remember conventions.
