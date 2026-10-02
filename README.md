@@ -78,6 +78,8 @@ there is no separate change-skill checklist to follow.
 
 ## Key Docs
 
+- [OTA update contract (draft)](docs/ota-update-standard.md)
+- [Compact offline record storage (draft)](docs/compact-record-storage.md)
 - [Reading format](docs/reading-format.md)
 - [Node naming standard](docs/node-naming-standard.md)
 - [Device instructions](docs/device-instructions.md)
