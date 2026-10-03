@@ -94,14 +94,25 @@ changes.
       attention immediately. A disposed loose end needs attention again
       when its decision date arrives, when it materially changes, or when
       its preservation becomes uncertain.
+    - **Commit and preserve:** at each meaningful checkpoint, commit
+      coherent, verified work to the task branch. Before handing work back
+      or closing a session, make all unique work durably recoverable as in
+      rule 5: push it to a named remote branch, or save a bundle or patch
+      outside the checkout and outside `/tmp`. This applies whether or not
+      the checkout is kept and whether or not HEAD is detached. Unfinished
+      or unverified work is preserved the same way and labelled as such,
+      for example in a draft PR or the commit message. It does not have to
+      be finished first. Never commit secrets, credentials or live state to
+      do this (rule 6). A disposition records a decision; it preserves
+      nothing.
     - **Records:** write one activity record at each checkpoint handed back
       for review and one at closeout. Each record gives the repository,
       task checkout, branch (or base commit), agent and session, stage, any
       pull request, every unresolved item, and dispositions for the loose
       ends being kept. A checkpoint record also gives the date of the next
       checkpoint or closeout; a closeout is missing once that date passes.
-    - **Closeout** means rule 7 has been checked and recorded and every
-      loose end is named and disposed. Reporting completion does not
+    - **Closeout** means rule 7 has been checked and recorded, unique work
+      is durably recoverable, and every loose end is named and disposed. Reporting completion does not
       dispose of anything: observed state that contradicts a closeout
       still needs attention.
     - **Where to write:** use `bardbox housekeeping-activity` from
@@ -113,5 +124,6 @@ changes.
       the housekeeping inventory and never replace it. A missing record
       does not show that nothing changed.
 
-    A disposition is not approval. Disposal, merging, ending a checkout and
-    deployment keep their separate approvals (rule 9).
+    A disposition is not approval, and neither is committing or pushing a
+    task branch. Disposal, merging, ending a checkout and deployment keep
+    their separate approvals (rule 9).
