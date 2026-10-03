@@ -80,3 +80,20 @@ changes.
    are different actions with different approvals. Delete a local or remote
    branch only after its merge is confirmed on GitHub, or after the
    maintainer approves discarding it.
+10. **Checkpoint and closeout records.** Write one activity record at each
+    checkpoint you hand back for review, and one at closeout. A record holds:
+    - repository, task checkout, and branch (or base commit if detached);
+    - agent and session;
+    - stage (checkpoint or closeout) and pull request, if any;
+    - every unresolved item, such as a kept checkout, commits not yet on a
+      remote branch, rule 7 results still open, or a decision pending.
+
+    Closeout means rule 7 has been checked, its results are recorded, and
+    every unresolved item is named; it does not mean everything is resolved.
+    - **Where `bardbox housekeeping-activity` from `bardbox-tools` is
+      installed,** use it. It writes each record as a separate file in a
+      private store outside every repository. Never append to a shared file.
+    - **Otherwise,** give the same fields in the handoff.
+
+    Activity records supplement the housekeeping inventory; they never
+    replace it. A missing record does not show that nothing changed.
