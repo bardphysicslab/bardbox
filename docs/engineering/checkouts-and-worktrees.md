@@ -80,3 +80,50 @@ changes.
    are different actions with different approvals. Delete a local or remote
    branch only after its merge is confirmed on GitHub, or after the
    maintainer approves discarding it.
+10. **Checkpoints, closeout and daily closure.** Daily closure means zero
+    unexplained loose ends. It does not require finishing or deleting
+    unfinished work. A loose end is any work or state a task leaves behind:
+    a kept checkout, uncommitted or unpushed work, an open branch or PR, or
+    a pending decision.
+    - **Dispositions:** every loose end needs a disposition: retained,
+      expected or in progress, with an owner, a reason and the date of the
+      next decision. Documented expected state, such as a repository's
+      known local edits, is a disposition too. It does not become overdue
+      merely because it is still present.
+    - **Attention:** new unexplained work and missing closeouts need
+      attention immediately. A disposed loose end needs attention again
+      when its decision date arrives, when it materially changes, or when
+      its preservation becomes uncertain.
+    - **Commit and preserve:** at each meaningful checkpoint, commit
+      coherent, verified work to the task branch. Before handing work back
+      or closing a session, make all unique work durably recoverable as in
+      rule 5: push it to a named remote branch, or save a bundle or patch
+      outside the checkout and outside `/tmp`. This applies whether or not
+      the checkout is kept and whether or not HEAD is detached. Unfinished
+      or unverified work is preserved the same way and labelled as such,
+      for example in a draft PR or the commit message. It does not have to
+      be finished first. Never commit secrets, credentials or live state to
+      do this (rule 6). A disposition records a decision; it preserves
+      nothing.
+    - **Records:** write one activity record at each checkpoint handed back
+      for review and one at closeout. Each record gives the repository,
+      task checkout, branch (or base commit), agent and session, stage, any
+      pull request, every unresolved item, and dispositions for the loose
+      ends being kept. A checkpoint record also gives the date of the next
+      checkpoint or closeout; a closeout is missing once that date passes.
+    - **Closeout** means rule 7 has been checked and recorded, unique work
+      is durably recoverable, and every loose end is named and disposed. Reporting completion does not
+      dispose of anything: observed state that contradicts a closeout
+      still needs attention.
+    - **Where to write:** use `bardbox housekeeping-activity` from
+      `bardbox-tools` where it is installed. It writes each record as a
+      separate file in a private store outside every repository. Never
+      append to a shared file. Otherwise, give the same fields in the
+      handoff.
+    - **Records don't replace the inventory:** activity records supplement
+      the housekeeping inventory and never replace it. A missing record
+      does not show that nothing changed.
+
+    A disposition is not approval, and neither is committing or pushing a
+    task branch. Disposal, merging, ending a checkout and deployment keep
+    their separate approvals (rule 9).
