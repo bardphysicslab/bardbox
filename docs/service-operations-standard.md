@@ -163,28 +163,45 @@ analysis engine.
 
 ## Declared runtime drift checks
 
-Projects may declare exact expected Python and installed Python distribution
-versions plus SHA-256 hashes of deployed driver/service/executable files under
-`[runtime]` in `bardbox.toml`. Shared BardBox Tools audits report mismatches and
-unavailable files as failures. Missing expectations preserve older audit behavior
-and provide no runtime verification; they must not be represented as a clean
-runtime inventory.
+Projects may declare exact runtime expectations under `[runtime]` in
+`bardbox.toml`: `python` (an exact `major.minor.patch` version), `[runtime.packages]`
+(exact installed distribution versions) and `[[runtime.files]]` entries with
+`name`, `path` and `sha256` for deployed driver, service or executable files.
+The section is optional. `bardbox audit` in BardBox Tools (merged in
+bardbox-tools PR #14; see its `docs/runtime-drift.md`) adds one check per
+expectation to its report, JSON output and MCP audit.
 
-Run the audit with the deployed service's Python interpreter on the Pi. An audit
-of a checkout on a workstation does not inspect a remote Pi or the running
-process. File hashes verify bytes on disk, not loaded code, active systemd state,
-drop-in precedence, enabled timers or successful backups. Inspect those separately
+Results are reported honestly:
+
+- A mismatch fails and shows the expected and observed version, or that the
+  SHA-256 differs.
+- A package that is not installed fails as "not installed". A missing,
+  non-regular, changing or oversized file (over 32 MiB) fails as "not
+  verified".
+- An invalid declaration fails the manifest check.
+- A project with no `[runtime]` section gets no runtime checks. That is not a
+  clean runtime inventory and must not be reported as one.
+
+Inspection is bounded and read-only. The manifest never supplies executable
+commands. Audits do not install packages, copy service files, restart or
+enable units, upgrade rclone or modify measurements, and their output includes
+status, never file contents. Only inventory files approved for inspection.
+
+Workstation and deployed-host evidence differ. The audit inspects only the
+interpreter it runs under and the files on that machine. Run it with the
+deployed service's Python interpreter on the Pi; an audit of a checkout on a
+workstation says nothing about a remote Pi or a running process. File hashes
+verify bytes on disk, not loaded code, active systemd state, drop-in
+precedence, enabled timers or successful backups. Inspect those separately
 before signing off a reconciliation. Capture the effective unit and drop-ins
 privately: they can contain credentials and must not be published in reports.
 
-The manifest never supplies executable commands. Audits do not install packages,
-copy service files, restart/enable units, upgrade rclone or modify measurements.
-Use a reviewed maintenance change to reconcile drift, preserving deployment
-values and rollback copies; then repeat the audit and relevant operational checks.
-Only inventory files approved for inspection; audit output includes status, not
-file contents. Per-file reads are limited to 32 MiB and reject nonregular files.
+Reconcile drift through a reviewed maintenance change that preserves
+deployment values and rollback copies, then repeat the audit and the relevant
+operational checks.
 
-Shared tooling is the implementation owner. The template documents opt-in
-expectations; existing projects adopt their actual approved versions separately.
-No guessed watchdog/rclone versions are promoted into CESH or RKC. Existing AI
-skill instructions already require drift checks; no skill change is needed.
+Adoption is staged. Declaring expectations is opt-in, and a project without
+them is not out of compliance with this section. Each project adopts its own
+approved versions and hashes when it is ready. No guessed watchdog or rclone
+versions are promoted into CESH or RKC. Documenting the declarations in the
+project template is proposed separately (bardbox-project-template PR #7).
