@@ -62,13 +62,40 @@ production configuration checks as additional gates where those behaviors apply.
 
 ## Adoption and audit
 
-The project template's `chatgpt/shared-tooling-foundation` branch is the initial
-reference implementation. Promote through review; do not silently merge it or copy
-unrelated template application code into consumers. Known Python consumers include
-BardBox Tools, CESH and RKC; each needs its own dependency and test-path assessment.
+Adoption is staged. A project that has not yet adopted this standard is not
+out of compliance with it. Record the current gap and the follow-up when a
+project is next changed; there is no fleet-wide migration.
 
-The optional `[development]` manifest section declares `python`, `dependencies`,
-`devcontainer` and `validation_script`. All four fields are required when enabled;
-paths must stay within the repository. Static checks verify declared file presence, but must
-not claim that Docker ran, that tests passed, or that the production host matches.
-Keep audit execution read-only unless the operator explicitly invokes validation.
+Merged reference implementations:
+
+- `bardphysicslab/bardbox-project-template` `main`: a repository-owned Dev
+  Container (`.devcontainer/`), `requirements-dev.txt` used by the Dev
+  Container, CI and the runner, a `[development]` declaration in
+  `bardbox.toml`, `scripts/validate_container.sh`, and a CI `container` job
+  that runs `bash scripts/validate_container.sh HEAD`.
+- `bardphysicslab/bardbox-tools` `main` (bardbox-tools PR #15): the same
+  runner and CI jobs for the tooling itself, and the static `[development]`
+  audit checks.
+
+Promote through review. Do not copy unrelated template application code into
+consumers. Other Python consumers, including CESH and RKC, each need their own
+dependency and test-path assessment.
+
+`scripts/validate_container.sh [revision]` validates one committed revision:
+it builds the Dev Container from the committed `.devcontainer/` and runs the
+tests on an archive of that commit in a fresh container, with no host mounts,
+credentials, Docker socket, SSH forwarding, devices or ports. Uncommitted and
+untracked changes are excluded, and the script says so.
+
+The optional `[development]` manifest section declares `python` (a Python 3
+minor version), `dependencies`, `devcontainer` and `validation_script`. All
+four fields are required when the section is present, and paths must stay
+within the repository, including resolved symlinks. `bardbox audit` checks only
+that the declared files exist. It reports them as "not executed" and does not
+claim that Docker ran, that tests passed, or that the production host matches.
+Audit execution stays read-only; validation runs only when an operator invokes
+it.
+
+Clean Linux validation is portable-software evidence only. Physical sensor,
+offline queue, OTA rollback, deployment and production configuration checks
+remain separate gates where those behaviors apply.
