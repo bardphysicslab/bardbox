@@ -149,6 +149,10 @@ Update, 2026-10-01: the general rules shared with other repositories moved from
 `AGENTS.md` to `docs/engineering/`. `AGENTS.md` keeps the BardBox-specific change
 rules and requires reading the shared files.
 
+Update, 2026-10-04: the shared files moved again, to
+`bardphysicslab/engineering-standards`. `docs/engineering/` keeps pointers to
+them.
+
 This is the course's evidence-and-tradeoff approach applied to documentation;
 it does not claim that moving prose has removed runtime coupling.
 
