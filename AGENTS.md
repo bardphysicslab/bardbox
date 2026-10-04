@@ -8,26 +8,39 @@ remain authoritative for their subjects and are read when the task touches them.
 ## Shared guidance
 
 Before planning, proposing, reviewing, delegating or implementing changes,
-read the shared guidance. Your tool does not load it automatically.
+read the shared guidance in `bardphysicslab/engineering-standards`. Your
+tool does not load it automatically.
 
-1. Resolve `main` once per task: `git fetch origin main`, then
-   `git rev-parse origin/main`. If the fetch fails, use the existing
-   `origin/main` and say it may be stale.
-2. Read these files at that SHA with `git show <sha>:<path>`:
-   - `docs/engineering/README.md`
-   - `docs/engineering/development-workflow.md`
-   - `docs/engineering/agent-practice.md`
-   - `docs/engineering/checkouts-and-worktrees.md`
-3. The guidance at that SHA governs the task, including a task that changes
-   this file or `docs/engineering/`. If your working-tree `AGENTS.md` differs
-   from `git show <sha>:AGENTS.md`, read that SHA's version too: it governs.
+1. Resolve `main` of `bardphysicslab/engineering-standards` once per task.
+   With a local clone, usually `../engineering-standards` beside this
+   repository, run `git -C ../engineering-standards fetch origin main`, then
+   `git -C ../engineering-standards rev-parse origin/main`. Without one, run
+   `gh api repos/bardphysicslab/engineering-standards/commits/main --jq .sha`.
+   If the fetch fails, use the existing `origin/main` and say it may be stale.
+2. Read these files at that SHA:
+   - `README.md`
+   - `development-workflow.md`
+   - `agent-practice.md`
+   - `checkouts-and-worktrees.md`
+   - `agent-coordination.md`
+
+   With the clone, use `git -C ../engineering-standards show <sha>:<file>`.
+   Without it, use
+   `gh api "repos/bardphysicslab/engineering-standards/contents/<file>?ref=<sha>" -H "Accept: application/vnd.github.raw"`.
+3. Resolve this repository's `main` once per task too: `git fetch origin
+   main`, then `git rev-parse origin/main`. This file and `ARCHITECTURE.md`
+   at that commit govern the BardBox-specific rules, including a task that
+   changes them. If your working-tree `AGENTS.md` differs from
+   `git show <sha>:AGENTS.md`, read that commit's version too: it governs.
    Your branch's edits are proposals. Review them with
-   `git diff <sha> -- AGENTS.md CLAUDE.md docs/engineering`; they take effect
-   only after merge to `main`. If `docs/engineering/` does not exist at that
-   SHA, that SHA's `AGENTS.md` is the complete governing guidance.
-4. Record `Shared guidance: bardphysicslab/bardbox@<sha>` once in the task's
+   `git diff <sha> -- AGENTS.md CLAUDE.md`; they take effect only after merge
+   to `main`.
+4. Record `Shared guidance: bardphysicslab/engineering-standards@<sha>` and
+   `BardBox standards: bardphysicslab/bardbox@<sha>` once in the task's
    durable evidence. If a review or proposal produces no such artifact, state
-   it once in your response.
+   them once in your response. A task that already recorded
+   `Shared guidance: bardphysicslab/bardbox@<sha>` keeps that governing
+   commit.
 
 Copies (desktop files, chat project sources, memory) do not substitute for
 the governing SHA. If a required file that exists at the resolved SHA cannot
@@ -78,19 +91,19 @@ to proceed without it.
 
 ## Decisions and proportional workflow
 
-Moved unchanged to [`docs/engineering/agent-practice.md`](docs/engineering/agent-practice.md#decisions-and-proportional-workflow). It applies to BardBox changes; read it there.
+Moved unchanged to the shared [`agent-practice.md`](https://github.com/bardphysicslab/engineering-standards/blob/main/agent-practice.md#decisions-and-proportional-workflow) in `bardphysicslab/engineering-standards`. It applies to BardBox changes; read it there.
 
 ## Verification and documentation
 
-Moved unchanged to [`docs/engineering/agent-practice.md`](docs/engineering/agent-practice.md#verification-and-documentation). It applies to BardBox changes; read it there.
+Moved unchanged to the shared [`agent-practice.md`](https://github.com/bardphysicslab/engineering-standards/blob/main/agent-practice.md#verification-and-documentation) in `bardphysicslab/engineering-standards`. It applies to BardBox changes; read it there.
 
 ## Architectural self-check
 
-Moved unchanged to [`docs/engineering/agent-practice.md`](docs/engineering/agent-practice.md#architectural-self-check). It applies to BardBox changes; read it there. This heading remains because other repositories refer to it.
+Moved unchanged to the shared [`agent-practice.md`](https://github.com/bardphysicslab/engineering-standards/blob/main/agent-practice.md#architectural-self-check) in `bardphysicslab/engineering-standards`. It applies to BardBox changes; read it there. This heading remains because other repositories refer to it.
 
 ## Refactoring with little test coverage
 
-Moved unchanged to [`docs/engineering/agent-practice.md`](docs/engineering/agent-practice.md#refactoring-with-little-test-coverage). It applies to BardBox changes; read it there. This heading remains because other repositories refer to it.
+Moved unchanged to the shared [`agent-practice.md`](https://github.com/bardphysicslab/engineering-standards/blob/main/agent-practice.md#refactoring-with-little-test-coverage) in `bardphysicslab/engineering-standards`. It applies to BardBox changes; read it there. This heading remains because other repositories refer to it.
 
 ## Operational boundaries
 

@@ -68,7 +68,8 @@ broad refactor or deployment.
 ## Start here
 
 - [AGENTS.md](AGENTS.md): BardBox's working rules for agents and maintainers. It
-  requires reading the shared rules in [docs/engineering/](docs/engineering/README.md).
+  requires reading the shared rules in
+  [`bardphysicslab/engineering-standards`](https://github.com/bardphysicslab/engineering-standards).
 - [ARCHITECTURE.md](ARCHITECTURE.md): ownership, reuse, composition, UI templates,
   and an index of applicable detailed standards.
 
