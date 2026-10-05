@@ -22,6 +22,10 @@ This repo is the source of truth for:
 It is not the project template and should not be copied directly for new
 monitor deployments.
 
+## Documentation home
+
+Keep staff manuals and system diagrams in each project's Documentation folder on the Bard Physics Lab shared Google Drive. Project repositories should identify where the current documents live and retain versioned implementation, setup, and maintenance documentation. Maintain one editable staff manual for each project so instructions do not drift across copies.
+
 ## Repo Roles
 
 `bardbox` is the standards/specification repo.
