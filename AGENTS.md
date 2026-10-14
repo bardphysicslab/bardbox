@@ -48,6 +48,17 @@ be read, do read-only investigation only, and report it. Do not implement,
 commit, push, deploy or end checkouts unless the maintainer explicitly says
 to proceed without it.
 
+## Firmware API design entry point
+
+Before firmware, serial-driver or delivery-buffer work, read the maintained
+[serial/base proposal](docs/firmware-base-and-serial-api.md),
+[optional buffer proposal](docs/firmware-buffer-api.md), and
+[continuation](docs/firmware-api-continuation.md), then verify
+[the owning GitHub issue](https://github.com/bardphysicslab/bardbox/issues/31).
+These are pending design contracts, not implemented or adopted APIs. Update
+these drafts rather than recreating them; settle relevant open decisions before
+implementation. Published device/Web Node contracts remain authoritative.
+
 ## Before work
 
 1. Identify the target repository, checkout, scope, and existing local changes.

@@ -1,0 +1,123 @@
+# Optional BardBox firmware buffer API
+
+Status: design proposal, October 14, 2026. No shared library, build, adoption,
+hardware acceptance or deployment is claimed. Existing required behavior is in
+[Web Node Protocol](web-node-protocol.md); serial integration is in the
+[firmware/serial proposal](firmware-base-and-serial-api.md).
+
+## Responsibility
+
+One optional maintained module owns durable records, FIFO order, recovery,
+capacity accounting and removal after delivery acknowledgement. Acquisition,
+aggregation, time synchronization, serialization policy, networking and server
+archival storage remain separate. Use CESH's existing implementation as evidence
+and an extraction candidate, not parser/storage code copied into each main.cpp.
+
+RKC supplies individual temperature/door readings so averages do not hide
+excursions. CESH supplies completed aggregate records. Reporting less frequently
+does not inherently require averaging; aggregation remains CESH's chosen policy.
+Projects without delivery storage need not include this module.
+
+## Proposed C++ interface
+
+`BardBoxBuffer buffer;` creates an instance with one queue owner and one active
+delivery consumer. Calls run when invoked; no automatic background thread.
+
+| Operation | Contract |
+| --- | --- |
+| begin(storage, options) | Open/recover existing storage; no automatic format; explicit startup/recovery status |
+| append(record) | Admit an immutable bounded record for durable saving; return operation ticket or explicit rejection |
+| poll(nowMs) | Progress storage operations in bounded steps; document hardware blocking limits |
+| operationStatus(ticket) | Pending, durably completed or failed, with structured error; covers append, acknowledge and clear |
+| peekOldest() | Copy oldest durably saved record with its generation/record token; does not remove or hold a lock during network work |
+| acknowledge(token) | Request durable removal of exactly that head after protocol acceptance; return ticket/result |
+| status() | Pending count, configured limit, bytes used/available, health, quarantined bytes, pending operations and loss counters |
+| clear(maintenanceAuthorization) | Explicit destructive asynchronous discard under injected authorization policy |
+
+Asynchronous tickets allow honest bounded service; accepting append is not a
+durability guarantee. Project/template retains the record until durable success
+and handles admission failure. Pending RAM must be bounded and cannot silently
+drop records. Queue operations are serialized; acquisition can submit new records
+while delivery sends a copied head. Exact types/header and memory limits are next
+implementation decisions, not supplied by this document.
+
+## Record envelope
+
+Each record contains a stable ID, acquisition-time UID, record/schema version,
+record kind (individual or aggregate), bounded payload and supplied time metadata
+with validity. Preserve original values and attribution through retries, restarts,
+config/UID changes and decoder upgrades. The buffer does not invent UTC. Storage
+framing has its own explicit version/integrity check; it is distinct from scientific
+schema and wire-protocol versions. Credentials are not part of stored measurements.
+
+## Delivery and replay
+
+Save durably before first normal delivery; peek a durable record; send via the
+separate delivery module; acknowledge only on the configured successful server
+response; verify durable removal before proceeding. Failed/ambiguous delivery
+keeps the record. Failed cursor commit also keeps it eligible for retry.
+
+Tokens include queue generation and stable record ID. Stale/mismatched tokens
+cannot delete a different head, including after clear/reinitialization. A repeated
+acknowledgement has an explicit already-completed outcome. Repeating an append
+with the same ID/content must resolve the prior outcome or report duplicate;
+conflicting contents fail. Retry/status history is bounded: define its retention,
+and report unknown expired outcomes rather than claiming infinite idempotence.
+Server-side stable-ID deduplication is separately required to avoid duplicate
+historical rows when acceptance responses are lost.
+
+## Recovery, fullness and maintenance
+
+Flush/commit success means durable according to the documented storage adapter.
+Interrupted appends preserve verified complete records; incomplete/corrupt frames
+are reported/quarantined, never treated as valid. Preserve cursor before deleting
+consumed chunks. Failed mount never formats existing data. Recovery scanning
+has bounded service behavior and reports when the queue is not yet ready.
+
+RejectNew is the initial conservative full-buffer option, matching CESH. It
+preserves backlog and reports rejected new records. DropOldest is a possible
+explicit project policy, not silently implemented or approved here; it requires
+durable loss accounting and must not invalidate an in-flight delivery token.
+Project owners must decide what RKC should retain on saturation. Physical space
+and logical record limits are independent; quarantine and failed deletion consume
+space. Capacity changes cannot silently truncate a queue. No fixed retention-day
+promise without record size/cadence and real filesystem measurements.
+
+Clear requires a deliberate maintenance capability, records discarded count and
+outcome, and invalidates pending delivery tokens. Its power-loss semantics must
+be specified/tested before exposing the command. Formatting is separate from
+clearing and is not part of this API proposal.
+
+## Compatibility and CESH evidence
+
+CESH uses compact lossless chunks, integrity framing, legacy CSV read support,
+metadata recovery and FIFO acknowledgements. It caps records and rejects new
+ones when full. Corrupt chunks retain verified prefix/damaged bytes; six-digit
+chunk numbering has an exhaustion guard. Production extraction must address
+sequence longevity, metadata-write wear and physical filesystem timing.
+
+Reviewed source: CESH 345b6bb7b18bd3d7eb7eb33b3bc7550a69021110; RKC
+0c4f9238a7c85f282a69d92f4142c6eea06f184e. Existing CESH production queue
+fault test re-run October 14: 1 passed using simulated LittleFS and compiler
+sanitizers. No new physical power-loss/retention/outage evidence. See the owning
+[compact-storage evidence](https://github.com/bardphysicslab/cesh-air-monitor/blob/main/docs/compact-storage-validation.md).
+
+Firmware updates/rollback must check supported queue formats and retain old
+decoders until old records drain, or use an explicitly reversible migration.
+Preserve the data partition during normal firmware installs. Serial responsiveness
+also needs bounded delivery: CESH's synchronous HTTP calls currently precede serial
+service and can delay it despite separate acquisition. Do not import that limitation
+into the shared buffer interface.
+
+## Acceptance and next step
+
+Implement one independent maintained component and two synthetic consumers
+(individual and aggregate). Verify original data/order, append/ACK failure and
+retry, partial writes, restart, mount failure without format, full policy/loss
+visibility, stale tokens, concurrent append while sending, schema upgrade/rollback,
+bounded service, and simulated-clock tests. Then measure physical flash behavior,
+power interruption, heap/timing/endurance and achievable retention separately.
+No CESH/RKC migration or hardware operation is authorized by saving this proposal.
+Exact API types and scheduling limits remain open for implementation review.
+
+Tracker: [API design](https://github.com/bardphysicslab/bardbox/issues/31). Related pending [compact storage proposal](https://github.com/bardphysicslab/bardbox/pull/16) owns proposed binary framing; this API does not define a competing format.

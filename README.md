@@ -77,6 +77,17 @@ The former BardBox Change Skill and GPT-facing checklist are consolidated into
 these root documents. Existing detailed standards remain technical references;
 there is no separate change-skill checklist to follow.
 
+## Firmware API design entry point
+
+Before firmware, serial-driver or delivery-buffer work, read the maintained
+[serial/base proposal](docs/firmware-base-and-serial-api.md),
+[optional buffer proposal](docs/firmware-buffer-api.md), and
+[continuation](docs/firmware-api-continuation.md), then verify
+[the owning GitHub issue](https://github.com/bardphysicslab/bardbox/issues/31).
+These are pending design contracts, not implemented or adopted APIs. Update
+these drafts rather than recreating them; settle relevant open decisions before
+implementation. Published device/Web Node contracts remain authoritative.
+
 ## Key Docs
 
 - [Reading format](docs/reading-format.md)
