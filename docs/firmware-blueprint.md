@@ -93,7 +93,8 @@ Extracting it is separate work and is not part of adoption.
 | Board, flash size, partition layout, pins | Build | `platformio.ini` environment and partition CSV |
 | Sensor drivers and models (e.g. BME680 or BME280; PMS5003 or PMS6003) | Build | `-D` flags and `config.shared.h` defaults; one compiled image per hardware combination |
 | Firmware version | Build | Mandatory build metadata; placeholders rejected ([serial/base API](firmware-base-and-serial-api.md#registration-and-startup)) |
-| UID, display name, Wi-Fi SSID/password, endpoints, device credential, trust material, supported intervals | Per device, at runtime | **Existing:** DC1 record written over USB serial (`PROVISION_*`) into NVS. **Proposed:** typed settings with temporary/persistent scope ([settings](firmware-base-and-serial-api.md#operational-settings)) |
+| UID, display name, Wi-Fi SSID/password, telemetry URL and token, OTA origin/device token/CA, signing key ID and public key, initial image length/hash | Per device, at runtime | **Existing (CESH `BardBoxDeviceConfig.h` at `345b6bb`):** DC1 record written over USB serial (`PROVISION_*`) into NVS. **Proposed:** typed settings with temporary/persistent scope ([settings](firmware-base-and-serial-api.md#operational-settings)) |
+| Acquisition, streaming and reporting intervals; supported retry, buffer and time settings | **Existing:** build. **Proposed:** per device, at runtime | **Existing:** compile-time constants (CESH `REPORT_INTERVAL_S` in `config.shared.h`/`config.h`); DC1 encodes no interval. **Proposed only:** operational settings ([settings](firmware-base-and-serial-api.md#operational-settings)); changing intervals at runtime is not implemented by current CESH provisioning |
 | Location, ownership, coordinates, display metadata | Server | Never in firmware |
 
 - `config.example.h` holds tracked placeholders for a per-device local build.

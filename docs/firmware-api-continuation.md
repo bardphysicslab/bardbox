@@ -56,7 +56,7 @@ Blueprint: `claude/firmware-blueprint` at `69795b588e56b31fdafa64c02e272e6cd4d68
 | Header, Existing/Proposed labels | [blueprint](firmware-blueprint.md) header | Status, provenance and evidence levels updated |
 | Related pending proposals | Blueprint §1 document map | Became the entry point; #16 linked at exact head |
 | §1 Source tree | Blueprint §2 | Composition now names the serial module and separate owners |
-| §2 Build-time versus runtime identity | Blueprint §3 | DC1 marked existing; proposed settings linked; firmware version mandatory |
+| §2 Build-time versus runtime identity | Blueprint §3 | DC1 fields listed from CESH source and marked existing; runtime intervals separated as proposed only (Codex review, #31); firmware version mandatory |
 | §3 Lifecycle | Blueprint §4 | Split into existing CESH 0.8.6 and proposed base lifecycle |
 | §4 Flash memory table and rules | Blueprint §5 | Merged with the serial draft's storage section; one table |
 | §4 "Reinstall selects app0" | Blueprint §5 write plans | Kept as existing CESH plan; generalisation became an open decision |
