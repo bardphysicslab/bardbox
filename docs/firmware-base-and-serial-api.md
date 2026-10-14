@@ -1,4 +1,4 @@
-# Minimal BardBox firmware: memory layout and serial module API
+# Minimal BardBox firmware: base and serial module API
 
 Status: design proposal, updated 2026-10-14. This specifies the generic implementation
 requested by Kornelis; the C++ API below is not an existing library. No claim of
@@ -6,6 +6,8 @@ build, hardware validation, adopted protocol extension or deployment is made.
 Canonical existing wire commands come from [Device instructions](device-instructions.md).
 This proposal extends them; it does not silently substitute a project's protocol.
 Tracker: [Serial and buffer API design](https://github.com/bardphysicslab/bardbox/issues/31); dependency: [USB work](https://github.com/bardphysicslab/firmware-tools/issues/5).
+Entry point and flash layout: [firmware blueprint](firmware-blueprint.md); host-side
+assembly: [USB flashing and provisioning](usb-provisioning-standard.md).
 
 Shared guidance: bardphysicslab/engineering-standards@3bf9c600b35f73322e8f610baffec2b682bdcc77.
 BardBox governing commit: da5132a648d21989a984e00fa1fd02760bcdf4f7.
@@ -254,7 +256,7 @@ OTA URL/key is not proof of commissioned OTA. These outcomes are reported separa
 ## ID changes and registry ownership
 
 B-Flash/API/registry own global availability, atomic reservation, actor/history
-and key lifecycle. Firmware has no global registry client and cannot know other
+and key lifecycle ([USB flashing and provisioning](usb-provisioning-standard.md#identity-registry-and-replacement)). Firmware has no global registry client and cannot know other
 assigned IDs. It validates local syntax, durably saves the supplied ID and reports
 it. Initial assignment and explicit ID update are supported; ordinary reflash
 retains configuration. Registry outage blocks the host assignment/change action,
@@ -268,43 +270,13 @@ A host registration transition must handle disconnect/lost acknowledgement and
 must not activate the same ID for two physical devices. A simple availability
 check followed by a device write is insufficient. Do not invent offline allocation.
 
-## OTA-ready storage on the initial 8MiB S3 recipe
+## Flash layout, write plans and rollback
 
-These are exact capacities for the first board, not universal BardBox constants.
-
-| Area | Offset | Size | Purpose |
-| --- | --- | --- | --- |
-| Bootloader reserved region | 0x000000 | Up to partition table at 0x8000 | Start/select firmware; actual image length checked separately |
-| Partition table | 0x008000 | 0x1000 | Generated memory map, sector-sized write |
-| NVS | 0x009000 | 0x5000 (20KiB) | Persistent device configuration/module state |
-| otadata | 0x00e000 | 0x2000 (8KiB) | Slot selection/validation metadata, not URLs or keys |
-| app0 | 0x010000 | 0x200000 (2MiB) | Firmware slot A |
-| app1 | 0x210000 | 0x200000 (2MiB) | Firmware slot B |
-| Data filesystem | 0x410000 | 0x3e0000 (3.875MiB) | Optional sensor-data queue/storage |
-| Coredump | 0x7f0000 | 0x10000 (64KiB) | Explicit platform diagnostics policy |
-
-CSV and generated binary table must agree exactly and fit actual flash capacity.
-The historical CSV labels the data partition spiffs; the intended runtime uses
-LittleFS. Label is not proof of filesystem compatibility. Preserve its contents
-across initial/reinstall/OTA unless an explicit migration/format is authorized.
-No blanket chip erase. Measurement buffering is optional even though space is
-reserved; retention duration depends on record size/cadence and storage overhead.
-
-OTA runtime may be disabled, but validate actual bootloader configuration, dual
-slots, first-boot validation and rollback policy now. Metadata alone does not
-implement rollback. A successful boot marks the new image valid under documented
-base health criteria; no sensor/network requirement may be invented for the
-sensorless USB base. Later optional modules supply additional validation policy.
-Configuration schema upgrades must be compatible with fallback firmware or use
-an explicit reversible migration, so rollback does not strand the device.
-
-USB initial/reinstall selects the intended app and can reset otadata deliberately;
-OTA writes the alternate slot and uses the update/boot-validation contract.
-Read back every planned written byte, including padding and boot-selection reset.
-Image identity hashes use the unpadded app bytes; physical write bounds include
-sector padding. NVS and sensor-data ranges are excluded from routine writes.
-Do not retain an old immutable image hash as identity when changing app bytes;
-initial-image/release identity and mutable per-device settings are separate concerns.
+Moved on 2026-10-14 to the [firmware blueprint](firmware-blueprint.md#5-flash-memory-one-8-mib-esp32-s3-recipe)
+so the 8 MiB ESP32-S3 table, protected NVS/data ranges, initial-install/reinstall/OTA
+write plans, padding-versus-hash rules and rollback compatibility have one maintained
+copy. The section as it stood is preserved at `f9e4e39`. Whether a USB reinstall may
+reset otadata remains an open decision recorded there.
 
 ## Acceptance and implementation status
 

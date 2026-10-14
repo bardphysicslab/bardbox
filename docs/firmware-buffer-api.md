@@ -55,7 +55,9 @@ schema and wire-protocol versions. Credentials are not part of stored measuremen
 Save durably before first normal delivery; peek a durable record; send via the
 separate delivery module; acknowledge only on the configured successful server
 response; verify durable removal before proceeding. Failed/ambiguous delivery
-keeps the record. Failed cursor commit also keeps it eligible for retry.
+keeps the record. Failed cursor commit also keeps it eligible for retry. Only
+accepted archival delivery acknowledges a record; an optional live-preview path
+(pending [PR #15](https://github.com/bardphysicslab/bardbox/pull/15)) never removes history.
 
 Tokens include queue generation and stable record ID. Stale/mismatched tokens
 cannot delete a different head, including after clear/reinitialization. A repeated
@@ -120,4 +122,8 @@ power interruption, heap/timing/endurance and achievable retention separately.
 No CESH/RKC migration or hardware operation is authorized by saving this proposal.
 Exact API types and scheduling limits remain open for implementation review.
 
-Tracker: [API design](https://github.com/bardphysicslab/bardbox/issues/31). Related pending [compact storage proposal](https://github.com/bardphysicslab/bardbox/pull/16) owns proposed binary framing; this API does not define a competing format.
+Tracker: [API design](https://github.com/bardphysicslab/bardbox/issues/31); entry point:
+[firmware blueprint](firmware-blueprint.md). The pending
+[compact storage proposal](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/compact-record-storage.md)
+(PR #16 head `7b947be`, not adopted) owns the proposed binary framing, recovery
+scan and ACK-cursor rules; this API links to it and does not define a competing format.

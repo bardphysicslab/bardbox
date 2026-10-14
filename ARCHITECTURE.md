@@ -115,6 +115,7 @@ do not make active project deadlines depend on an unrelated broad migration.
 | Area | Canonical documents |
 | --- | --- |
 | Device/firmware contracts | [Device instructions](docs/device-instructions.md), [Web Nodes](docs/web-node-protocol.md), [transport recovery](docs/transport-recovery-standard.md) |
+| Firmware design (proposed) | [Firmware blueprint and document map](docs/firmware-blueprint.md), [serial/base API](docs/firmware-base-and-serial-api.md), [buffer API](docs/firmware-buffer-api.md), [USB flashing and provisioning](docs/usb-provisioning-standard.md) |
 | Drivers and readings | [Pi drivers](docs/pi-driver-instructions.md), [reading format](docs/reading-format.md), [channels](docs/channel-names.md) |
 | Identity and time | [Node naming](docs/node-naming-standard.md), [time synchronization](docs/time-sync-standard.md), [sessions](docs/session-model.md) |
 | Web presentation | [Web UI standard](docs/web-ui-standard.md) |

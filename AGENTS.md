@@ -50,10 +50,13 @@ to proceed without it.
 
 ## Firmware API design entry point
 
-Before firmware, serial-driver or delivery-buffer work, read the maintained
-[serial/base proposal](docs/firmware-base-and-serial-api.md),
-[optional buffer proposal](docs/firmware-buffer-api.md), and
-[continuation](docs/firmware-api-continuation.md), then verify
+Before firmware, serial-driver, USB-assembly or delivery-buffer work, start at
+the [firmware blueprint](docs/firmware-blueprint.md); its document map links the
+maintained [serial/base proposal](docs/firmware-base-and-serial-api.md),
+[optional buffer proposal](docs/firmware-buffer-api.md),
+[USB flashing and provisioning proposal](docs/usb-provisioning-standard.md),
+the pending storage/OTA review and the
+[continuation](docs/firmware-api-continuation.md). Then verify
 [the owning GitHub issue](https://github.com/bardphysicslab/bardbox/issues/31).
 These are pending design contracts, not implemented or adopted APIs. Update
 these drafts rather than recreating them; settle relevant open decisions before
