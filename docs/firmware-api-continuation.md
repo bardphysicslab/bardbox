@@ -23,6 +23,89 @@ results are cited with their revision, date and evidence level.
 
 ## Checkpoints
 
+## October 15 documentation audit checkpoint
+
+Owner: Codex in the documentation-audit chat, manually relayed by Kornelis.
+No implementation-thread messages, checkout switches or runtime changes.
+
+- Governing remote main heads resolved: engineering-standards
+  `28e2dceb882d1de0e4948ca7b11f7322e792284d`; BardBox
+  `da62d8dd9c151a53e56388a1ced354d8ca01cf97`.
+  Required shared files, BardBox root guidance and relevant published standards read.
+  Institutional PDF/service guidance consulted without changing or determining
+  hosting/authentication policy.
+- Reused PR #32, branch `codex/serial-buffer-api`, prior head
+  `cb4fd1a0a9643fc47c69c40f245f5e6607c3efcd`; exact new head is recorded in
+  the PR/checkpoint comment after publication. No new checkout/worktree/feature
+  branch. Remote documentation edits leave the canonical checkout at its existing
+  head; its owner must reconcile later without resetting anyone's work.
+- Observed canonical checkouts: BardBox clean at cb4fd1a; engineering-standards
+  on codex/webctrl-reference at 7f1ce9f; Firmware Tools on
+  claude/8-usb-provisioning at 9177881 with active uncommitted UI edits;
+  CESH on codex/cleanup-cesh-hardware-2026-10-09 at 345b6bb with unrelated
+  hardware edits/untracked files. All left untouched.
+- Current remote main: Firmware Tools
+  `52d4b8ed7d7127e2932e0131bf6b15ebf135b896` (Check device #39 merged;
+  merge alone does not establish deployment); CESH
+  `15f959479478b7347223f862d75d39355727d50b`.
+- Reviewed CESH #48 `b2718891132da66b36ca8f7dd5f12eaf6e858a23` and #50
+  `24c2305ff1834368a0a86a90592bb71faba91d65`, latest discussions and Codex
+  correction. Source/synthetic evidence distinguishes reset metadata from NEW;
+  exact pinned-bootloader startup acceptance remains open in #25/#49.
+  Previously reported CI and host results remain attributed historical evidence,
+  not tests rerun for this documentation audit.
+- Provisioning source observation: Firmware Tools 9177881
+  `packages/usb-browser/provisioning/{fields,record,session,provisioning}.js`;
+  device record/store/commands at CESH 24c2305. The #8 scope supersedes older
+  registry and MAC instructions. App UI edits were observed only as active work,
+  not accepted or tested.
+- OTA history: BardBox PR #16 remains open/draft at
+  `7b947be081d1d1fb646849c15e9491fbdce1297b`; the file first appears in local
+  retained history at f4aeea3 and never appears in governing main. Existing
+  PR #32 pinned links resolve to the draft. No replacement OTA standard created.
+  CESH's three stale path references are identified in the USB document;
+  its active writer owns their correction via Kornelis.
+
+### Gap assessment and dispositions
+
+| Boundary | Finding and bounded disposition |
+| --- | --- |
+| USB metadata/startup | Corrected blanket install/rollback assumptions with the source matrix in the USB document; blueprint holds the pending handoff/health proposal. Exact bootloader/config/OTA-state combinations remain #25 work. |
+| Provisioning | Corrected stale integrated-Flash, field-provider, registry/MAC and hardware-dropdown assumptions; existing DC1 and uncertain-commit semantics retained. No new schema. |
+| Identity/authentication | Existing UID including instance is current scope. Factory base MAC is deferred lookup only. Naming-standard/deployed-CESH mismatch flagged, no migration. Real receiver/trust inputs and authentication acceptance remain project work. |
+| Diagnostics/degraded operation | Check device is uninterpreted INFO text, independent of installer safety. Link existing recovery/queue rules; blueprint proposes only the missing independent-channel continuity clarification and notes serial/payload compatibility. |
+| OTA authority | PR #16 is a pending draft, not a missing adopted main standard. Consumer references need their owner to pin/status-label it; adoption remains separate. |
+| Tracking | Existing #31/#33/#32 own shared design/consolidation; #5/#8 own host work; #25/#49 own CESH acceptance; #41/project 5 own deferred registry. No duplicate workstream. Prior #31 checkpoint says BardBox board/Trello reconciliation remains pending. |
+
+Board verification limit: the connected GitHub tools expose issues/reviews but no
+Projects operations. The supplied registry-board URL returned a signed-out 404 in
+the available browser; live membership/status and migration completeness were
+not independently verified. Do not infer absence, recreate boards, migrate Trello
+or claim board synchronization. Kornelis supplies authenticated board access or
+relays the board reconciliation when resuming; this documentation task starts no
+runtime implementation.
+
+### Review and preservation
+
+Corrections are documentary/source observations. New startup handoff and degraded
+channel language are explicitly unapproved proposals. Existing published
+Device/Web Node/transport requirements and PR #16 remain separate authorities.
+No required/recommended/conditional institutional language is changed.
+No template, shared runtime component or skill rule changes; consumer adoption
+is deferred to its owner.
+
+Documentation validation checks the four-file diff, whitespace, relative
+links/anchors, fences and pinned external targets. No firmware build/publication,
+hardware operation, merge, deployment, credential change or migration.
+Remote branch/PR preserve the reviewed files off-machine; local audit material is
+a same-machine review snapshot, not another maintained contract.
+
+**Next:** independent reviewer reviews the exact updated PR #32 head, especially
+the proposed startup handoff and partial-channel compatibility. Kornelis decides
+adoption/merge separately and relays CESH's source-matrix/reference corrections.
+Next checkpoint: that review, before any dependent implementation.
+
+
 **Serial/buffer drafts (Codex, 2026-10-14).** Head `f9e4e391099d6fc18c6ba969271fe6c81d5e64bb`
 on `codex/serial-buffer-api`, baseline `da62d8dd9c151a53e56388a1ced354d8ca01cf97`.
 Consolidated the serial draft from `codex/usb-provisioning-standard` at `ab83ab3`.
@@ -116,9 +199,11 @@ references, the PR #16 operator page, and topics assigned elsewhere in #33.
 
 ## Open decisions
 
-1. **otadata on USB reinstall** after an OTA-installed image ran: reset to select
-   app0, or a slot-aware plan; how NVS OTA state and the rollback target are
-   reconciled; which physical evidence supports it
+1. **USB startup/OTA reconciliation:** actual host plans are now distinguished
+   in the [USB matrix](usb-provisioning-standard.md#write-boundaries-and-ota-compatibility).
+   Resolve NVS OTA/DC1 state, health confirmation and fallback under the
+   [proposed startup contract](firmware-blueprint.md#boot-validation-and-rollback-compatibility);
+   verify the exact pinned bootloader and separately scoped physical evidence
    ([blueprint §5](firmware-blueprint.md#write-plans-initial-install-reinstall-and-ota)).
 2. Exact wire grammar and types, sample metadata placement and compatibility,
    STATUS versus INFO.
@@ -153,7 +238,9 @@ consumers before any project migration.
 
 ## Next step
 
-Codex independently reviews the exact consolidation commit recorded in #31/PR #32.
-Kornelis then decides merge and branch/worktree retirement separately. After that,
-resolve open decisions 1 and 2 before any reference implementation. No board setup,
+Independent review of the exact October 15 documentation-audit head in PR #32 is
+next; see its checkpoint above. Earlier cb4fd1a consolidation acceptance does not
+cover these new edits. Kornelis decides adoption/merge and branch/worktree
+retirement separately. Resolve relevant startup and wire-compatibility decisions
+before dependent implementation. No board setup,
 synchronization, consumer migration or device operation is authorized here.

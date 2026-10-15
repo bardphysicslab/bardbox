@@ -38,8 +38,10 @@ The existing forms remain OK INFO uid=... fw=... sensors=..., HDR,v1,...,
 and DAT,... or ERR SENSOR_FAIL. Existing PING can return PONG. Project extensions
 must not replace uid, fw or sensors, break framing, or expose secrets. New fields
 are additive and follow an explicit version/compatibility rule. The base INFO
-must also report physical MAC and unprovisioned state for B-Flash's post-reset
-binding; MAC is hardware identity, not the assignable BardBox UID.
+proposes unprovisioned state. Earlier mandatory physical-MAC reporting/binding
+is deferred: current provisioning uses the existing node UID including its
+instance, with no MAC or registry integration. Factory-base-MAC lookup remains
+future registry design, separate from authentication.
 
 INFO must work before registration. For the generic sensorless example,
 uid=unassigned and sensors=none are explicit proposed sentinel values (not valid
@@ -255,14 +257,16 @@ OTA URL/key is not proof of commissioned OTA. These outcomes are reported separa
 
 ## ID changes and registry ownership
 
-B-Flash/API/registry own global availability, atomic reservation, actor/history
+For future registry/identity-maintenance design, B-Flash/API/registry would own
+global availability, atomic reservation, actor/history
 and key lifecycle ([USB flashing and provisioning](usb-provisioning-standard.md#identity-registry-and-replacement)). Firmware has no global registry client and cannot know other
 assigned IDs. It validates local syntax, durably saves the supplied ID and reports
-it. Initial assignment and explicit ID update are supported; ordinary reflash
+it. Initial assignment and explicit ID update are proposed, not implemented;
+current DC1 provisioning preserves its immutable-record rule. Ordinary reflash
 retains configuration. Registry outage blocks the host assignment/change action,
 not local INFO/debug or a structurally valid serial settings operation.
 
-This requirement changes existing device-instructions.md's immutable-deployed-ID
+This proposed requirement would change existing device-instructions.md's immutable-deployed-ID
 rule. Amend that rule explicitly as a proposal alongside the implementation:
 ordinary operation preserves UID; an explicit coordinated maintenance action can
 change it, retaining historical attribution. Never silently rewrite historical data.
@@ -284,8 +288,9 @@ Implement in one maintained reusable capability with a minimal independent
 consumer and a reference template. Tests cover standard framing, mandatory fields,
 new INFO field without parser edit, coherent HEADER/READ, no-sensor/failure behavior,
 secret omission, partial/oversized lines, bounded servicing, durable settings
-transactions and interrupted/repeated/stale updates. Host checks cover registry
-claim/update failures and physical binding using reported MAC after re-enumeration.
+transactions and interrupted/repeated/stale updates. Future registry checks cover
+claim/update failures and independently reviewed physical-board binding. They are
+not prerequisites or implementations in current Firmware Tools #8.
 Build a real sensorless USB image and staged bundle; retain exact binaries, inputs,
 hashes and a verified recovery archive outside temporary folders. No approval or
 hardware acceptance is implied by this document. Wi-Fi/OTA runtime and their

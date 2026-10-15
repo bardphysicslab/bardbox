@@ -1,131 +1,142 @@
 # USB flashing and provisioning (proposed)
 
-Status: proposed shared USB assembly contract. Documentation only; this does not
-establish consumer conformance or authorize hardware operations.
-Tracker: [firmware-tools #5](https://github.com/bardphysicslab/firmware-tools/issues/5);
-design entry point: [firmware blueprint](firmware-blueprint.md).
+Status: proposed shared contract, audited October 15, 2026. Source observations
+and maintainer scope below are not adoption of a new protocol. No consumer
+conformance, physical acceptance or operational authorization is implied.
+Design owner: [BardBox #31](https://github.com/bardphysicslab/bardbox/issues/31).
+Implementation/evidence owners: [Firmware Tools #5](https://github.com/bardphysicslab/firmware-tools/issues/5),
+[provisioning #8](https://github.com/bardphysicslab/firmware-tools/issues/8),
+[CESH integration #25](https://github.com/bardphysicslab/cesh-air-monitor/issues/25).
+Entry point: [firmware blueprint](firmware-blueprint.md).
 
-Provenance: imported 2026-10-14 from `docs/usb-provisioning-standard.md` on
-`codex/usb-provisioning-standard` at `ab83ab376475d7ef8adea57aa720b67726857340`
-(written 2026-10-09). That branch's serial proposal was already consolidated into
-[firmware-base-and-serial-api.md](firmware-base-and-serial-api.md) and is not
-repeated here. Edits on 2026-10-14 mark the immutable DC1 record as existing CESH
-behaviour, point the otadata question to its single open decision and label the
-implementation evidence as historical. Source governing commits:
-engineering-standards `3bf9c600b35f73322e8f610baffec2b682bdcc77`, BardBox
-`da5132a648d21989a984e00fa1fd02760bcdf4f7`.
+Provenance: imported October 14 from `codex/usb-provisioning-standard` at
+`ab83ab376475d7ef8adea57aa720b67726857340` (October 9). The historical
+coordinator evidence below is preserved; its registry and single-Flash design
+does not define the current milestone.
 
-## One assembly operation, distinct results
+## Current scope and separate outcomes
 
-The assembly interface has one primary **Flash** action using the current
-approved bundle for the selected supported hardware profile. It has no firmware
-catalog or arbitrary file picker. The intended sequence is:
+Firmware Tools main at `52d4b8ed7d7127e2932e0131bf6b15ebf135b896`
+has Set up device and Check device. Provisioning is separate work in #8.
+Do not describe one integrated flash/provision/healthy-boot operation as delivered.
 
-1. Identify the connected board and check target compatibility and security state.
-2. Flash the approved binary and verify the complete planned write ranges.
-3. Provision per-device settings over USB into persistent configuration storage
-   (ESP32 NVS), separate from the firmware image, OTA metadata and measurement queue.
-4. Verify the stored configuration without exposing passwords or keys.
-5. Deliberately restart and check the running firmware and reported identity.
+Report these separately: approved write/read-back verification, selected image,
+observed running firmware, local health confirmation, provisioning readiness,
+receiver acknowledgement and OTA commissioning. A verified write or an INFO reply
+alone proves none of the later outcomes. Saving settings is not evidence of
+restart persistence, network access, fresh measurements or authenticated admission.
 
-Report flash verification, provisioning verification and boot verification
-separately. Successful writing alone is not proof of a healthy running device.
-If provisioning fails, say that firmware was written but setup is incomplete;
-retry the unfinished step rather than silently repeating the entire operation.
-A registry reservation is not proof that hardware was successfully provisioned.
+Check device sends INFO once and displays received text without required fields,
+field validation or pass/fail interpretation. It can display legacy CESH output,
+errors and unrelated text. Silence/disconnection is not proof of unsupported
+provisioning. Installer identity/security/layout/image/write-range checks remain
+independent of interpreting this readout. See maintained
+[adapter source](https://github.com/bardphysicslab/firmware-tools/blob/52d4b8ed7d7127e2932e0131bf6b15ebf135b896/packages/usb-browser/adapters/serial-info.js).
 
-Use a shared approved binary; do not patch its bytes with identity, Wi-Fi or
-credentials. Runtime settings are loaded from persistent storage. Board and
-sensor selections that change compiled drivers select a matching approved
-build; provisioning cannot turn an incompatible binary into another build.
+## Provisioning milestone
 
-Physical binding after reset uses the MAC reported by the running firmware;
-USB vendor/product filters identify only the board type
-([USB identity](firmware-blueprint.md#7-usb-identity)). The proposed base INFO
-reports MAC and unprovisioned state; existing CESH INFO does not.
+The [latest maintainer scope](https://github.com/bardphysicslab/firmware-tools/issues/8#issuecomment-6204491290)
+uses one reusable provisioning module, one shared field-definition file and the
+existing device record/commands. Projects supply supported values/configuration;
+mandatory project-specific field providers or an extension framework are not
+required. New form fields do not extend firmware storage or wire formats.
+The implementation and operating instructions belong in Firmware Tools, with
+CESH owning device support and acceptance.
 
-## Configuration and assembly choices
-
-Project engineering configuration owns the project label, fixed UID prefix,
-server endpoint, supported boards, sensor choices, defaults and compatible
-bundle mappings. Keep this configurable for CESH, RKC and future consumers.
-Firmware config.h defines configurable fields and build defaults; USB provisioning
-supplies supported per-device runtime values. Their schema and precedence must
-agree, rather than maintaining two unrelated sets of settings. The proposed
-device-side settings contract is in the
+Initial DC1 commissioning uses PROVISION_BEGIN/DATA/COMMIT. CESH validates
+the record, trust material and running-image length/hash, then stores it for
+next-boot activation. Existing different/corrupt records are not overwritten;
+an identical record can be retried. Later Wi-Fi-only changes use the separate
+WIFI_* override flow, preserving UID and immutable DC1 rather than recommissioning
+the whole device. General settings/identity maintenance remains a proposal in the
 [serial/base API](firmware-base-and-serial-api.md#runtime-settings-and-new-wire-commands).
 
-Assembly chooses the instance number and Wi-Fi SSID/password, plus configured
-hardware choices. An empty Wi-Fi password means an open network; derive the
-firmware's password-present flag from that value. Assembly cannot edit the UID
-prefix or server endpoint. Location, coordinates and ownership remain server-owned.
-
-The CESH pilot uses project CESH-AIR and prefix bb-cesh-air-. It offers ESP32-S3,
-BME280 (default) or BME688, and a single paired choice of two PMS5003 (default)
-or two PMS6003. Mixed PM pairs are excluded. An offered choice requires a matching
-approved bundle before hardware flashing is enabled. These are project settings,
-not mandatory hardware for every BardBox project.
-
-Existing CESH identifiers are preserved. This proposal does not change the
-[node naming standard](node-naming-standard.md) or invent a new naming migration.
+A commit reply lost after transmission leaves an uncertain outcome; even a
+device-reported commit error does not prove no durable bytes were written.
+PROVISION_STATUS loaded/stored flags do not identify the saved record. Reconcile
+uncertainty with the identical retained record only, without blind replay,
+replacement, token regeneration or automatic erase. A fresh session observing
+stored configuration must not propose a new initial record. Keep secret values
+out of readouts, logs and persistence on the host; mask review values.
+These boundaries follow the existing device store and
+[provisioning review](https://github.com/bardphysicslab/firmware-tools/issues/8#issuecomment-6204390412);
+they introduce no new command.
 
 ## Identity, registry and replacement
 
-The registry service owns availability and credential lifecycle through an API;
-the application does not issue database queries. A database adapter isolates
-storage choice. SQLite is the isolated pilot implementation, not a mandate for
-all deployments. Offline devices remain assigned. Check availability and reserve
-atomically; do not automatically allocate a new number in this pilot. Firmware
-has no registry client; it validates, saves and reports the supplied UID
-([ID changes and registry ownership](firmware-base-and-serial-api.md#id-changes-and-registry-ownership)).
+Current provisioning enters or preserves the existing BardBox node UID including
+its instance. It does not generate a new identity scheme. Preserve existing CESH
+identifiers; the deployed CESH naming and the published
+[node naming standard](node-naming-standard.md) differ, so do not silently
+normalize existing IDs or rewrite historical records.
 
-A normal reflash retains the device's identity and supported persistent settings.
-Reflashing an already used device does not require a backup or a new-device-only
-baseline. Firmware updates must not silently erase provisioning or queued data.
-An explicitly approved storage migration needs its own preservation decision.
+No MAC integration, allocator, registry/reservation or credential-management
+implementation belongs in #8. Required existing trust/token fields still need
+valid compatible inputs; this is not permission to create real credentials.
 
-Replacing an occupied instance requires a clear warning, additional engineer
-credential verification and a check that the registry revision has not changed.
-Keep the UID and historical measurements/metadata; update the current hardware
-assignment/configuration and revoke the previous device credential. Issue and
-provision a new device credential through an explicit service operation. Never
-claim that deleting the previous key automatically creates a replacement key.
-
-Initial provisioning must not overwrite a different existing configuration.
-Intended direction: explicit, coordinated UID, settings and credential maintenance
-through revision-checked settings transactions; secrets are set-only and never
-echoed. **Existing:** CESH DC1 is immutable and has no maintenance contract, so
-registry replacement alone cannot change a provisioned device's record today.
-Legacy keyless access, if temporarily needed, requires explicit per-device policy.
+The full factory-programmed base MAC is a candidate physical-board lookup key for
+the deferred [Device registry #41](https://github.com/bardphysicslab/firmware-tools/issues/41)
+and its [planning board](https://github.com/users/bardphysicslab/projects/5).
+It is neither an authentication credential nor sensor/wiring evidence nor a
+replacement for the application UID. Runtime interface MACs and USB vendor/product
+filters do not establish that factory identity. Registry authority, replacement,
+issuance/revocation and admission enforcement stay in that deferred workstream;
+the existing registration component is implementation evidence, not proof of
+production authority or completed integration.
 
 ## Write boundaries and OTA compatibility
 
-Keep image length distinct from sector-rounded write length. Verify every byte
-of each planned write range, including padding and any explicit metadata reset,
-by reading it back and comparing it with the intended bytes. This verifies the
-written regions, not untouched flash or boot health. Avoid a whole-chip erase.
+Source matrix at Firmware Tools `52d4b8e`: `workflows/setup.js` dispatches
+install/recover/recover-layout to `flashOpenSession` using `flash-plan.js`;
+update/reinstall-same use `slot-update.js`. These are USB paths, not network OTA.
 
-Review existing partition layout, OTA metadata and selected boot slot before
-writing. A first-install plan may reset otadata to select app0. Whether a USB
-reinstall onto a device that has run an OTA-installed image may reset otadata is
-an [open decision](firmware-blueprint.md#write-plans-initial-install-reinstall-and-ota);
-this draft's caution that a later update must not blindly reset it, since that can
-select an old or unwritten application, is one input to it. Write only the approved
-plan's ranges and keep NVS and measurement storage out of those ranges. A
-partition-layout change requires a separate migration plan. The one maintained
-flash table is in the [firmware blueprint](firmware-blueprint.md#5-flash-memory-one-8-mib-esp32-s3-recipe).
+| USB path | Planned writes and selection metadata | Limits |
+| --- | --- | --- |
+| Verified-erased install | Approved bootloader, partition table, fallback app0 and 8192-byte all-FF otadata reset for this dual-slot recipe | No NEW entry written; erased fallback is not proof of application health; blank-device end-to-end physical acceptance remains unverified |
+| Older/different/unreadable-layout recovery (recover-layout) | Same approved install plan, including all-FF otadata reset | Explicit data-loss confirmation; old settings/queued records may overlap new writes or become inaccessible |
+| Same-layout recovery (recover) | Same approved install plan, including all-FF otadata reset | NVS/data regions remain outside writes and reachable under the same table; retained schema compatibility and saved OTA lifecycle still need checking |
+| Inactive-slot update, including Install again | Write/read back inactive app, then selection entry NEW; an erased starting record also gets an UNDEFINED record for the prior app | Preserves the selected app bytes; NEW/PENDING_VERIFY health confirmation and lifecycle compatibility remain separate |
 
-Preserve the existing engineering bench and its physical installation,
-comparison, restoration and full-read evidence. Adapt its reviewed implementation;
-do not recreate the installer or repeat hardware acceptance solely for UI changes.
-The engineering bench, inspection-only assembly page and current-bundle simulation
-are different tools and must be labelled accordingly.
+The installer writes no NEW selection entry in the first three rows. A compatible
+rollback-enabled bootloader can transition NEW to PENDING_VERIFY on startup;
+this must not be generalized to erased metadata. The
+[upstream ESP-IDF v4.4.7 source](https://github.com/espressif/esp-idf/blob/v4.4.7/components/bootloader_support/src/bootloader_utility.c)
+distinguishes erased fallback and writes its initial selection VALID. That is
+source reference evidence, not verification of the exact pinned CESH bootloader
+binary or proof it passed the application's checks. VALID can also be created by that erased-fallback bootloader path; it does not
+by itself prove application-level health checks or current sensor health.
 
-Related pending OTA/storage proposal: [PR #16](https://github.com/bardphysicslab/bardbox/pull/16)
-(`ota-update-standard.md` at `7b947be`) contains the OTA lifecycle and a reference
-USB configuration record. It is pending, not merged authority. Reconcile this USB
-contract with that proposal before promoting their shared configuration or
-maintenance interfaces.
+At CESH `24c2305ff1834368a0a86a90592bb71faba91d65`,
+`CeshOTA.cpp` defers framework acceptance with verifyRollbackLater().
+rollbackOnce() attempts rollback only when sdkPending() is true. A pending
+USB-selected image without matching PendingBoot/Validating lifecycle state is a
+real integration gap. Unprovisioned shared firmware stops normal acquisition
+independently of whether boot metadata is pending. All-FF install alone proves
+neither unavoidable rollback nor commissioned OTA. Follow the
+[corrected source review](https://github.com/bardphysicslab/cesh-air-monitor/pull/50#issuecomment-6204677421).
+
+Verify all padded write ranges and explicit metadata writes by read-back; image
+identity hashes exclude padding. Never whole-chip erase as normal recovery.
+Check the complete approved bootloader region, layout, selected image/history,
+security and fingerprint again before allowing the exact confirmed ranges.
+Preservation claims apply to the inspected layout, not arbitrary old layouts.
+The one memory map stays in the
+[blueprint](firmware-blueprint.md#5-flash-memory-one-8-mib-esp32-s3-recipe).
+
+The substantive shared health/commissioning decision remains
+[proposed in the blueprint](firmware-blueprint.md#boot-validation-and-rollback-compatibility).
+Do not disable OTA or accept an unexpected pending image to make a demo work.
+
+## OTA document authority
+
+`docs/ota-update-standard.md` is absent from BardBox main `da62d8d`.
+Its actual maintained proposal is
+[PR #16 at 7b947be](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/ota-update-standard.md),
+not an adopted main standard. Keep one draft there; do not create a replacement.
+CESH main's firmware README, device-provisioning and ota-readiness documents
+still name the absent main path. Their writer should replace those references
+with this pinned draft/status and preserve the owning implementation's evidence.
+Adoption/compatibility with the USB contract needs independent review.
 
 ## Historical implementation evidence (2026-10-09)
 
@@ -155,11 +166,11 @@ credentials. In the isolated TEST record, one random token is supplied to OTA an
 telemetry fields; production credential purpose and server enforcement remain
 separate integration work.
 
-## Next steps (unchanged from the source, still pending)
 
-Independent code review of the coordinator, then an explicitly authorized physical
-integration trial on a compatible unprovisioned spare. Keep production integration
-and record maintenance in separate approved steps. Template and other-consumer
-adoption are deferred pending contract review; CESH is the pilot, RKC requires
-project-specific configuration and validation. No runtime code, deployment,
-service restart or hardware operation is included in this documentation.
+## Next step
+
+Independent review of the factual corrections and the bounded startup proposal
+in PR #32. CESH #25/#49 own the exact pinned-bootloader startup matrix and project
+acceptance; Firmware Tools #8 owns current provisioning. Kornelis relays any
+implementation coordination. The older coordinator's review/physical trial is
+historical unfinished work, not the next authorized milestone.

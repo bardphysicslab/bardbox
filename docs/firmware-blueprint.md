@@ -91,7 +91,7 @@ Extracting it is separate work and is not part of adoption.
 | Concern | Owner | Mechanism |
 | --- | --- | --- |
 | Board, flash size, partition layout, pins | Build | `platformio.ini` environment and partition CSV |
-| Sensor drivers and models (e.g. BME680 or BME280; PMS5003 or PMS6003) | Build | `-D` flags and `config.shared.h` defaults; one compiled image per hardware combination |
+| Included sensor drivers, pins and supported hardware | Build | A firmware image can select among included drivers at runtime; provisioning cannot add a driver absent from the image. CESH PR #50 includes both environmental-sensor families; particle selection remains project configuration. |
 | Firmware version | Build | Mandatory build metadata; placeholders rejected ([serial/base API](firmware-base-and-serial-api.md#registration-and-startup)) |
 | UID, display name, Wi-Fi SSID/password, telemetry URL and token, OTA origin/device token/CA, signing key ID and public key, initial image length/hash | Per device, at runtime | **Existing (CESH `BardBoxDeviceConfig.h` at `345b6bb`):** DC1 record written over USB serial (`PROVISION_*`) into NVS. **Proposed:** typed settings with temporary/persistent scope ([settings](firmware-base-and-serial-api.md#operational-settings)) |
 | Acquisition, streaming and reporting intervals; supported retry, buffer and time settings | **Existing:** build. **Proposed:** per device, at runtime | **Existing:** compile-time constants (CESH `REPORT_INTERVAL_S` in `config.shared.h`/`config.h`); DC1 encodes no interval. **Proposed only:** operational settings ([settings](firmware-base-and-serial-api.md#operational-settings)); changing intervals at runtime is not implemented by current CESH provisioning |
@@ -110,11 +110,12 @@ precedence rule rather than two unrelated sets of settings.
 
 - Shared builds set `BARDBOX_REQUIRE_DEVICE_CONFIG=1` and stay non-operational
   until a valid DC1 record loads.
-- Assembly dropdowns select a compiled bundle; DC1 cannot change compiled sensor
-  drivers. There is no single binary for every hardware choice.
-- CESH `THPGSensor.cpp` includes `config.h` unconditionally, so shared builds need
-  an ignored `config.h` shim that only includes `config.shared.h`. A hermetic fix
-  is CESH follow-up work.
+- DC1 cannot add compiled sensor drivers. CESH PR #50 at `24c2305` now includes
+  both environmental-sensor drivers and identifies the fitted family at runtime;
+  particle models remain build choices. This is pushed/unmerged source with
+  controlled host/CI evidence, not physical acceptance or a published bundle.
+- The 0.8.6 wrapper needed a local `config.h` shim. PR #50's wrapper removes
+  that include; do not describe the old wrapper defect as current at `24c2305`.
 
 ## 4. Lifecycle
 
@@ -148,11 +149,11 @@ They are evidence of existing state, not requirements for future firmware.
 ### Proposed base lifecycle
 
 - **Unprovisioned INFO remains usable.** `INFO`, `HEADER` and `READ` answer before
-  registration, with explicit sentinel values and the physical MAC for host
-  binding ([required information](firmware-base-and-serial-api.md#required-information-and-reading-contract)).
+  registration, with explicit sentinel values ([required information](firmware-base-and-serial-api.md#required-information-and-reading-contract)).
 - **Explicit coordinated maintenance.** UID, settings and credentials can be
   changed by an explicit maintenance action through revision-checked settings
-  transactions and the registry; ordinary operation and reflash preserve them
+  transactions; ordinary operation and reflash preserve them. Registry integration
+  is deferred separately from current provisioning
   ([ID changes](firmware-base-and-serial-api.md#id-changes-and-registry-ownership)).
 - **Separate outcomes.** Flash, provisioning and boot verification are reported
   separately ([USB flashing and provisioning](usb-provisioning-standard.md)).
@@ -179,7 +180,7 @@ boards declare their own. On 2026-10-12 the generated table in candidate
 | nvs | 0x009000 | 0x5000 (20 KiB) | Persistent device configuration and module state. Existing CESH namespaces: DC1 record (`bb-device`), Wi-Fi override (`bb-wifi-ovr`), OTA state (`bb-ota`) | **never** |
 | otadata | 0x00e000 | 0x2000 (8 KiB) | Slot selection/validation metadata, not URLs or keys | existing CESH plan: reset to 0xFF; see open decision below |
 | app0 (ota_0) | 0x010000 | 0x200000 (2 MiB) | Firmware slot A | yes |
-| app1 (ota_1) | 0x210000 | 0x200000 (2 MiB) | Firmware slot B | no (OTA writes it) |
+| app1 (ota_1) | 0x210000 | 0x200000 (2 MiB) | Firmware slot B | not in initial install; USB inactive-slot update or OTA can write it |
 | data (`spiffs` label, LittleFS) | 0x410000 | 0x3e0000 (3.875 MiB) | Optional measurement queue/storage | **never** |
 | coredump | 0x7f0000 | 0x10000 (64 KiB) | Explicit platform diagnostics policy | no |
 
@@ -192,10 +193,12 @@ Rules for this recipe:
   agree exactly and fit actual flash capacity.
 - **Filesystem label.** The historical CSV labels the data partition `spiffs`; the
   intended runtime uses LittleFS. A label is not proof of filesystem compatibility.
-- **Protected ranges.** NVS and the data partition lie outside every write plan
-  and are preserved across initial install, reinstall and OTA unless an explicit
-  migration or format is authorized. The planner refuses any image sector that
-  crosses another partition. No whole-chip erase.
+- **Protected ranges.** NVS/data are outside these approved same-layout plans.
+  An older/different-layout recovery may overwrite prior data or make it
+  inaccessible; it requires the explicit data-loss warning. Schema readability
+  remains separate from untouched bytes. The planner checks approved partition
+  boundaries; that alone does not prove preservation under a foreign table.
+  No whole-chip erase.
 - **Buffering is optional** even though space is reserved. Retention depends on
   record size, cadence and storage overhead.
 - **Hashes versus padding.** Writes are padded with 0xFF to 4 KiB sectors, and
@@ -208,47 +211,81 @@ Rules for this recipe:
 
 ### Write plans: initial install, reinstall and OTA
 
-| Plan | Writes | Boot selection |
-| --- | --- | --- |
-| Initial USB install | bootloader, partition table, app0; otadata reset | Blank otadata makes the bootloader boot the first OTA slot, app0 |
-| USB reinstall of a previously installed device | **Existing CESH bench plan:** same ranges as initial install, including otadata reset to select app0 | **Open decision** below |
-| OTA update | Inactive application slot only | Update/boot-validation contract records the switch in otadata, with OTA state in NVS |
+The [USB path matrix](usb-provisioning-standard.md#write-boundaries-and-ota-compatibility)
+is the maintained description of blank install, older-layout recovery,
+same-layout recovery and inactive-slot update at Firmware Tools `52d4b8e`.
+Install/recovery reset metadata to all-FF; inactive-slot updates select NEW.
+Network OTA writes the inactive slot with its own lifecycle state. USB transport
+alone does not identify the metadata or confirmation path.
 
-A reinstall is not an OTA update. Every plan reads back every planned written byte
-and never writes NVS or the data partition.
-
-**Open decision: otadata during USB reinstall.** The sources disagree, and no
-universal rule is adopted here:
-
-- the blueprint at `69795b5` and the existing CESH/firmware-tools plan reset
-  otadata on every USB install, including reinstall, so the just-written app0 boots;
-- the USB proposal at `ab83ab3` allows a first-install reset but says a later
-  update "must not blindly reset" otadata, since that can select an old or
-  unwritten application;
-- the serial proposal at `f9e4e39` says initial/reinstall "can reset otadata
-  deliberately".
-
-To decide: for a device that has run an OTA-installed image from app1, does a
-supported USB reinstall (a) write app0 and reset otadata, or (b) inspect the
-running slot and existing OTA metadata and write a different plan? The decision
-must state how NVS OTA state (`bb-ota`) that refers to the previous slot is
-reconciled, what the rollback target is afterwards, and which physical evidence
-supports it. Existing evidence: the dry-run plan for `d3c1c76b4364` (never
-flashed) and the USB flash verification recorded in
-[firmware-tools #5](https://github.com/bardphysicslab/firmware-tools/issues/5).
-Until decided, a reinstall onto an OTA-updated device is not a supported path.
+The earlier sources at `69795b5`, `ab83ab3` and `f9e4e39` disagreed about
+general USB reinstall policy. Existing host choices are now observable; their
+presence is not acceptance of every CESH configuration/OTA-state combination.
+Document any overwritten selected/fallback image; preserve it on inactive-slot
+updates and verify an explicit recovery plan for destructive reinstalls. Preserve
+prior queue/configuration under compatible layouts and verify exact writes. An old DC1 initial-image hash or saved bb-ota state
+can disagree with newly written bytes even when NVS is untouched.
 
 ### Boot validation and rollback compatibility
 
-OTA runtime may be disabled, but validate the actual bootloader configuration,
-dual slots, first-boot validation and rollback policy now. Metadata alone does
-not implement rollback. A successful boot marks the new image valid under
-documented base health criteria; no sensor or network requirement may be invented
-for the sensorless USB base. Optional modules later supply additional validation.
+**Proposed contract for independent review, not adopted policy.** This narrows
+the previously open reinstall question; it does not change CESH validation or
+the pending [OTA draft](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/ota-update-standard.md).
 
-Configuration and record schemas must stay readable by fallback firmware, or use
-an explicit reversible migration, so rollback does not strand the device. Retain
-old queue decoders until old records drain ([buffer API](firmware-buffer-api.md#compatibility-and-cesh-evidence)).
+1. Installer evidence states exact image identity, layout/bootloader, write ranges,
+   before/after metadata and preserved or lost fallback/data. Read-back completion
+   is installation evidence, not boot/health/commissioning success.
+2. The bootloader owns slot selection and SDK pending/valid/rollback transitions.
+   The app owns bounded local acceptance. Never infer application health from
+   erased fallback or a displayed INFO reply.
+3. USB-selected pending candidates need a deliberate, durable authorization and
+   identity handoff accepted by the application, or the installer stops that
+   unsupported path. Preserve fail-closed handling of unexpected pending images.
+   Do not silently invent a USB marker, auto-create idle OTA state, bypass
+   validation or disable OTA.
+4. Local confirmation requires valid configuration and recovered persistent
+   storage, progressing acquisition and a newly persisted reporting window under
+   an explicit compatible time/failure budget where those capabilities apply.
+   A sensorless base needs its own explicit health policy. Known degraded sensors
+   do not alone invalidate firmware; network availability is a separate result.
+   These checks retain the pending OTA draft's substance, not a weaker demo gate.
+5. Provisioning readiness and OTA commissioning are distinct. An unprovisioned
+   image can expose provisioning without proving acquisition readiness or OTA
+   eligibility. If required local checks cannot run before provisioning, choose
+   and review a bounded compatible startup path rather than auto-confirming it.
+6. Configuration/queue schemas and identity must remain readable by fallback
+   firmware or use an explicitly reviewed reversible migration. Never clear the
+   queue or rewrite immutable DC1 to satisfy startup.
+
+**Compatibility and decisions:** Existing NEW updates without an app-recognized
+lifecycle are not made compatible by documentation. A new USB authorization
+record would need a versioned format, writer/reader agreement, crash/retry
+semantics and old-firmware behavior. Reusing existing OTA state may avoid a second
+authority but requires a deliberate commissioning/identity transition; it is not
+safe to fabricate an OTA assignment. Recommended next step is the existing
+CESH #25 source/synthetic matrix against its actual pinned bootloader, followed
+by an explicit choice between stopping unsupported pending USB updates and a
+reviewed handoff. Resolve marker/state ownership, provisioning deadline,
+no-fallback behavior, retained DC1 hash and saved OTA-state reconciliation before
+adoption. Physical acceptance remains separately scoped.
+
+### Diagnostics and degraded operation
+
+Existing [transport recovery](transport-recovery-standard.md#i2c-recovery) already
+requires bounded local recovery, unavailable state after exhausted retries, no
+fabricated zeros and a fresh validated read before healthy status.
+[Web Nodes](web-node-protocol.md) already preserve unacknowledged records and keep
+sampling during catch-up; architecture separates acquisition, queue and delivery.
+
+**Proposed clarification for review:** a failed sensor leaves the node running,
+preserves queued records, and permits healthy independent channels to progress
+with unavailable-state diagnostics for failed channels. This adds no universal
+sensor model or wire field. Decide partial-channel representation in each
+payload's compatibility contract; a generic serial DAT schema may need an error
+or versioned partial-sample representation. CESH PR #50 reuses its existing nulls,
+health flags and counters with bounded recovery; its exact drivers/models belong
+in CESH, not this shared requirement. These source/host checks do not establish
+hardware, outage or restart acceptance.
 
 ## 6. Build, release and approval
 
@@ -264,7 +301,9 @@ old queue decoders until old records drain ([buffer API](firmware-buffer-api.md#
 - **Reproducibility (existing, 2026-10-12).** Not bit-reproducible:
   `FIRMWARE_BUILD_ID` embeds `__DATE__`/`__TIME__`, and CESH pins neither the
   platform nor library versions. Record resolved versions with each candidate;
-  pinning is follow-up work.
+  pinning is follow-up work for that historical snapshot. CESH PR #48 at
+  `b271889` pins the two-slot toolchain/direct libraries; single-slot environments
+  and transitive dependencies remain distinct. Preserve resolved build evidence.
 - **Versioning.** Firmware, protocol (`web-node-v0.2`), settings/DC1 schema and
   queue schema versions are independent. Firmware version is mandatory. A
   behaviour change requires the project's firmware-version check.
@@ -278,7 +317,10 @@ PlatformIO board definition lists `239A:811B`, `239A:011B` and `239A:811C`, so t
 observed value, not the board file, belongs in assembly configuration.
 
 USB vendor and product filters identify a board type, not a physical device.
-Existing CESH `INFO` does not report the MAC; the proposed base INFO does.
+Existing CESH `INFO` does not report the factory base MAC. Earlier mandatory MAC
+binding in the base proposal is deferred by the current provisioning scope;
+see [identity and registry](usb-provisioning-standard.md#identity-registry-and-replacement).
+No MAC handling is required for the current milestone.
 
 ## 8. Template adoption plan (proposed)
 
