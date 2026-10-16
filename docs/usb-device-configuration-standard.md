@@ -5,9 +5,11 @@ installer (Firmware Tools) and ESP32 project firmware (CESH first). It does not 
 network OTA, which remains a separate draft (bardbox PR #16), registration, MAC handling or
 credential issuance.
 
-Ownership: BardBox owns these definitions. Firmware Tools writes them; project firmware reads
-them and keeps exact copies of the shared readers. A change to either format is a BardBox
-change first.
+Ownership: BardBox owns these definitions. Firmware Tools writes them. Readers follow the
+architecture's rule for shared implementation: a maintained component with a documented
+source and version, consumed through its interface. CESH firmware is the first consumer;
+other projects adopt it in stages and record the version they use. A change to either format
+is a BardBox change first.
 
 ## 1. USB selection marker
 
@@ -58,8 +60,9 @@ CRC-32 (zlib, little-endian) over all preceding bytes.
 ### DC1 (existing, key `config`)
 
 Unchanged: identity, Wi-Fi, telemetry and OTA settings plus the installed image's size and
-hash, all required. Existing DC1 devices keep their behaviour; nothing migrates or erases
-them.
+hash, under the existing field rules (for example the telemetry token is optional and an
+empty Wi-Fi password means an open network). Existing DC1 devices keep their behaviour;
+nothing migrates or erases them.
 
 ### DB1 basic record (key `basic`)
 
@@ -67,12 +70,15 @@ them.
 `telemetry_token`, `telemetry_ca`, then the CRC.
 
 Field rules are DC1's for the same fields: `uid` 1-48 of `[A-Za-z0-9_.-]`; `name` 1-64 bytes,
-no comma or control characters; SSID 1-32 bytes; password empty (open network) or 8-63
-bytes; `telemetry_url` an `https://host[:port]/path` without query, fragment or user info
+no comma; SSID 1-32 bytes; password empty (open network) or 8-63 bytes; `name`, SSID,
+password and token contain no NUL, DEL or other control characters; `telemetry_url` an `https://host[:port]/path` without query, fragment or user info
 (≤512 bytes); `telemetry_token` optional (≤256 bytes); `telemetry_ca` a PEM X.509
 certificate (≤4096 bytes) that anchors TLS to the telemetry endpoint. The CA is public
 trust material, not a credential. Whether a receiver needs a token is that receiver's
 policy; the record carries one only if supplied.
+
+The whole record is at most 8192 bytes. A record with a wrong magic or CRC, a truncated or
+oversized field, or any bytes after the last field is rejected as a whole.
 
 A DB1 is refused when a DC1 exists, and a DC1 is refused when a DB1 exists.
 
