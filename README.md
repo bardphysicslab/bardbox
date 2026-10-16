@@ -6,6 +6,11 @@ It defines the protocol, reading format, driver boundaries, UI standard,
 naming conventions, time rules, and design decisions shared by BardBox monitor
 projects.
 
+## Architecture map
+
+The [BardBox Architecture Map](docs/architecture-map.md) contains all three
+maintained diagrams: node firmware, project server and USB flasher.
+
 ## Role
 
 This repo is the source of truth for:
@@ -28,15 +33,24 @@ monitor deployments.
 
 `bardbox-project-template` is the reference implementation/template repo.
 
+`bardbox-mcp` is the shared read-only data-access bridge for AI and other MCP
+clients. It sits above project Data APIs; individual monitor projects should not
+create project-specific MCP servers for normal historical-data access.
+
 Workflow:
 
 1. Protocol or UI rule changes are documented first in `bardbox`.
 2. Then they are implemented in `bardbox-project-template`.
 3. New monitor repos are created from `bardbox-project-template`.
 4. Existing monitor repos like GoLab, RKC, Solar, and CESH Air should be updated from the template standard when practical.
-5. Project-specific repos should not invent protocol behavior unless it is promoted back into `bardbox` and `bardbox-project-template`.
+5. If an existing BardBox project is missing required shared infrastructure such as config/report tooling, add or sync it from `bardbox-project-template` before substantive configuration or deployment work continues.
+6. Project-specific repos should not invent protocol behavior unless it is promoted back into `bardbox` and `bardbox-project-template`.
+7. When historical project data needs AI/tool access, extend the central BardBox Data API/MCP boundary rather than creating a separate project-specific MCP bridge.
 
-Goal: one documented standard, one reference implementation, many project instances.
+Goal: one documented standard, maintained reusable capabilities demonstrated by
+the reference template, and many configured project instances. Existing copied
+implementations transition incrementally; this direction does not authorize a
+broad refactor or deployment.
 
 ## Current Standards
 
@@ -56,7 +70,38 @@ Goal: one documented standard, one reference implementation, many project instan
 - Historical Data APIs are read-only and enabled only for clean readings roots
 - Firmware development uses VS Code + PlatformIO
 
+## Start here
+
+- [AGENTS.md](AGENTS.md): BardBox's working rules for agents and maintainers. It
+  requires reading the shared rules in
+  [`bardphysicslab/engineering-standards`](https://github.com/bardphysicslab/engineering-standards).
+- [ARCHITECTURE.md](ARCHITECTURE.md): ownership, reuse, composition, UI templates,
+  and an index of applicable detailed standards.
+
+The former BardBox Change Skill and GPT-facing checklist are consolidated into
+these root documents. Existing detailed standards remain technical references;
+there is no separate change-skill checklist to follow.
+
+## Firmware API design entry point
+
+Before firmware, serial-driver, USB-assembly or delivery-buffer work, start at
+the [firmware blueprint](docs/firmware-blueprint.md); its document map links the
+maintained [serial/base proposal](docs/firmware-base-and-serial-api.md),
+[optional buffer proposal](docs/firmware-buffer-api.md),
+[USB flashing and provisioning proposal](docs/usb-provisioning-standard.md),
+the pending storage/OTA review and the
+[continuation](docs/firmware-api-continuation.md). Then verify
+[the owning GitHub issue](https://github.com/bardphysicslab/bardbox/issues/31).
+These are pending design contracts, not implemented or adopted APIs. Update
+these drafts rather than recreating them; settle relevant open decisions before
+implementation. Published device/Web Node contracts remain authoritative.
+
 ## Key Docs
+
+- [Firmware blueprint and document map (proposed)](docs/firmware-blueprint.md)
+- [USB flashing and provisioning (proposed)](docs/usb-provisioning-standard.md)
+
+- [Repository layout and configuration filenames](docs/repository-layout.md)
 
 - [Reading format](docs/reading-format.md)
 - [Node naming standard](docs/node-naming-standard.md)
@@ -68,6 +113,8 @@ Goal: one documented standard, one reference implementation, many project instan
 - [Time sync standard](docs/time-sync-standard.md)
 - [Testing guide](docs/testing-guide.md)
 - [Service operations standard](docs/service-operations-standard.md)
+- [Config/report workflow](docs/config-report-workflow.md)
+- [Data API and MCP boundary](docs/data-api-mcp-boundary.md)
 - [Web UI standard](docs/web-ui-standard.md)
 - [Remote/network access](docs/network-access.md)
 - [Promotion governance](docs/promotion-governance.md)
@@ -76,7 +123,7 @@ Goal: one documented standard, one reference implementation, many project instan
 
 | Standard | Classification |
 | --- | --- |
-| Safe config synchronization | REQUIRED where `app_config` is used |
+| Safe config synchronization and diagnostic reporting | REQUIRED where `app_config` is used |
 | `/health`, systemd restart, and watchdog | REQUIRED for web services |
 | Read-only Data API | REQUIRED WHEN APPLICABLE |
 | Verified backup/retention | REQUIRED WHEN local historical data is retained and pruned |

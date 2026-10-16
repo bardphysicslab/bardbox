@@ -95,6 +95,13 @@ ERR UNKNOWN_CMD
 Rules:
 
 - Responses are single-line text.
+- `INFO` reports `uid`, `fw` and `sensors`. Devices with two firmware slots may
+  add `slot=<running application partition label>` before `sensors`. Example:
+  `OK INFO uid=bb-gol-air-001 fw=1.0.0 slot=app1 sensors=BME280,PMS`.
+  The value must come from the partition the firmware is actually running from,
+  never from a build setting, so one binary reports correctly in either slot.
+  `slot` is optional. Readers must accept INFO with or without it and must ignore
+  INFO fields they do not recognise.
 - `HEADER` returns the ordered schema for `DAT`.
 - `READ` returns one `DAT,...` sample or an `ERR ...` line.
 - `START` begins continuous `DAT` streaming only for streaming devices.
