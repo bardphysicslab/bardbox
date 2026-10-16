@@ -36,11 +36,13 @@ Readers must:
   running partition (which re-verifies the image), because the label is not CRC-protected;
 - treat a missing, torn or non-matching marker as no marker.
 
-Acceptance: a marked, pending image may be confirmed only when the device has verifiably no
-stored configuration (store opened, no record). It then runs in USB-maintenance mode until
-provisioned, the same state a first installation produces. In every other case the
-project's existing validation and rollback apply unchanged; in particular a marker never
-substitutes for network-OTA candidate validation.
+Acceptance: a marked, pending image may be confirmed only when the device verifiably has no
+OTA configuration (stores opened, no DC1 record): it is unprovisioned, or holds only the
+DB1 basic record. Such a device has OTA disabled, so no network-OTA candidate can exist on
+it. Unprovisioned, the image then runs in USB-maintenance mode until provisioned, the same
+state a first installation produces; with DB1 it keeps its stored settings and queue. In
+every other case the project's existing validation and rollback apply unchanged; in
+particular a marker never substitutes for network-OTA candidate validation.
 
 Stale markers: ESP-IDF selection (`esp_ota_set_boot_partition`) keeps a reused sector's label
 but always writes a higher `ota_seq`, so an inherited marker cannot match. Firmware that
