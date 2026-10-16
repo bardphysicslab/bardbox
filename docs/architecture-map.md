@@ -22,7 +22,9 @@ All three diagrams are maintained in this BardBox document. Firmware Tools owns
 its implementation code and links here; it does not maintain a second Mermaid copy.
 The flasher diagram's abbreviated firmware/server context does not replace the
 detailed target drawings or establish that the target is current implementation.
-Historical branch copies remain provenance only.
+Historical branch copies remain provenance only. The original flasher block was
+imported verbatim; the review correction aligns its server context with the
+three explicit responsibility groups below.
 
 ## Node firmware template
 
@@ -67,6 +69,9 @@ A full queue is finite: overflow behavior and lost-record diagnostics require
 an explicit reviewed policy; this drawing does not promise unlimited retention.
 Submission does not imply immediate transmission on all adapters. Bounded
 servicing/backpressure and record-creation errors must remain observable.
+Optional live-preview delivery is pending shared capability review in [PR #15](https://github.com/bardphysicslab/bardbox/pull/15);
+the node drawing shows only the durable baseline and does not claim a shared
+preview sender is implemented. Previews never acknowledge queued archival records.
 Network outages must not stop acquisition. Maintenance can pause acquisition
 only under its separately reviewed lifecycle; no new reboot/power-cycle behavior
 is introduced by this drawing.
@@ -84,45 +89,51 @@ published service-recovery requirements.
 
 ```mermaid
 flowchart TB
-    Nodes["BardBox network nodes<br/>Queued push records"] --> Push["HTTP push receiver"]
+    Nodes["BardBox network nodes: queued push"] --> Push
     Push -->|ACKs| Nodes
-    Local["Locally attached serial sensors"] <--> Serial["Serial adapter"]
-    Remote["Remote readings API"] --> Fetch["Remote API adapter"]
-    subgraph Communications["Communications module"]
-        Push --> Normalize["Source drivers: parse and normalize"]
-        Serial --> Normalize
-        Fetch --> Normalize
+    Local["Locally attached serial sensors"] <--> Serial
+    Remote["Remote readings API"] --> Fetch
+    subgraph AcquisitionBoundary["Communications and ingestion: separate responsibilities"]
+        subgraph Communications["Communications module"]
+            Push["HTTP push receiver"] --> Normalize["Source drivers: parse / normalize"]
+            Serial["Serial adapter"] --> Normalize
+            Fetch["Remote API adapter"] --> Normalize
+        end
+        Auth["Authentication / authorization"] -.-> Communications
+        Normalize --> Ingest["Ingestion: validate observations and record semantics"]
     end
-    Registry["Project device registry"] --> Ingest["Ingestion: validate observations / records"]
-    Registry -.-> Communications
-    Auth["Authentication / authorization"] -.-> Communications
-    Normalize --> Ingest
-    Ingest -->|Archive records| Archive["Local archive: durable history / deduplication"]
-    Archive -->|Durable acceptance or known duplicate| Push
-    Ingest -->|Accepted readings / previews| Latest["Latest-reading store"]
-    Ingest -->|Contact / validity evidence| Health["Health: last contact / freshness"]
-    Latest --> Health
+    subgraph StateBoundary["Registry, health and archive: separate state owners"]
+        Registry["Project device registry"] --> Ingest
+        Registry -.-> Communications
+        Ingest -->|Archive records| Archive["Durable archive / deduplication"]
+        Archive -->|Durable acceptance or known duplicate| Push
+        Ingest -->|Accepted readings / previews| Latest["Latest-reading store"]
+        Ingest -->|Contact / validity evidence| Health["Health / freshness"]
+        Latest --> Health
+    end
     Archive --> Analysis["Analysis / sensor QA"]
     Latest --> Analysis
-    Latest --> Alarm["Alarm module"]
+    Latest --> Alarm["Alarms"]
     Health --> Alarm
     Alarm --> Escalation["Acknowledgements / escalation"]
-    Escalation --> Notify["Notification provider adapters"]
-    Registry --> Queries["Query interfaces / read API"]
+    Escalation --> Notify["Notification adapters"]
+    subgraph PresentationBoundary["Query, rendering and control: separate interfaces"]
+        Queries["Query interfaces / read API"] --> Render["Rendering: cards / charts / status"]
+        Render -->|Operator requests| Controls["Authorized control API"]
+    end
+    Registry --> Queries
     Archive --> Queries
     Latest --> Queries
     Health --> Queries
     Analysis --> Queries
     Alarm --> Queries
     Escalation --> Queries
-    Queries --> Render["Rendering: cards, charts, tables, status"]
-    Render -->|Operator requests| Controls["Authorized control API"]
     Auth -.-> Controls
     Controls --> Registry
     Controls --> Settings["Persistent configuration owner"]
     Controls --> Alarm
     Controls --> Escalation
-    Archive -->|Stable files / snapshots| Backup["Scheduled backup: rclone copy, verify, report"]
+    Archive -->|Stable files / snapshots| Backup["Scheduled rclone copy / verification"]
     Backup --> Drive["Configured BardBox Drive destination"]
     Backup -->|Backup health| Queries
     Settings -.-> Backup
@@ -249,13 +260,28 @@ flowchart TB
         Runtime <--> Queue
     end
     subgraph ProjectServer["Project server — context, target module boundaries"]
-        Ingest["Communications and ingestion"]
-        Archive["Durable archive and latest-reading store"]
-        Queries["Read API and dashboard rendering"]
-        Ingest --> Archive --> Queries
+        subgraph ServerAcquisition["Communications and ingestion"]
+            PSComms["Communications"] --> Ingest["Ingestion"]
+        end
+        subgraph ServerState["Registry, health and archive"]
+            ServerRegistry["Device registry"] --> Ingest
+            Archive["Durable archive"] -->|Acceptance| PSComms
+            LatestState["Latest-reading store"] --> HealthState["Health"]
+            Ingest --> Archive
+            Ingest --> LatestState
+        end
+        subgraph ServerPresentation["Query, rendering and control"]
+            Queries["Query interfaces"] --> Rendering["Rendering"]
+            Rendering --> Controls["Authorized control"]
+        end
+        Archive --> Queries
+        LatestState --> Queries
+        HealthState --> Queries
+        ServerRegistry --> Queries
+        Controls --> ServerRegistry
     end
-    Runtime -->|"Queued records and optional previews"| Ingest
-    Ingest -->|"Record acknowledgements"| Runtime
+    Runtime -->|"Queued records and optional previews"| PSComms
+    PSComms -->|"Record acknowledgements"| Runtime
     subgraph Future["Proposed extensions — not implemented here"]
         Profiles["Release declarations — transports and conditional settings"]
         Registry["Registry — identifier allocation and lifecycle"]
@@ -263,7 +289,7 @@ flowchart TB
     end
     Profiles -.-> Build
     Registry -.-> Composition
-    Registry -.-> Ingest
+    Registry -.-> ServerRegistry
     Queue -.-> Export
     Export -.-> Adapters
     classDef planned fill:#fff4d6,stroke:#a67700,stroke-dasharray:5 5,color:#222;
@@ -353,6 +379,14 @@ link here; their code, acceptance evidence and detailed operating docs remain in
 their own repositories. Exact source revisions preserve provenance.
 
 ## Evidence and provenance
+
+October 16 review reconciliation checked current BardBox main `f5a0cd6`,
+[USB configuration/selection](usb-device-configuration-standard.md), CESH `34ff50a`
+and Firmware Tools `5142b97`. These source facts supplement the task's retained
+governing commit below; they do not silently switch its policy baseline.
+The server and flasher context now share three responsibility groups. Runtime
+state does not become one combined owner merely because it shares a visual group.
+
 
 Direction: [original communications North Star](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6190826224),
 [functional drawings](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6220370776),

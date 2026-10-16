@@ -48,8 +48,6 @@ be read, do read-only investigation only, and report it. Do not implement,
 commit, push, deploy or end checkouts unless the maintainer explicitly says
 to proceed without it.
 
-## Firmware API design entry point
-
 Before firmware, serial-driver, USB-assembly or delivery-buffer work, start at
 the [firmware blueprint](docs/firmware-blueprint.md); its document map links the
 maintained [serial/base proposal](docs/firmware-base-and-serial-api.md),

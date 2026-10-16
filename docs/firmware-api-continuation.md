@@ -297,3 +297,24 @@ with exact-head leases. Their canonical clean checkouts and idle prior task were
 inspected; remote documentation edits leave them untouched and behind remote.
 Owners reconcile before local work. Exact new heads, link checks and readback
 are recorded on the existing PRs. All changes remain review candidates.
+
+## October 16 independent review corrections
+
+Claude reviewed cf19d492 (BardBox) and 9361988 (Firmware Tools) and found blocking
+stale USB/interval facts, inconsistent diagram grouping/source wording, and a main
+index conflict. This correction reconciles with the existing main USB standard
+at f5a0cd6 and source CESH34ff50a / FirmwareTools5142b97. It documents DB1/DC1,
+BBU1's narrow no-DC1 acceptance, reporting override activation, Wi-Fi selection
+versus trial, and release-default provenance without weakening OTA validation.
+
+Current main is merged into this branch preserving both the USB-contract index
+link and pending firmware-design row. All three diagrams remain in one document.
+The source flasher context labels are now intentionally aligned rather than
+byte-identical to provenance. Optional previews are explicitly pending shared
+adoption, not omitted implemented baseline. Earlier distributed-ownership notes
+above are superseded history only.
+
+No runtime, hardware, schema change, deploy or merge-to-main in this correction.
+Independent review of the exact new commit is required; prior acceptance does not
+cover it. The same existing branches and remote exact-head leases are used;
+canonical checkouts remain untouched and must be reconciled before local writes.

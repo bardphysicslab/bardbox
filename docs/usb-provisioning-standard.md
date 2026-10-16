@@ -1,6 +1,6 @@
 # USB flashing and provisioning (proposed)
 
-Status: proposed shared contract, audited October 15, 2026. Source observations
+Status: proposed shared contract, reconciled October 16, 2026. Source observations
 and maintainer scope below are not adoption of a new protocol. No consumer
 conformance, physical acceptance or operational authorization is implied.
 Design owner: [BardBox #31](https://github.com/bardphysicslab/bardbox/issues/31).
@@ -16,9 +16,13 @@ does not define the current milestone.
 
 ## Current scope and separate outcomes
 
-Firmware Tools main at `52d4b8ed7d7127e2932e0131bf6b15ebf135b896`
-has Set up device and Check device. Provisioning is separate work in #8.
-Do not describe one integrated flash/provision/healthy-boot operation as delivered.
+Current source: Firmware Tools `5142b97` and CESH `34ff50a` (0.11.0).
+Set up, Check device and Board settings are separate workflow surfaces. The
+[USB device configuration and selection standard](usb-device-configuration-standard.md)
+defines DB1/DC1, BBU1, mutable supported settings and release defaults.
+The [central flasher diagram](architecture-map.md#usb-flasher) shows boundaries.
+The October 15 `52d4b8e` snapshot was pre-provisioning and is historical.
+Do not collapse flash, settings, healthy boot and OTA commissioning into one result.
 
 Report these separately: approved write/read-back verification, selected image,
 observed running firmware, local health confirmation, provisioning readiness,
@@ -43,13 +47,24 @@ required. New form fields do not extend firmware storage or wire formats.
 The implementation and operating instructions belong in Firmware Tools, with
 CESH owning device support and acceptance.
 
-Initial DC1 commissioning uses PROVISION_BEGIN/DATA/COMMIT. CESH validates
-the record, trust material and running-image length/hash, then stores it for
-next-boot activation. Existing different/corrupt records are not overwritten;
-an identical record can be retried. Later Wi-Fi-only changes use the separate
-WIFI_* override flow, preserving UID and immutable DC1 rather than recommissioning
-the whole device. General settings/identity maintenance remains a proposal in the
-[serial/base API](firmware-base-and-serial-api.md#runtime-settings-and-new-wire-commands).
+Initial provisioning uses PROVISION_BEGIN/DATA/COMMIT with immutable DC1 or DB1
+as defined by the [USB standard](usb-device-configuration-standard.md#2-device-configuration-records).
+DC1 includes OTA inputs; DB1 provides basic identity, Wi-Fi and telemetry without
+enabling OTA. Their mutual-exclusion, length/field/CRC and identical-retry rules
+are device enforced. DB1 is not a migration that erases/replaces existing DC1.
+
+Later supported settings use separate mutable operations. Read WIFI_CAPABILITIES
+before staging; WIFI_SELECT selects without a trial/fallback, whereas WIFI_APPLY
+retains its trial behavior. REPORT_INTERVAL_STATUS/SET/CLEAR exposes firmware-owned
+limits and stores an override for next boot. It changes reporting/aggregation
+cadence, not sensor polling or catch-up. The current browser workflow requests
+restart after settings; do not claim immediate activation or a transaction spanning
+all commands. UID/credential replacement and general settings remain separate
+[serial/base proposals](firmware-base-and-serial-api.md#runtime-settings-and-new-wire-commands).
+
+Release defaults come from the same approved bundle snapshot and distinguish
+compiled firmware defaults from approved operator proposals. They cannot override
+device capabilities or limits; see [release defaults](usb-device-configuration-standard.md#4-release-defaults).
 
 A commit reply lost after transmission leaves an uncertain outcome; even a
 device-reported commit error does not prove no durable bytes were written.
@@ -86,7 +101,7 @@ production authority or completed integration.
 
 ## Write boundaries and OTA compatibility
 
-Source matrix at Firmware Tools `52d4b8e`: `workflows/setup.js` dispatches
+Source matrix reconciled to Firmware Tools `5142b97`: `workflows/setup.js` dispatches
 install/recover/recover-layout to `flashOpenSession` using `flash-plan.js`;
 update/reinstall-same use `slot-update.js`. These are USB paths, not network OTA.
 
@@ -95,7 +110,7 @@ update/reinstall-same use `slot-update.js`. These are USB paths, not network OTA
 | Verified-erased install | Approved bootloader, partition table, fallback app0 and 8192-byte all-FF otadata reset for this dual-slot recipe | No NEW entry written; erased fallback is not proof of application health; blank-device end-to-end physical acceptance remains unverified |
 | Older/different/unreadable-layout recovery (recover-layout) | Same approved install plan, including all-FF otadata reset | Explicit data-loss confirmation; old settings/queued records may overlap new writes or become inaccessible |
 | Same-layout recovery (recover) | Same approved install plan, including all-FF otadata reset | NVS/data regions remain outside writes and reachable under the same table; retained schema compatibility and saved OTA lifecycle still need checking |
-| Inactive-slot update, including Install again | Write/read back inactive app, then selection entry NEW; an erased starting record also gets an UNDEFINED record for the prior app | Preserves the selected app bytes; NEW/PENDING_VERIFY health confirmation and lifecycle compatibility remain separate |
+| Inactive-slot update, including Install again | Write/read back inactive app, then selection entry NEW with BBU1 when the image has an appended validation hash; an erased starting record also gets an UNDEFINED record for the prior app | Preserves the selected app bytes; NEW/PENDING_VERIFY health confirmation and lifecycle compatibility remain separate |
 
 The installer writes no NEW selection entry in the first three rows. A compatible
 rollback-enabled bootloader can transition NEW to PENDING_VERIFY on startup;
@@ -106,14 +121,15 @@ source reference evidence, not verification of the exact pinned CESH bootloader
 binary or proof it passed the application's checks. VALID can also be created by that erased-fallback bootloader path; it does not
 by itself prove application-level health checks or current sensor health.
 
-At CESH `24c2305ff1834368a0a86a90592bb71faba91d65`,
-`CeshOTA.cpp` defers framework acceptance with verifyRollbackLater().
-rollbackOnce() attempts rollback only when sdkPending() is true. A pending
-USB-selected image without matching PendingBoot/Validating lifecycle state is a
-real integration gap. Unprovisioned shared firmware stops normal acquisition
-independently of whether boot metadata is pending. All-FF install alone proves
-neither unavoidable rollback nor commissioned OTA. Follow the
-[corrected source review](https://github.com/bardphysicslab/cesh-air-monitor/pull/50#issuecomment-6204677421).
+At CESH `34ff50a`, the [BBU1 selection marker](usb-device-configuration-standard.md#1-usb-selection-marker)
+matches selection sequence and the running image's validation hash. A marked
+pending image can use the bounded USB acceptance path only when opened stores
+verifiably have no DC1/OTA configuration (unprovisioned or DB1-only). It does not
+substitute for network-OTA local validation. Missing/torn/mismatched markers do
+not authorize confirmation. The earlier unprovisioned-pending gap at `24c2305`
+is historical for the now-supported cases, not proof every retained DC1/OTA-state
+combination is supported. All-FF install alone still proves neither healthy
+application behavior nor commissioned OTA.
 
 Verify all padded write ranges and explicit metadata writes by read-back; image
 identity hashes exclude padding. Never whole-chip erase as normal recovery.
@@ -129,13 +145,13 @@ Do not disable OTA or accept an unexpected pending image to make a demo work.
 
 ## OTA document authority
 
-`docs/ota-update-standard.md` is absent from BardBox main `da62d8d`.
+`docs/ota-update-standard.md` was absent at main `da62d8d` and remains a separate pending proposal at this reconciliation.
 Its actual maintained proposal is
 [PR #16 at 7b947be](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/ota-update-standard.md),
 not an adopted main standard. Keep one draft there; do not create a replacement.
-CESH main's firmware README, device-provisioning and ota-readiness documents
-still name the absent main path. Their writer should replace those references
-with this pinned draft/status and preserve the owning implementation's evidence.
+The October 15 audit identified CESH references to the absent main path. Those
+are historical findings; consumer owners reconcile their current references with
+this pinned draft/status and preserve implementation evidence.
 Adoption/compatibility with the USB contract needs independent review.
 
 ## Historical implementation evidence (2026-10-09)

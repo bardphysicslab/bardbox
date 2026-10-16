@@ -8,8 +8,8 @@ projects.
 
 ## Architecture map
 
-Start with the [BardBox Architecture Map](docs/architecture-map.md) for firmware,
-server-template and USB flasher diagrams, their owners, status and alignment checks.
+The [BardBox Architecture Map](docs/architecture-map.md) contains all three
+maintained diagrams: node firmware, project server and USB flasher.
 
 ## Role
 
@@ -82,8 +82,6 @@ The former BardBox Change Skill and GPT-facing checklist are consolidated into
 these root documents. Existing detailed standards remain technical references;
 there is no separate change-skill checklist to follow.
 
-## Firmware API design entry point
-
 Before firmware, serial-driver, USB-assembly or delivery-buffer work, start at
 the [firmware blueprint](docs/firmware-blueprint.md); its document map links the
 maintained [serial/base proposal](docs/firmware-base-and-serial-api.md),
@@ -98,12 +96,15 @@ implementation. Published device/Web Node contracts remain authoritative.
 
 ## Key Docs
 
+- [Firmware blueprint and document map (proposed)](docs/firmware-blueprint.md)
+- [USB flashing and provisioning (proposed)](docs/usb-provisioning-standard.md)
+
+- [Repository layout and configuration filenames](docs/repository-layout.md)
+
 - [Reading format](docs/reading-format.md)
 - [Node naming standard](docs/node-naming-standard.md)
 - [Device instructions](docs/device-instructions.md)
 - [Web Node protocol](docs/web-node-protocol.md)
-- [Firmware blueprint and document map (proposed)](docs/firmware-blueprint.md)
-- [USB flashing and provisioning (proposed)](docs/usb-provisioning-standard.md)
 - [Pi driver instructions](docs/pi-driver-instructions.md)
 - [Monitor/UI instructions](docs/monitor-instructions.md)
 - [Channel names](docs/channel-names.md)

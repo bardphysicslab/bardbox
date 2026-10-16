@@ -94,13 +94,22 @@ Extracting it is separate work and is not part of adoption.
 
 ## 3. Build-time hardware versus runtime settings
 
+**October 16 current-source reconciliation.** CESH 0.11.0 at `34ff50a` and
+Firmware Tools `5142b97` implement the
+[USB device configuration and selection standard](usb-device-configuration-standard.md):
+DB1 basic provisioning alongside unchanged DC1, mutable reporting-interval
+overrides, capability-checked Wi-Fi selection and release-default metadata.
+The older 0.8.6 observations below are historical, not current feature limits.
+
+
 | Concern | Owner | Mechanism |
 | --- | --- | --- |
 | Board, flash size, partition layout, pins | Build | `platformio.ini` environment and partition CSV |
 | Included sensor drivers, pins and supported hardware | Build | A firmware image can select among included drivers at runtime; provisioning cannot add a driver absent from the image. CESH PR #50 includes both environmental-sensor families; particle selection remains project configuration. |
 | Firmware version | Build | Mandatory build metadata; placeholders rejected ([serial/base API](firmware-base-and-serial-api.md#registration-and-startup)) |
 | UID, display name, Wi-Fi SSID/password, telemetry URL and token, OTA origin/device token/CA, signing key ID and public key, initial image length/hash | Per device, at runtime | **Existing (CESH `BardBoxDeviceConfig.h` at `345b6bb`):** DC1 record written over USB serial (`PROVISION_*`) into NVS. **Proposed:** typed settings with temporary/persistent scope ([settings](firmware-base-and-serial-api.md#operational-settings)) |
-| Acquisition, streaming and reporting intervals; supported retry, buffer and time settings | **Existing:** build. **Proposed:** per device, at runtime | **Existing:** compile-time constants (CESH `REPORT_INTERVAL_S` in `config.shared.h`/`config.h`); DC1 encodes no interval. **Proposed only:** operational settings ([settings](firmware-base-and-serial-api.md#operational-settings)); changing intervals at runtime is not implemented by current CESH provisioning |
+| Reporting interval | Firmware default at build; supported override per device | **Existing (CESH 0.11.0 at `34ff50a`):** `REPORT_INTERVAL_STATUS/SET/CLEAR`; override stored separately from immutable DB1/DC1 and active at next boot. Reporting/aggregation cadence is not sensor polling or catch-up. See the [USB standard](usb-device-configuration-standard.md#3-device-settings-over-usb). |
+| Acquisition/streaming intervals and retry, buffer and time policy | Project build/runtime policy | General typed operational settings remain proposed; do not infer that the implemented reporting override makes every interval mutable. |
 | Location, ownership, coordinates, display metadata | Server | Never in firmware |
 
 - `config.example.h` holds tracked placeholders for a per-device local build.
@@ -112,14 +121,14 @@ Secrets are writable but never echoed publicly; settings read-back reports only
 their presence. Build defaults and runtime settings must share one schema and
 precedence rule rather than two unrelated sets of settings.
 
-**Existing limits (CESH 0.8.6):**
+**Historical limits (CESH 0.8.6; superseded where the current snapshot above differs):**
 
 - Shared builds set `BARDBOX_REQUIRE_DEVICE_CONFIG=1` and stay non-operational
   until a valid DC1 record loads.
 - DC1 cannot add compiled sensor drivers. CESH PR #50 at `24c2305` now includes
   both environmental-sensor drivers and identifies the fitted family at runtime;
-  particle models remain build choices. This is pushed/unmerged source with
-  controlled host/CI evidence, not physical acceptance or a published bundle.
+  particle models remain build choices. That was pushed/unmerged source at the dated observation. CESH 0.11.0 now
+  includes the change; source/CI does not itself establish hardware acceptance.
 - The 0.8.6 wrapper needed a local `config.h` shim. PR #50's wrapper removes
   that include; do not describe the old wrapper defect as current at `24c2305`.
 
@@ -149,8 +158,24 @@ provisioned device with a different app image keeps its DC1 initial hash, which
 then no longer matches the running image and breaks OTA identity (firmware-tools
 review finding S1).
 
-These blocked-INFO and immutable-record rules describe current CESH limitations.
+These blocked-INFO and immutable-record rules describe that historical CESH snapshot.
 They are evidence of existing state, not requirements for future firmware.
+
+### Current USB configuration and selection boundary
+
+At CESH `34ff50a`, shared firmware can load DB1 (identity/Wi-Fi/telemetry, no OTA)
+or DC1 (including OTA trust and image identity). Neither is a general mutable
+settings record. Supported Wi-Fi selection and reporting interval changes are
+separate operations, not identity replacement or automatic OTA commissioning.
+The [USB standard](usb-device-configuration-standard.md) defines exact fields,
+exclusion rules, retry semantics, capabilities and activation behavior.
+
+A USB-selected NEW entry may carry BBU1 bound to selection sequence and image
+validation hash. A matching pending image may be confirmed through that path only
+when the device verifiably has no DC1/OTA configuration; DB1-only and unprovisioned
+cases do not authorize accepting a network-OTA candidate. All other cases retain
+the project's existing validation and rollback. First install/recovery write no
+marker. Do not generalize this bounded marker to a universal health approval.
 
 ### Proposed base lifecycle
 
@@ -219,8 +244,9 @@ Rules for this recipe:
 
 The [USB path matrix](usb-provisioning-standard.md#write-boundaries-and-ota-compatibility)
 is the maintained description of blank install, older-layout recovery,
-same-layout recovery and inactive-slot update at Firmware Tools `52d4b8e`.
-Install/recovery reset metadata to all-FF; inactive-slot updates select NEW.
+same-layout recovery and inactive-slot update at Firmware Tools `5142b97`.
+Install/recovery reset metadata to all-FF; inactive-slot updates select NEW with
+BBU1 when an appended validation hash is available, per the [USB selection marker](usb-device-configuration-standard.md#1-usb-selection-marker).
 Network OTA writes the inactive slot with its own lifecycle state. USB transport
 alone does not identify the metadata or confirmation path.
 
@@ -234,7 +260,7 @@ can disagree with newly written bytes even when NVS is untouched.
 
 ### Boot validation and rollback compatibility
 
-**Proposed contract for independent review, not adopted policy.** This narrows
+**Proposed remaining health/lifecycle contract, not adopted policy.** This narrows
 the previously open reinstall question; it does not change CESH validation or
 the pending [OTA draft](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/ota-update-standard.md).
 
@@ -247,8 +273,10 @@ the pending [OTA draft](https://github.com/bardphysicslab/bardbox/blob/7b947be08
 3. USB-selected pending candidates need a deliberate, durable authorization and
    identity handoff accepted by the application, or the installer stops that
    unsupported path. Preserve fail-closed handling of unexpected pending images.
-   Do not silently invent a USB marker, auto-create idle OTA state, bypass
-   validation or disable OTA.
+   The existing BBU1 marker is defined in the [USB standard](usb-device-configuration-standard.md#1-usb-selection-marker);
+   preserve its narrowly bounded no-DC1 acceptance conditions. Do not invent a
+   different marker, auto-create idle OTA state, bypass network-OTA validation
+   or disable OTA to make an unsupported configuration work.
 4. Local confirmation requires valid configuration and recovered persistent
    storage, progressing acquisition and a newly persisted reporting window under
    an explicit compatible time/failure budget where those capabilities apply.
@@ -263,17 +291,14 @@ the pending [OTA draft](https://github.com/bardphysicslab/bardbox/blob/7b947be08
    firmware or use an explicitly reviewed reversible migration. Never clear the
    queue or rewrite immutable DC1 to satisfy startup.
 
-**Compatibility and decisions:** Existing NEW updates without an app-recognized
-lifecycle are not made compatible by documentation. A new USB authorization
-record would need a versioned format, writer/reader agreement, crash/retry
-semantics and old-firmware behavior. Reusing existing OTA state may avoid a second
-authority but requires a deliberate commissioning/identity transition; it is not
-safe to fabricate an OTA assignment. Recommended next step is the existing
-CESH #25 source/synthetic matrix against its actual pinned bootloader, followed
-by an explicit choice between stopping unsupported pending USB updates and a
-reviewed handoff. Resolve marker/state ownership, provisioning deadline,
-no-fallback behavior, retained DC1 hash and saved OTA-state reconciliation before
-adoption. Physical acceptance remains separately scoped.
+**Compatibility and decisions:** The existing BBU1 format and no-DC1 acceptance
+path are governed by the [USB standard](usb-device-configuration-standard.md);
+they are not newly proposed here. It does not reconcile arbitrary saved DC1/OTA
+lifecycle state with new image bytes. Unsupported combinations still stop or
+follow existing rollback; never fabricate an OTA assignment. Remaining work is
+the exact source/synthetic startup matrix against the pinned bootloader, followed
+by separately scoped physical acceptance for the unresolved combinations.
+Preserve fallback, configuration and queue compatibility throughout.
 
 ### Diagnostics and degraded operation
 
@@ -339,8 +364,8 @@ runtime identity, no partition recipe, no firmware CI, and two divergent
 
 Adoption steps, each a bounded template PR. Do not copy CESH acquisition logic.
 
-1. Resolve layout ([PR #23](https://github.com/bardphysicslab/bardbox/pull/23)),
-   then point [device instructions](device-instructions.md) at `software/firmware/`.
+1. Follow the merged [repository layout](repository-layout.md),
+   then reconcile [device instructions](device-instructions.md) at `software/firmware/`.
 2. Add `config.example.h`/`config.shared.h` and an ignored `config.h` to the
    example. Keep the simulator's sensor code.
 3. Add an optional `shared_<env>` environment with an explicit partition CSV and
