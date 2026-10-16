@@ -73,6 +73,14 @@ impact and diagram updates or justified gaps. Preserve proposal/current labels;
 do not treat an unmerged diagram as adopted policy. Consumer repositories should
 link this entry point rather than copy diagrams.
 
+## Recovery standards required reading
+
+For sensor validation, missing/invalid readings, bus recovery, Wi-Fi recovery or
+restart work, read [transport recovery](docs/transport-recovery-standard.md).
+Use the RKC Wi-Fi timing baseline with the documented queue-survival and
+restart-loop acceptance gates. Project hardware capabilities remain owned and
+verified by each project. Merging a standard does not verify deployed behavior.
+
 ## Before work
 
 1. Identify the target repository, checkout, scope, and existing local changes.
