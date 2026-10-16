@@ -61,6 +61,51 @@ A firmware may not claim that a hardware power cycle exists unless its deployed 
 
 Expose additive diagnostics through the node's normal health/INFO path: queue usage, last transport failure class, consecutive failure count, last successful acknowledgement, boot/reset reason where available, and whether buffered records are being replayed. Automatic uploads and recovery remain quiet in production; verbose traces belong to an explicit operator diagnostic or development build.
 
+### ESP32 Wi-Fi node default
+
+Every BardBox ESP32 node that owns a Wi-Fi connection should follow the reusable
+Wi-Fi recovery policy. The template helper is still under review in
+[bardbox-project-template #6](https://github.com/bardphysicslab/bardbox-project-template/pull/6);
+its presence in a draft does not establish shared adoption. The reference policy
+retries association every 30 seconds while continuing sensor acquisition and
+local commands, and escalates after 15 minutes continuously offline to an
+ESP32 software restart. These timings were observed on RKC node 010 with
+firmware 1.8; they are defaults, not universal physical guarantees. Projects
+must document any different thresholds and validate the behavior on their
+hardware before deployment. A reboot must never replace normal retry or
+trigger on a single server request failure while Wi-Fi remains connected.
+
+Wi-Fi recovery is independent of application delivery. A TCP-pull node such
+as RKC has no outbound record queue to preserve. A pushing node with a local
+queue must persist completed records before upload and demonstrate that the
+queue survives an outage and forced restart and drains without loss or
+duplicate archival. Until that is verified on the target hardware, disable
+the restart stage while retaining bounded Wi-Fi reconnects. Close stale
+sessions on disconnect, expose the continuous offline duration and recovery
+reason, and require fresh communication before reporting restored service.
+
+The reference implementation does not itself provide a hardware watchdog or
+prove that explicit interface reinitialization is needed. Add those stages
+only when a target device and fault test justify them.
+
+## Sustained sensor failure
+
+Missing readings, timeouts and invalid payloads all count toward a configurable
+per-sensor time without a valid measurement. Discard and count isolated failures;
+an unchanged but valid value alone is not a fault. After the configured budget,
+try bounded sensor reinitialization and transport-specific bus recovery. Keep
+healthy channels reporting during local recovery. Hardware reset, standby/wake
+or power switching may be used only when the actual board revision and sensor
+support that specific operation; these operations are not interchangeable.
+
+A whole-node restart is a configurable last resort when target evidence shows
+it helps. Preserve completed queued records, bound restart attempts and cooldowns,
+and remain degraded with diagnostics when recovery is exhausted rather than
+looping indefinitely. Require a fresh valid reading before declaring recovery.
+Projects own sensor-specific recovery sequences, pin mappings, board-revision
+capabilities and target evidence in their own repositories; this standard owns
+the required outcomes and safeguards.
+
 ## I2C Recovery
 
 I2C failures are different from stale serial handles because the sensor or bus itself may be wedged. A driver should treat repeated I2C read/write failure as a recoverable device/bus fault rather than returning invalid or zero-valued measurements.

@@ -1,22 +1,26 @@
 # BardBox OTA updates v1
 
 Status: draft for implementation and bench validation. Not yet a deployed capability.
-Tracking: https://trello.com/c/BrELvFqi
+Implementation owner and acceptance tracking: https://github.com/bardphysicslab/firmware-tools/issues/10
 
-Reference service: bardbox-project-template/software/app/ota.py. Operations and
-the exact signed-byte encoding are in that repository's docs/ota-operations.md.
-The service is opt-in via BARDBOX_OTA_CONFIG, independently of historical APIs.
+Historical reference: the preserved template proposal and its source inventory are
+linked from [Firmware Tools OTA tracking](https://github.com/bardphysicslab/firmware-tools/issues/10).
+They are provenance, not an active template application or proof of an independent OTA service.
 
 ## Scope and ownership
 
-BardBox owns release policy, device targeting and update history. A replaceable
-delivery provider stores and serves artifacts. Device installers enforce local
-compatibility, authenticity and recovery. First implementation: ESP32-S3 over
-outbound HTTPS. Other device classes implement the same outcomes with their own
-installers. LoRa measurement transport does not imply LoRa firmware delivery.
-
-Implement the shared reference in bardbox-project-template before CESH integration.
-OTA administration is separate from the historical read-only Data API and MCP.
+BardBox owns the shared release, assignment, authenticity, compatibility and
+recovery contracts. Firmware Tools owns the independently runnable optional OTA
+application and its rollout workflow; USB flashing is a separate application.
+Projects own their device installers, hardware configuration and acceptance.
+A replaceable provider stores and serves artifacts. Neither USB nor OTA requires
+the other application to be running; shared validation may be consumed through
+explicit interfaces without importing another application's orchestration.
+OTA administration is separate from historical read-only Data API/MCP access.
+First reference work targets ESP32-S3 over outbound HTTPS; LoRa measurement
+transport does not imply LoRa firmware delivery. Reference extraction and
+independent-consumer evidence remain implementation work, not established by
+merging this contract.
 
 ## Release and assignment contract
 
@@ -129,9 +133,16 @@ credentials/queue and sampling during flash writes. Measure actual record sizes,
 offline retention, firmware growth headroom and reboot gap. A cached build or host
 test is not evidence of successful device recovery. Record those results separately.
 
-### Reference USB configuration storage
+### Historical USB configuration reference
 
-The ESP32 reference keeps an explicitly commissioned configuration record in its
+Current USB contracts are owned by [USB device configuration](usb-device-configuration-standard.md)
+and [USB provisioning](usb-provisioning-standard.md). Their DB1/DC1 and mutable
+settings boundaries govern current tools. The older reference below is historical;
+it does not authorize replacing immutable records, invent current OTA commissioning
+commands, or claim production credential enforcement. OTA commissioning remains
+subject to its separately reviewed implementation and acceptance.
+
+The historical ESP32 reference keeps an explicitly commissioned configuration record in its
 own NVS namespace, separate from OTA lifecycle state and the measurement queue.
 It contains stable UID, Wi-Fi credentials, telemetry endpoint/authentication,
 verified HTTPS trust, OTA origin/device credential/signing public key, and the
@@ -170,7 +181,8 @@ must cancel the planned restart and restore the running boot selection where
 possible. Never clear the measurement queue to satisfy this gate.
 
 
-Skill synchronization checked: the reusable BardBox change skill already requires
-optional-capability classification, canonical-first propagation, documentation,
-recovery testing and deployment gates. These OTA-specific contracts introduce no
-new general agent workflow, so no skill rewrite is required.
+Governance synchronization: the root AGENTS.md and ARCHITECTURE.md require
+optional-capability classification, canonical ownership, documentation,
+recovery testing and deployment gates. This contract adds no separate agent workflow.
+Physical offline queue/replay, power-loss, autonomous recovery and long-term retention
+acceptance remain incomplete. This document is not pilot or deployment approval.

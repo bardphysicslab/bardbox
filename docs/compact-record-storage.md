@@ -1,7 +1,9 @@
 # Compact offline records (draft)
 
-Shared reference: template firmware headers BardBoxRecordDelta.h and
-BardBoxRecordChunk.h. No deployed device uses this format yet.
+Historical shared references: BardBoxRecordDelta.h and BardBoxRecordChunk.h in
+the preserved template proposal; source and acceptance ownership are tracked in
+[CESH compact queue work](https://github.com/bardphysicslab/cesh-air-monitor/issues/20).
+The contract does not establish deployment or physical durability acceptance.
 
 Store each completed immutable payload byte-for-byte. A chunk contains at most
 50 records. Its first record is raw; later records independently reference that

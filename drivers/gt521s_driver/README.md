@@ -52,6 +52,8 @@ Count values are in whatever unit is active — always send `CU 0` before starti
 
 ## Driver interface
 
+This driver predates the current driver contract and is not a model module: it mixes serial I/O, threading and parsing and keeps serving its last value after a serial error. Use the standards, not this driver, as the example.
+
 `GT521SDriver` implements the Bard Box driver interface:
 
 | Method | Returns | Description |
