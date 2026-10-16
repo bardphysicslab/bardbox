@@ -131,7 +131,7 @@ flowchart TB
     Escalation --> Queries
     Auth -.-> Controls
     Controls -->|Device configuration edit requests| Registry
-    Controls -->|User setting edits| Settings["Persistent configuration owner — validate, persist and apply"]
+    Controls -->|Project setting edit requests| Settings["Persistent configuration owner — validate, persist and apply"]
     Controls --> Alarm
     Controls --> Escalation
     Archive -->|Stable files / snapshots| Backup["Scheduled rclone copy / verification"]

@@ -70,6 +70,7 @@ An accepted normalized record uses the existing reading object's `uid`,
 | `extended.protocol_version` | Supported protocol of the original record. Nonempty string, independently checked from firmware. |
 | `extended.rssi_dbm` | Original Wi-Fi diagnostic: finite number in dBm or explicit null with a metadata fault. Required presence for Wi-Fi devices, absent for other transports unless reported. |
 | `extended.time_source` | `device` for a usable reported measurement time; `unknown` otherwise. |
+| `extended.clock_quality` | `unknown` when quality/policy is absent or insufficient, `reported_unsynced` for an explicit unsynchronized-clock indication, or `project_accepted` when declared project clock-quality checks pass. This is not an independent clock-accuracy certification. |
 | `extended.time_fault` | Null, `missing`, `invalid`, `clock_unsynced`, or `outside_project_bounds`; unknown time does not invalidate otherwise usable channels. |
 | `extended.observed_at` | Trusted UTC ISO 8601 server observation time captured by Communications/source adapter on completing a live poll/serial observation; otherwise null. Does not claim exact sensor sampling time. |
 | `extended.channel_faults` | Map from each null channel to `{code}`; valid channels have no entry. |
@@ -118,12 +119,26 @@ attempt only: delayed replay must not overwrite newer current diagnostic state
 without a separately documented ordering rule. Receipt time alone cannot prove
 when a diagnostic was sampled. SSID remains optional protected diagnostics.
 
+The source adapter in Communications computes source comparison before engineering
+unit conversion, using the wire profile defined under Archive comparison below.
+It supplies `delivery.source_comparison_profile` and `delivery.source_digest_sha256`
+as trusted server context, never as trusted device-supplied hashes. For a known
+device key/record ID, Archive first exposes the originally stored profile to the
+adapter for that retry; for a new ID, use the configured supported wire profile.
+Archive verifies the profile/digest context, owns storage and decides duplicate
+versus conflict. Thus duplicate comparison precedes current ingestion validation
+without making ingestion persist data or reconstruct source tokens from normalized
+values. JSON comparison requires token-preserving decoding; ordinary numeric
+conversion must not erase the original numeric tokens before this step.
+
 ## Measurement time and observation freshness
 
-A usable device time must parse as an explicit UTC ISO 8601 instant and pass the
-project's declared clock-quality, earliest-valid-time and future-skew policy.
-Projects enabling measurement-time freshness configure those bounds and a finite
-maximum future skew before activation. A parse failure is `invalid`; an explicit
+A reported device time must parse as an explicit UTC ISO 8601 instant. When no
+project clock policy is declared, retain a parseable reported instant with
+`time_source=device`, `clock_quality=unknown` and no time fault, but Health must
+not use it for measurement-time freshness. Projects enabling that freshness basis
+configure clock-quality criteria, earliest-valid-time bounds and a finite maximum
+future skew before activation. Apply declared bounds when present. A parse failure is `invalid`; an explicit
 unsynchronized-clock indication is `clock_unsynced`; violation of those bounds is
 `outside_project_bounds`. Store null measurement time with that reason and preserve
 the original input as bounded source evidence; do not reject healthy channels.
@@ -137,6 +152,8 @@ CESH `clock_unsynced=1` maps to `clock_unsynced` regardless of the timestamp tex
 `0` means no explicit unsynchronized indication, not certified accuracy; null or
 absence means unknown clock quality. Preserve the original flag. CESH's project
 contract must supply its stricter window/time criteria and bounds.
+An explicit unsynchronized indication sets `clock_quality=reported_unsynced`;
+otherwise quality stays `unknown` until the configured project checks accept it.
 
 Health may use trusted `observed_at` for `delivery.kind=observation` under an
 explicit project policy, labeled `observation` as the freshness basis. This covers
@@ -306,7 +323,17 @@ use non-2xx for all non-acceptance outcomes, including asynchronous pending work
 Suggested mappings are 400 malformed, 403 identity, 422 metadata (including
 `metadata_conflict`)/protocol/cadence, 409 ID conflict, and 503 archive failure,
 unavailable receipt context or unavailable comparison profile. Preview 2xx
-acknowledges preview receipt only on its dedicated route.
+acknowledges preview receipt only on its dedicated route. Non-2xx archival
+responses carry a bounded JSON object with `errors` (the `{code, path}` array,
+including Archive/Communications errors) and `failure_class` (`temporary_server`,
+`server_repairable`, or `immutable_content` as classified below). Never echo source
+values or credentials. Use `path="delivery.received_at"` for unavailable receipt
+context, `path="extended.record_id"` for ID conflicts, and the applicable field
+path otherwise; whole-message errors use `path="record"`. Node diagnostics use the
+structured code/class, since status 422 alone cannot distinguish repairability.
+Malformed, missing or oversized error bodies remain failed attempts with unknown
+error detail; they never acknowledge or dequeue a record. Existing archival 2xx
+ACK semantics remain unchanged and do not require parsing a success body.
 
 ### Rejected FIFO records and operator disposition
 
@@ -319,7 +346,10 @@ means an authorized correction or validated compatibility adapter may help; it i
 not permission to weaken authentication or invent original metadata. Node behavior
 must not assume all 422 errors can be fixed merely by retrying.
 
-All failures retain the original record and use finite retry deadlines/backoff.
+All failures retain the original record. Use bounded per-attempt timeouts and
+capped backoff; retries continue while that record remains retained, without a
+busy loop. A per-attempt deadline is not an expiry or permission to give up and
+delete queued data.
 A permanently rejected head record intentionally stalls FIFO archival delivery;
 this is a visible recovery state, not successful drain. Acquisition continues
 within documented queue capacity/overflow limits. A compatible preview path may
