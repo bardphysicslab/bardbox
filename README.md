@@ -82,6 +82,8 @@ The former BardBox Change Skill and GPT-facing checklist are consolidated into
 these root documents. Existing detailed standards remain technical references;
 there is no separate change-skill checklist to follow.
 
+## Firmware API design entry point
+
 Before firmware, serial-driver, USB-assembly or delivery-buffer work, start at
 the [firmware blueprint](docs/firmware-blueprint.md); its document map links the
 maintained [serial/base proposal](docs/firmware-base-and-serial-api.md),

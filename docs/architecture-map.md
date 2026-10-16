@@ -69,8 +69,9 @@ A full queue is finite: overflow behavior and lost-record diagnostics require
 an explicit reviewed policy; this drawing does not promise unlimited retention.
 Submission does not imply immediate transmission on all adapters. Bounded
 servicing/backpressure and record-creation errors must remain observable.
-Optional live-preview delivery is pending shared capability review in [PR #15](https://github.com/bardphysicslab/bardbox/pull/15);
-the node drawing shows only the durable baseline and does not claim a shared
+Optional live-preview delivery follows the [published optional contract](web-node-live-preview.md);
+shared runtime extraction/adoption remains pending.
+The node drawing shows only the durable baseline and does not claim a shared
 preview sender is implemented. Previews never acknowledge queued archival records.
 Network outages must not stop acquisition. Maintenance can pause acquisition
 only under its separately reviewed lifecycle; no new reboot/power-cycle behavior

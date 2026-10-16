@@ -99,7 +99,9 @@ Firmware Tools `5142b97` implement the
 [USB device configuration and selection standard](usb-device-configuration-standard.md):
 DB1 basic provisioning alongside unchanged DC1, mutable reporting-interval
 overrides, capability-checked Wi-Fi selection and release-default metadata.
-The older 0.8.6 observations below are historical, not current feature limits.
+The dated 0.8.6 observations below are historical evidence. Inherited limits
+such as blocked unprovisioned INFO and immutable records remain current at
+`34ff50a` unless an explicit current-source change below says otherwise.
 
 
 | Concern | Owner | Mechanism |
@@ -107,7 +109,7 @@ The older 0.8.6 observations below are historical, not current feature limits.
 | Board, flash size, partition layout, pins | Build | `platformio.ini` environment and partition CSV |
 | Included sensor drivers, pins and supported hardware | Build | A firmware image can select among included drivers at runtime; provisioning cannot add a driver absent from the image. CESH PR #50 includes both environmental-sensor families; particle selection remains project configuration. |
 | Firmware version | Build | Mandatory build metadata; placeholders rejected ([serial/base API](firmware-base-and-serial-api.md#registration-and-startup)) |
-| UID, display name, Wi-Fi SSID/password, telemetry URL and token, OTA origin/device token/CA, signing key ID and public key, initial image length/hash | Per device, at runtime | **Existing (CESH `BardBoxDeviceConfig.h` at `345b6bb`):** DC1 record written over USB serial (`PROVISION_*`) into NVS. **Proposed:** typed settings with temporary/persistent scope ([settings](firmware-base-and-serial-api.md#operational-settings)) |
+| UID, display name, Wi-Fi and telemetry; optional OTA trust/image identity | Per device, at runtime | **Existing (CESH `34ff50a`):** immutable DB1 basic or DC1 including OTA inputs, written via `PROVISION_*` into NVS, mutually exclusive. Separate supported mutable settings do not replace these records. [USB configuration records](usb-device-configuration-standard.md#2-device-configuration-records). General revisioned identity/settings maintenance remains proposed. |
 | Reporting interval | Firmware default at build; supported override per device | **Existing (CESH 0.11.0 at `34ff50a`):** `REPORT_INTERVAL_STATUS/SET/CLEAR`; override stored separately from immutable DB1/DC1 and active at next boot. Reporting/aggregation cadence is not sensor polling or catch-up. See the [USB standard](usb-device-configuration-standard.md#3-device-settings-over-usb). |
 | Acquisition/streaming intervals and retry, buffer and time policy | Project build/runtime policy | General typed operational settings remain proposed; do not infer that the implemented reporting override makes every interval mutable. |
 | Location, ownership, coordinates, display metadata | Server | Never in firmware |
@@ -121,10 +123,10 @@ Secrets are writable but never echoed publicly; settings read-back reports only
 their presence. Build defaults and runtime settings must share one schema and
 precedence rule rather than two unrelated sets of settings.
 
-**Historical limits (CESH 0.8.6; superseded where the current snapshot above differs):**
+**Inherited limits (observed in CESH 0.8.6; still current at `34ff50a` where noted):**
 
 - Shared builds set `BARDBOX_REQUIRE_DEVICE_CONFIG=1` and stay non-operational
-  until a valid DC1 record loads.
+  until a valid DC1 or DB1 record loads (current `34ff50a`; 0.8.6 accepted DC1 only).
 - DC1 cannot add compiled sensor drivers. CESH PR #50 at `24c2305` now includes
   both environmental-sensor drivers and identifies the fitted family at runtime;
   particle models remain build choices. That was pushed/unmerged source at the dated observation. CESH 0.11.0 now
@@ -158,8 +160,11 @@ provisioned device with a different app image keeps its DC1 initial hash, which
 then no longer matches the running image and breaks OTA identity (firmware-tools
 review finding S1).
 
-These blocked-INFO and immutable-record rules describe that historical CESH snapshot.
-They are evidence of existing state, not requirements for future firmware.
+Blocked unprovisioned INFO and immutable DB1/DC1 remain current at CESH `34ff50a`.
+The commands allowed before that gate now also include `REPORT_INTERVAL_*`,
+alongside provisioning, Wi-Fi and OTA maintenance. Usable unprovisioned INFO and
+general identity/settings transactions below are proposals, not implemented
+behavior. The dated lifecycle above must not be generalized beyond its snapshot.
 
 ### Current USB configuration and selection boundary
 

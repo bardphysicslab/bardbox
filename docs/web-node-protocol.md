@@ -210,3 +210,7 @@ A conforming Web Node:
 - reports firmware and protocol versions independently;
 - keeps automatic background network activity quiet in production;
 - never clears buffered data automatically to recover from an upload failure.
+
+## Optional live previews
+
+See [Optional Web Node live previews](web-node-live-preview.md) for the proposed `live-preview-v1` capability. Archival uploads retain the base FIFO/2xx contract. Preview receipt is a separate operation and never acknowledges durable delivery or permits queue deletion. Legacy behavior remains the fallback.
