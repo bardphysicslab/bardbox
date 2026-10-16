@@ -130,8 +130,8 @@ flowchart TB
     Alarm --> Queries
     Escalation --> Queries
     Auth -.-> Controls
-    Controls --> Registry
-    Controls --> Settings["Persistent configuration owner"]
+    Controls -->|Validated device configuration edits| Registry
+    Controls -->|User setting edits| Settings["Persistent configuration owner — validate, persist and apply"]
     Controls --> Alarm
     Controls --> Escalation
     Archive -->|Stable files / snapshots| Backup["Scheduled rclone copy / verification"]
@@ -164,6 +164,19 @@ Only that result can acknowledge an archive record; rejection, preview reception
 or a fresh contact cannot dequeue it. Previews have their own non-archive response
 semantics. Live publication must follow successful validation and relevant
 acceptance; the parallel arrows express responsibilities, not an unsafe write order.
+
+The [proposed ingestion contract](ingestion-contract.md) specifies the normalized
+record/delivery interface, partial channel faults, envelope rejection, cadence
+and Archive conflict/acceptance semantics. It refines these existing owners;
+it does not establish implementation or migrate pilots. Firmware and USB
+flasher maps retain their queue/ACK boundaries and need no arrow changes.
+
+The persistent configuration owner validates user-entered settings before
+persisting or applying them. Device registry configuration follows the same
+rule at its owning interface: for example, longitude must be a finite number
+within its allowed range. Invalid edits are rejected without changing the
+stored or active configuration. Rendering may provide early feedback; server
+owners enforce validation. These edits are not sensor-ingestion input.
 
 Latest state preserves measurement time separately from receipt/contact time.
 Health can show a connected node delivering old records without calling those

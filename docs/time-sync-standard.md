@@ -12,7 +12,22 @@ applications.
 Applications must expose time status to operators. Logging and formal sessions
 must not start when time is `invalid`.
 
-## Timestamp Rules
+## Measurement time versus server time
+
+For the [proposed ingestion target](ingestion-contract.md), the server clock
+is authoritative for receipt/observation time, not a replacement for unknown
+device measurement time. Preserve device-reported measurement time and its
+provenance; validation does not certify clock accuracy. Missing or invalid
+measurement time stays null while otherwise usable measurements survive.
+Project contracts define precision and clock-quality needs; no universal node
+RTC requirement follows. The Pi clock/session validity rules above remain
+applicable. An invalid server clock cannot manufacture trusted receipt time.
+
+The timestamp assignment rules below describe legacy driver/API behavior.
+Keep a labeled compatibility projection for existing consumers; never backfill
+its server-assigned timestamp into an unknown original measurement timestamp.
+
+## Timestamp Rules (legacy driver/API projection)
 
 - Use UTC ISO 8601 timestamps at API/log boundaries.
 - Device timestamps are not authoritative.

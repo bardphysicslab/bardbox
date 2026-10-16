@@ -103,6 +103,7 @@ implementation. Published device/Web Node contracts remain authoritative.
 
 - [Repository layout and configuration filenames](docs/repository-layout.md)
 
+- [Ingestion contract (proposed)](docs/ingestion-contract.md)
 - [Reading format](docs/reading-format.md)
 - [Node naming standard](docs/node-naming-standard.md)
 - [Device instructions](docs/device-instructions.md)
