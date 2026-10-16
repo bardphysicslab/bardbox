@@ -6,6 +6,11 @@ It defines the protocol, reading format, driver boundaries, UI standard,
 naming conventions, time rules, and design decisions shared by BardBox monitor
 projects.
 
+## Architecture map
+
+Start with the [BardBox Architecture Map](docs/architecture-map.md) for firmware,
+server-template and USB flasher diagrams, their owners, status and alignment checks.
+
 ## Role
 
 This repo is the source of truth for:

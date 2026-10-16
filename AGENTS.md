@@ -62,6 +62,17 @@ These are pending design contracts, not implemented or adopted APIs. Update
 these drafts rather than recreating them; settle relevant open decisions before
 implementation. Published device/Web Node contracts remain authoritative.
 
+## Architecture alignment
+
+For firmware, server-template, USB flashing, provisioning or OTA work, read the
+[BardBox Architecture Map](docs/architecture-map.md) and applicable linked
+contracts/implementation diagrams before proposing or changing a boundary.
+Record the governing main revision and any separate proposal revision checked.
+PR evidence names affected interfaces/state owners, compatibility, consumer
+impact and diagram updates or justified gaps. Preserve proposal/current labels;
+do not treat an unmerged diagram as adopted policy. Consumer repositories should
+link this entry point rather than copy diagrams.
+
 ## Before work
 
 1. Identify the target repository, checkout, scope, and existing local changes.

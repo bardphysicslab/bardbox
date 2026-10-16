@@ -5,6 +5,14 @@ make changes. Topic-specific standards below define technical contracts; they
 are not parallel general-purpose checklists. The former BardBox Change Skill
 is consolidated into these two root documents.
 
+## Architecture map and implementation diagrams
+
+The [BardBox Architecture Map](docs/architecture-map.md) is the common navigation
+entry point for the proposed firmware/server module drawings and the linked
+Firmware Tools USB flasher implementation map. Follow its ownership/status labels;
+a target diagram is not evidence of implemented or deployed behavior. Read the
+relevant diagram and published contract before changing a cross-project boundary.
+
 ## Ownership and project composition
 
 `bardbox` owns shared standards and specifications. `bardbox-project-template`

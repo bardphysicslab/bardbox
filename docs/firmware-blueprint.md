@@ -19,6 +19,12 @@ BardBox `da5132a648d21989a984e00fa1fd02760bcdf4f7`.
 revision and date stated. **Proposed** marks the intended BardBox pattern. Neither
 label means implemented in a shared library, tested on hardware, merged or deployed.
 
+The [BardBox Architecture Map](architecture-map.md) links the updated student-facing
+firmware and server template drawings and the one maintained [USB flasher layers
+and firmware/server boundaries](https://github.com/bardphysicslab/firmware-tools/blob/2d036ed/docs/usb-flasher-architecture.md)
+implementation map in Firmware Tools. That tooling diagram labels proposed
+extensions and does not replace the shared contracts below.
+
 ## 1. Firmware documentation map (entry point)
 
 Read in this order before firmware, serial-driver, USB-assembly or delivery-buffer

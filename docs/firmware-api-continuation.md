@@ -244,3 +244,35 @@ cover these new edits. Kornelis decides adoption/merge and branch/worktree
 retirement separately. Resolve relevant startup and wire-compatibility decisions
 before dependent implementation. No board setup,
 synchronization, consumer migration or device operation is authorized here.
+
+## October 16 architecture-map checkpoint
+
+Owner: Codex in the modular architecture chat, at Kornelis's explicit request.
+Reuses the existing documentation PR/branch, parent d77ae258fc5aeb4533a03062c3037700bd9cc486.
+Remote documentation authoring leaves canonical checkouts and active writers untouched.
+The existing BardBox checkout remains behind its remote; its owner reconciles it
+before subsequent local work. No new checkout/worktree or competing branch.
+
+Added the [Architecture Map](architecture-map.md) with maintained node/server Mermaid,
+the flasher cross-link requested by its owner, source ownership and review evidence
+expectations. Root guidance, README and blueprint point to it. Both drawings
+describe targets: student publication abstraction, serial without a delivery queue,
+persistent network push, registry, distinct communications/ingestion, rendering via
+queries, and independent scheduled backup. RKC push migration and QuantaQ/PurpleAir
+removal remain required pending work. Original detailed API/schema decisions are
+not resolved by a diagram.
+
+Firmware Tools owns its new USB drawing at 2d036ed on codex/usb-architecture-map;
+the link is pinned until its merge. No edit to its active checkout or flasher
+implementation. Consumer AGENTS linkage should be reconciled by that owner; the
+BardBox entry point is prepared here and is not effective main guidance until merged.
+No automatic guarantee of cross-chat conformance or new CI enforcement is claimed.
+
+Shared guidance: bardphysicslab/engineering-standards@341b3ba82503eb23b786dfcf71af430cc627e2a5
+BardBox standards: bardphysicslab/bardbox@143d42976fd224e8609ee90744ba490a91df1819
+
+Validation: check changed Markdown links/anchors, Mermaid node/reference structure, whitespace and
+exact remote readback. No runtime test/build or hardware/deployment action.
+Next: independent review of the exact updated head, reconcile Firmware Tools'
+consumer pointer, and obtain merge decision. Earlier acceptance covers earlier
+heads only; exact new head and check outcomes are in the PR publication comment.
