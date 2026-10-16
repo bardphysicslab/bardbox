@@ -133,3 +133,35 @@ stages nothing.
 unavailable network stays selected. Measurement, buffering and USB commands continue, and the
 device keeps trying to reconnect. Selecting a reachable network again lets buffered readings
 upload. Every write is reviewed and confirmed by the operator, on the board that was read.
+
+## 4. Release defaults
+
+A firmware release may carry public defaults for the setup form, in a bundle input of their
+own. The approval binds them like any other input, as digest `release_metadata`. Bundles
+without them are unchanged.
+
+```json
+{"schema": "bardbox.release-defaults/1",
+ "firmware_sha256": "<SHA-256 of the exact application image>",
+ "firmware_defaults": {"report_interval_s": {"value": 120, "source": "<how the build resolved it>",
+                                              "source_commit": "<40-hex source commit>"}},
+ "operator_defaults": {"wifi_ssid": {"value": "<SSID>", "approved_by": "<approver>"},
+                       "open_network": {"value": true, "approved_by": "<approver>"}}}
+```
+
+- **Canonical bytes** (sorted keys, no whitespace) are approved, stored and checked, and the
+  document must name the exact application image. A mismatch refuses publication, or makes
+  the bundle unavailable when it is read.
+- **Firmware defaults** record what the build compiled in. The project's release step emits
+  them from the effective build configuration of the named source commit (the environment's
+  flags and sources at that commit, not a working tree; CESH: `scripts/release_metadata.py`).
+  No tool parses source code to recover them later.
+- **Operator defaults** are approved proposals for the form, each naming its approver. They
+  are not firmware behaviour, and their origin stays distinct from firmware defaults.
+- **Allowlist:** only the keys above are accepted. Identities, passwords, tokens and private
+  configuration never appear.
+- **How tools use them:** the form proposes values from the selected approved release, taken
+  from the same verified bundle snapshot that would be installed. The connected board still
+  reports its current state, capabilities and supported limits. A proposed value the board
+  does not accept is not offered, and is never copied from older firmware or app settings.
+  Operator edits are never overwritten.
