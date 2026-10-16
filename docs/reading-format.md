@@ -32,7 +32,23 @@ logic must not depend on `raw`.
 - `data`: canonical channel names mapped to numeric, boolean, string, or `null` values.
 - `extended`: operational metadata such as `last_seen`, `rssi_dbm`, firmware, host, port, location, or diagnostics.
 
-## Status Rules
+## Ingestion target and compatibility
+
+The [proposed ingestion contract](ingestion-contract.md) defines the separate
+server-template target: preserve valid channels when another channel fails,
+attach per-channel null/fault reasons, and preserve unknown measurement time.
+Its aggregate `error` is a summary, not an instruction to erase healthy values.
+These are semantic changes requiring explicit consumer adoption. The legacy
+projection below remains the contract for existing callers; adding fault fields
+alone does not migrate them. Historical validated values are never nulled merely
+because a current health view becomes stale or unavailable.
+
+For the target interface, `timestamp` is original measurement time or null;
+Communications supplies `delivery.received_at` separately. Original record
+metadata, delivery diagnostics, rejection and Archive acceptance are specified
+in the linked contract. This documentation does not change running pilots.
+
+## Status Rules (legacy projection)
 
 - `ok`: fresh valid reading.
 - `stale`: a last valid reading exists, but it is older than the configured freshness timeout.

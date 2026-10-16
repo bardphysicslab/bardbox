@@ -104,7 +104,7 @@ flowchart TB
         Normalize --> Ingest["Ingestion: validate observations and record semantics"]
     end
     subgraph StateBoundary["Registry, health and archive: separate state owners"]
-        Registry["Project device registry"] --> Ingest
+        Registry["Project device registry — validate, persist and apply device configuration"] --> Ingest
         Registry -.-> Communications
         Ingest -->|Archive records| Archive["Durable archive / deduplication"]
         Archive -->|Durable acceptance or known duplicate| Push
@@ -130,8 +130,8 @@ flowchart TB
     Alarm --> Queries
     Escalation --> Queries
     Auth -.-> Controls
-    Controls --> Registry
-    Controls --> Settings["Persistent configuration owner"]
+    Controls -->|Device configuration edit requests| Registry
+    Controls -->|Project setting edit requests| Settings["Persistent configuration owner — validate, persist and apply"]
     Controls --> Alarm
     Controls --> Escalation
     Archive -->|Stable files / snapshots| Backup["Scheduled rclone copy / verification"]
@@ -164,6 +164,23 @@ Only that result can acknowledge an archive record; rejection, preview reception
 or a fresh contact cannot dequeue it. Previews have their own non-archive response
 semantics. Live publication must follow successful validation and relevant
 acceptance; the parallel arrows express responsibilities, not an unsafe write order.
+
+The [proposed ingestion contract](ingestion-contract.md) specifies the normalized
+record/delivery interface, partial channel faults, envelope rejection, cadence
+and Archive conflict/acceptance semantics. It refines these existing owners;
+it does not establish implementation or migrate pilots. Firmware and USB
+flasher maps retain their queue/ACK boundaries and need no arrow changes.
+
+Registry owns device names, locations, latitude/longitude, link type and
+per-device configuration. It validates, persists and applies edits through its
+own interface; the control API passes edit requests, not prevalidated settings.
+For example, longitude must be a finite number in [-180, 180] and latitude
+in [-90, 90]. Queries obtain descriptive device metadata from Registry by UID.
+The persistent configuration owner separately validates, persists and applies
+project settings, such as backup policy and project cadence defaults. Invalid
+edits leave stored and active configuration unchanged. Rendering may provide
+early feedback; server owners enforce validation. These edits are not
+sensor-ingestion input.
 
 Latest state preserves measurement time separately from receipt/contact time.
 Health can show a connected node delivering old records without calling those
