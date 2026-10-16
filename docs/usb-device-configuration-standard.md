@@ -36,11 +36,13 @@ Readers must:
   running partition (which re-verifies the image), because the label is not CRC-protected;
 - treat a missing, torn or non-matching marker as no marker.
 
-Acceptance: a marked, pending image may be confirmed only when the device has verifiably no
-stored configuration (store opened, no record). It then runs in USB-maintenance mode until
-provisioned, the same state a first installation produces. In every other case the
-project's existing validation and rollback apply unchanged; in particular a marker never
-substitutes for network-OTA candidate validation.
+Acceptance: a marked, pending image may be confirmed only when the device verifiably has no
+OTA configuration (stores opened, no DC1 record): it is unprovisioned, or holds only the
+DB1 basic record. Such a device has OTA disabled, so no network-OTA candidate can exist on
+it. Unprovisioned, the image then runs in USB-maintenance mode until provisioned, the same
+state a first installation produces; with DB1 it keeps its stored settings and queue. In
+every other case the project's existing validation and rollback apply unchanged; in
+particular a marker never substitutes for network-OTA candidate validation.
 
 Stale markers: ESP-IDF selection (`esp_ota_set_boot_partition`) keeps a reused sector's label
 but always writes a higher `ota_seq`, so an inherited marker cannot match. Firmware that
@@ -91,3 +93,43 @@ services that use the OTA channel are unavailable too.
 OTA settings for a DB1 device will be a separate immutable record under its own key, bound
 to the DB1 `uid`, carrying the OTA origin, device token, trust and signing material and the
 installed image identity. Its format and lifecycle are not defined by this standard.
+
+## 3. Device settings over USB
+
+Line commands on the device's USB serial port, answered with one reply line. They are
+available before provisioning. Tools must read limits and capabilities from the device
+and must not hard-code firmware values.
+
+### Reporting interval
+
+The reporting interval is the aggregation window and upload cadence, as seen on the
+dashboard. It is not sensor polling and not queue catch-up. The firmware owns its default
+and supported range. An override is a mutable setting, separate from the immutable records,
+and applies at the next start.
+
+| Command | Reply |
+| --- | --- |
+| `REPORT_INTERVAL_STATUS` | `REPORT_INTERVAL,default_s=<n>,active_s=<n>,override_s=<n\|none>,min_s=<n>,max_s=<n>,activation=next_boot` |
+| `REPORT_INTERVAL_SET <s>` | `REPORT_INTERVAL_SET_OK,override_s=<s>,activation=next_boot`, or `ERR,REPORT_INTERVAL_RANGE` / `ERR,REPORT_INTERVAL_STORE` |
+| `REPORT_INTERVAL_CLEAR` | `REPORT_INTERVAL_CLEAR_OK,activation=next_boot`, or `ERR,REPORT_INTERVAL_STORE` |
+
+The firmware validates every value. A stored value outside the range is ignored in favour of
+the default. Changing the interval must not touch identity, Wi-Fi, telemetry settings or the
+measurement queue.
+
+### Wi-Fi selection
+
+| Command | Reply |
+| --- | --- |
+| `WIFI_CAPABILITIES` (read-only) | `WIFI_CAPABILITIES,select=<0\|1>,apply=<0\|1>`; firmware without it answers `ERR,WIFI_COMMAND` |
+| `WIFI_STAGE_BEGIN/DATA/COMMIT` (existing) | stages one record: SSID length, SSID, password length, password |
+| `WIFI_SELECT` | `WIFI_SELECT_OK,ssid=<ssid>`, or `ERR,WIFI_SELECT,reason=no_staged_config\|store` |
+| `WIFI_APPLY` (existing, unchanged) | trial connection with fallback to the previous network |
+
+A tool must read `WIFI_CAPABILITIES` before staging. Unless it reports `select=1`, the tool
+stages nothing.
+
+`WIFI_SELECT` makes the staged network active without a connection trial or fallback. An
+unavailable network stays selected. Measurement, buffering and USB commands continue, and the
+device keeps trying to reconnect. Selecting a reachable network again lets buffered readings
+upload. Every write is reviewed and confirmed by the operator, on the board that was read.
