@@ -152,9 +152,10 @@ without them are unchanged.
 - **Canonical bytes** (sorted keys, no whitespace) are approved, stored and checked, and the
   document must name the exact application image. A mismatch refuses publication, or makes
   the bundle unavailable when it is read.
-- **Firmware defaults** record what the build compiled in. The project's build emits them
-  from its effective build configuration (CESH: `scripts/release_metadata.py`). No tool
-  parses source code to recover them later.
+- **Firmware defaults** record what the build compiled in. The project's release step emits
+  them from the effective build configuration of the named source commit (the environment's
+  flags and sources at that commit, not a working tree; CESH: `scripts/release_metadata.py`).
+  No tool parses source code to recover them later.
 - **Operator defaults** are approved proposals for the form, each naming its approver. They
   are not firmware behaviour, and their origin stays distinct from firmware defaults.
 - **Allowlist:** only the keys above are accepted. Identities, passwords, tokens and private
