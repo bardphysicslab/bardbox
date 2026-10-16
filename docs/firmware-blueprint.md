@@ -21,8 +21,8 @@ label means implemented in a shared library, tested on hardware, merged or deplo
 
 The [BardBox Architecture Map](architecture-map.md) links the updated student-facing
 firmware and server template drawings and the one maintained [USB flasher layers
-and firmware/server boundaries](https://github.com/bardphysicslab/firmware-tools/blob/2d036ed/docs/usb-flasher-architecture.md)
-implementation map in Firmware Tools. That tooling diagram labels proposed
+and firmware/server boundaries](architecture-map.md#usb-flasher)
+implementation map in the same BardBox document. That tooling diagram labels proposed
 extensions and does not replace the shared contracts below.
 
 ## 1. Firmware documentation map (entry point)

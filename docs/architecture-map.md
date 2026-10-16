@@ -1,7 +1,7 @@
 # BardBox Architecture Map
 
 Status: **proposed target design**, recorded October 16, 2026 at Kornelis's request.
-This is the single navigation entry point for the related diagrams, not a claim
+This is the single maintained source for all three diagrams below, not a claim
 that their modules are implemented or deployed. Published contracts remain
 authoritative. Review and merge are separate from implementation and deployment.
 
@@ -11,18 +11,18 @@ authoritative. Review and merge are separate from implementation and deployment.
 | --- | --- | --- |
 | Student-facing firmware template | [Node drawing below](#node-firmware-template) | Target design |
 | Project server template | [Server drawing below](#project-server-template) | Target design |
-| USB flasher implementation and external boundaries | [Firmware Tools implementation map at 2d036ed](https://github.com/bardphysicslab/firmware-tools/blob/2d036ed/docs/usb-flasher-architecture.md) | Pushed proposal; current and future behavior labelled |
+| USB flasher implementation and external boundaries | [USB flasher drawing below](#usb-flasher) | Current implementation map with proposed extensions labelled |
 | Firmware lifecycle, layouts and documentation map | [Firmware blueprint](firmware-blueprint.md) | Proposal |
 | Student serial/base interface | [Serial/base API](firmware-base-and-serial-api.md) | Proposal; exact names and compatibility unresolved |
 | Persistent delivery queue | [Buffer API](firmware-buffer-api.md) | Proposal |
 | USB provisioning contract | [USB flashing and provisioning](usb-provisioning-standard.md) | Proposal |
 | OTA lifecycle | [Existing OTA draft at its review head](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/ota-update-standard.md) | Pending review; no separate maintained OTA diagram verified here |
 
-Firmware Tools owns the one maintained flasher Mermaid source; do not copy it
-here. The pinned link above is usable before its merge. After merge, update it
-to the verified main location and preserve the reviewed revision in evidence.
-Its abbreviated firmware/server context does not replace these detailed target
-drawings or establish that the target is current implementation.
+All three diagrams are maintained in this BardBox document. Firmware Tools owns
+its implementation code and links here; it does not maintain a second Mermaid copy.
+The flasher diagram's abbreviated firmware/server context does not replace the
+detailed target drawings or establish that the target is current implementation.
+Historical branch copies remain provenance only.
 
 ## Node firmware template
 
@@ -180,6 +180,131 @@ application-watchdog requirements.
 Historical tool access remains the [authenticated read-only Data API/MCP boundary](data-api-mcp-boundary.md).
 The dashboard control API is not an extension of that historical-data boundary.
 
+## USB flasher
+
+Diagram home: this BardBox Architecture Map. Implementation owner: Firmware Tools.
+Imported from its reviewed-source candidate [2d036ed](https://github.com/bardphysicslab/firmware-tools/blob/2d036ed8918f73e4671d9ccdbdcd854e88faba28/docs/usb-flasher-architecture.md)
+at Kornelis's request to centralize all three diagrams. That historical copy is
+provenance only; future diagram changes are made here with the owning code change.
+
+Implementation baseline: Firmware Tools `5142b97`, CESH firmware `34ff50a`
+(0.11.0), release metadata emitter `259cba6`, and BardBox contract `f5a0cd6`.
+The USB page and release-defaults bundle were deployed on 2026-10-16; delivery
+and physical evidence live in [the authoritative tracker](https://github.com/bardphysicslab/firmware-tools/issues/5).
+The diagram describes responsibilities, not a claim that every firmware/server
+module has already been extracted into a shared library.
+
+### Layers
+
+```mermaid
+flowchart TB
+    Operator["Operator"]
+    subgraph Release["Project release tools — CESH, RKC, etc."]
+        Source["Firmware source and effective build configuration"]
+        Build["Build binary and emit public release defaults"]
+        Approval["Engineering review and approval"]
+        Publisher["Bundle publisher — validate and switch current atomically"]
+        Source --> Build --> Approval --> Publisher
+    end
+    subgraph Host["USB application server"]
+        Store["Approved bundle store"]
+        Reader["Reader — one verified snapshot of binary and defaults"]
+        Connection["Connection configuration owner — telemetry URL and trusted CA"]
+        Auth["Operator authentication"]
+        API["Read-only application endpoints"]
+        Store --> Reader --> API
+        Connection --> API
+        Auth -.-> API
+    end
+    Publisher --> Store
+    subgraph Browser["USB browser application"]
+        UI["Presentation — Set up, Check device, Board settings"]
+        Composition["Application composition — inputs and provider wiring"]
+        Workflows["Workflows — inspect, validate, review and execute"]
+        Confirm["Operator confirmation — exact reviewed connection"]
+        Lock["Operation coordination — one USB operation at a time"]
+        Flash["Installation workflow — compatibility, write and verify"]
+        Settings["Settings workflow — initial record or supported mutable changes"]
+        Info["Diagnostic read — INFO displayed verbatim"]
+        Adapters["USB adapters — programming and serial connections"]
+        UI --> Composition --> Workflows --> Confirm
+        Confirm --> Flash --> Adapters
+        Confirm --> Settings --> Adapters
+        UI --> Info --> Adapters
+        Lock -.-> Workflows
+        Lock -.-> Info
+    end
+    Operator --> UI
+    API --> Composition
+    subgraph Device["Device firmware — externally observable interfaces"]
+        Install["Installation contract — target, partitions and boot selection"]
+        Commands["Command dispatcher and maintenance interface"]
+        Config["Device configuration owner — validate, persist and apply"]
+        Runtime["Acquisition, serial output and optional network delivery"]
+        Queue["Persistent delivery queue"]
+        Adapters <-->|"Install and verify"| Install
+        Adapters <-->|"Commands, capabilities, INFO and results"| Commands
+        Commands --> Config
+        Config -.-> Runtime
+        Runtime <--> Queue
+    end
+    subgraph ProjectServer["Project server — context, target module boundaries"]
+        Ingest["Communications and ingestion"]
+        Archive["Durable archive and latest-reading store"]
+        Queries["Read API and dashboard rendering"]
+        Ingest --> Archive --> Queries
+    end
+    Runtime -->|"Queued records and optional previews"| Ingest
+    Ingest -->|"Record acknowledgements"| Runtime
+    subgraph Future["Proposed extensions — not implemented here"]
+        Profiles["Release declarations — transports and conditional settings"]
+        Registry["Registry — identifier allocation and lifecycle"]
+        Export["Non-destructive bulk USB queue export"]
+    end
+    Profiles -.-> Build
+    Registry -.-> Composition
+    Registry -.-> Ingest
+    Queue -.-> Export
+    Export -.-> Adapters
+    classDef planned fill:#fff4d6,stroke:#a67700,stroke-dasharray:5 5,color:#222;
+    class Profiles,Registry,Export planned;
+```
+
+### Boundary contracts
+
+| Owner | Inputs, outputs and preserved responsibility |
+| --- | --- |
+| Project build/release tools | Produce firmware and public defaults from the named source commit and effective build configuration. Compiled defaults and approved operator proposals retain distinct provenance. A metadata-only release may reuse an existing exact binary; this is not a rebuild. |
+| Publisher and bundle reader | Approval covers exact input digests, including optional release metadata. The reader serves one verified snapshot; an operation must not mix release versions. Existing bundles without metadata remain readable. |
+| USB host configuration | Currently supplies telemetry URL and public trusted CA. These are not sensor properties or per-device registration credentials. Release-owned form defaults do not silently come from host defaults. |
+| Browser presentation and workflows | One Board settings form prefills from the approved release. Save selects/reads a board, validates the whole plan and offers one review. Confirmation covers that connected target only. Workflows enforce sequencing and stop after failed or uncertain steps, reporting partial results; multiple writes are not claimed atomic. |
+| Firmware installation interface | Target/layout compatibility, boot selection and startup confirmation are separate from internal sensor/application structure. Valid matching-layout updates preserve configuration and queued data. Recovery has separate explicit data-loss confirmation. |
+| Firmware configuration/maintenance | Firmware validates commands, owns persistence and reports capabilities/limits. Initial identity/server records remain immutable through this workflow; supported Wi-Fi and interval changes use separate mutable settings. Interval changes require restart. INFO remains a raw diagnostic reply. |
+| Network node and project server | The node communicates directly with its destination after setup. The flasher is not a readings relay. A preview does not dequeue a record; queued records remain until durable server acceptance or known duplicate. Server history ordering and rendering belong to the server. |
+
+### Current limits and proposed evolution
+
+- Today: one current approved CESH TEST bundle, Wi-Fi-oriented provisioning,
+  manually entered established identifiers, and no release selector in assembly.
+- Proposed: release-declared transports and conditional settings, allowing a
+  serial-only node without mandatory Wi-Fi/endpoint/CA fields. Firmware internals
+  and student-facing publish API may evolve without changing USB clients when
+  external contracts remain compatible. LoRa support is not implemented.
+- Proposed registry integration is optional and uses explicit service interfaces;
+  writing an identifier to a board does not register it with a receiving server.
+  An identifier is not an authentication credential. Credential issuance remains
+  a separate unresolved contract.
+- Planned bulk queue export is read-only and non-destructive, not a serial delivery
+  queue. Overflow-policy changes remain separate deferred firmware work.
+- OTA engineering is a separate application/workflow. It may share bundle validation
+  and approval components; it owns assignments, authenticated network delivery,
+  health validation and rollback. Neither app requires the other to be running.
+
+Shared format definitions remain in [BardBox USB device configuration and selection](https://github.com/bardphysicslab/bardbox/blob/main/docs/usb-device-configuration-standard.md).
+This implementation map does not replace those contracts, the project firmware
+blueprint or the separately proposed server template architecture.
+
+
 ## Required migration and limits
 
 - RKC server-initiated TCP polling must be replaced with node-initiated push.
@@ -208,22 +333,24 @@ Before firmware, server, USB or OTA changes:
    proposal and consumer revisions separately. A diagram branch is not adopted policy.
 3. Name the affected operations, data/state owners, permissions, failure behavior
    and compatibility/versioning consequences.
-4. Update the owning diagram and linked contract when changing a boundary.
-   Do not silently implement a draft or maintain copied diagrams in consumers.
+4. Update the relevant diagram in this document and its linked contract when
+   changing a boundary. Check the other two diagrams for consistency and record
+   the result. Do not silently implement a draft or copy Mermaid into consumers.
 5. In the PR, record the revision checked, conformance or deliberate gaps, affected
    consumers, and relevant tests/evidence. Review those claims before merge.
 
-BardBox owns shared contracts and these template targets; Firmware Tools owns its
-flasher implementation map and tooling. Its repository instructions should require
-this entry point alongside applicable main standards. Links and checklists improve
-traceability; they cannot guarantee understanding or prove runtime conformance.
-Automated link/evidence checks may supplement independent semantic review; no such
-new CI enforcement is installed by this documentation update.
+BardBox owns shared contracts and the single source for all three architecture
+diagrams. Firmware Tools owns flasher implementation and links here. Its repository
+instructions require this entry point alongside applicable main standards. Links
+and checklists improve traceability; they cannot guarantee understanding or prove
+runtime conformance. Automated link/evidence checks may supplement independent
+semantic review; no new CI enforcement is installed by this documentation update.
 
-Alternative considered: store every diagram here. A central index with one source
-per owner avoids stale copies and keeps implementation diagrams with their code.
-Reconsider central physical storage if repository-level ownership makes link
-maintenance materially unreliable.
+Decision: keep all three diagrams physically in BardBox, in this one document.
+The earlier proposal of a distributed index was rejected by Kornelis because he
+wants one place to edit the overall design and compare related diagrams. Consumers
+link here; their code, acceptance evidence and detailed operating docs remain in
+their own repositories. Exact source revisions preserve provenance.
 
 ## Evidence and provenance
 

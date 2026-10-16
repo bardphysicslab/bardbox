@@ -276,3 +276,24 @@ exact remote readback. No runtime test/build or hardware/deployment action.
 Next: independent review of the exact updated head, reconcile Firmware Tools'
 consumer pointer, and obtain merge decision. Earlier acceptance covers earlier
 heads only; exact new head and check outcomes are in the PR publication comment.
+
+## October 16 central diagram ownership correction
+
+Kornelis clarified that a distributed diagram index was not the intended result:
+all three diagrams (node firmware, project server, USB flasher) must have one
+physical maintained home in BardBox's architecture-map.md. The USB drawing and
+boundary text are imported with provenance from Firmware Tools 2d036ed. Its
+implementation remains owned by Firmware Tools. The consumer copy becomes a
+link-only pointer; no second maintained Mermaid source remains in that PR.
+
+This decision supersedes the preceding checkpoint's distributed-ownership
+recommendation. Existing historical source commits are provenance, not editable
+authorities. Future diagram changes update this document, inspect related
+diagrams for consistency and identify the related code/contract revisions.
+No fourth/OTA diagram was added; the existing OTA draft is a contract reference.
+
+Publication reuses existing BardBox and Firmware Tools documentation branches,
+with exact-head leases. Their canonical clean checkouts and idle prior task were
+inspected; remote documentation edits leave them untouched and behind remote.
+Owners reconcile before local work. Exact new heads, link checks and readback
+are recorded on the existing PRs. All changes remain review candidates.
