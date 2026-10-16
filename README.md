@@ -6,6 +6,11 @@ It defines the protocol, reading format, driver boundaries, UI standard,
 naming conventions, time rules, and design decisions shared by BardBox monitor
 projects.
 
+## Architecture map
+
+The [BardBox Architecture Map](docs/architecture-map.md) contains all three
+maintained diagrams: node firmware, project server and USB flasher.
+
 ## Role
 
 This repo is the source of truth for:
@@ -77,7 +82,24 @@ The former BardBox Change Skill and GPT-facing checklist are consolidated into
 these root documents. Existing detailed standards remain technical references;
 there is no separate change-skill checklist to follow.
 
+## Firmware API design entry point
+
+Before firmware, serial-driver, USB-assembly or delivery-buffer work, start at
+the [firmware blueprint](docs/firmware-blueprint.md); its document map links the
+maintained [serial/base proposal](docs/firmware-base-and-serial-api.md),
+[optional buffer proposal](docs/firmware-buffer-api.md),
+[USB flashing and provisioning proposal](docs/usb-provisioning-standard.md),
+the pending storage/OTA review and the
+[continuation](docs/firmware-api-continuation.md). Then verify
+[the owning GitHub issue](https://github.com/bardphysicslab/bardbox/issues/31).
+These are pending design contracts, not implemented or adopted APIs. Update
+these drafts rather than recreating them; settle relevant open decisions before
+implementation. Published device/Web Node contracts remain authoritative.
+
 ## Key Docs
+
+- [Firmware blueprint and document map (proposed)](docs/firmware-blueprint.md)
+- [USB flashing and provisioning (proposed)](docs/usb-provisioning-standard.md)
 
 - [Repository layout and configuration filenames](docs/repository-layout.md)
 

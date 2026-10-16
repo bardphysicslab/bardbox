@@ -48,6 +48,31 @@ be read, do read-only investigation only, and report it. Do not implement,
 commit, push, deploy or end checkouts unless the maintainer explicitly says
 to proceed without it.
 
+## Firmware API design entry point
+
+Before firmware, serial-driver, USB-assembly or delivery-buffer work, start at
+the [firmware blueprint](docs/firmware-blueprint.md); its document map links the
+maintained [serial/base proposal](docs/firmware-base-and-serial-api.md),
+[optional buffer proposal](docs/firmware-buffer-api.md),
+[USB flashing and provisioning proposal](docs/usb-provisioning-standard.md),
+the pending storage/OTA review and the
+[continuation](docs/firmware-api-continuation.md). Then verify
+[the owning GitHub issue](https://github.com/bardphysicslab/bardbox/issues/31).
+These are pending design contracts, not implemented or adopted APIs. Update
+these drafts rather than recreating them; settle relevant open decisions before
+implementation. Published device/Web Node contracts remain authoritative.
+
+## Architecture alignment
+
+For firmware, server-template, USB flashing, provisioning or OTA work, read the
+[BardBox Architecture Map](docs/architecture-map.md) and applicable linked
+contracts/implementation diagrams before proposing or changing a boundary.
+Record the governing main revision and any separate proposal revision checked.
+PR evidence names affected interfaces/state owners, compatibility, consumer
+impact and diagram updates or justified gaps. Preserve proposal/current labels;
+do not treat an unmerged diagram as adopted policy. Consumer repositories should
+link this entry point rather than copy diagrams.
+
 ## Before work
 
 1. Identify the target repository, checkout, scope, and existing local changes.

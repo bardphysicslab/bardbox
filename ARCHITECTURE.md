@@ -5,6 +5,14 @@ make changes. Topic-specific standards below define technical contracts; they
 are not parallel general-purpose checklists. The former BardBox Change Skill
 is consolidated into these two root documents.
 
+## Architecture map
+
+The [BardBox Architecture Map](docs/architecture-map.md) is the single maintained
+source for all three drawings: node firmware, project server and USB flasher.
+Follow the current/proposed labels and published contracts; diagrams do not
+establish runtime conformance. Consumer repositories link here rather than copy
+Mermaid. Check related diagrams whenever an interface changes.
+
 ## Ownership and project composition
 
 `bardbox` owns shared standards and specifications. `bardbox-project-template`
@@ -115,6 +123,7 @@ do not make active project deadlines depend on an unrelated broad migration.
 | Area | Canonical documents |
 | --- | --- |
 | Device/firmware contracts | [Device instructions](docs/device-instructions.md), [Web Nodes](docs/web-node-protocol.md), [transport recovery](docs/transport-recovery-standard.md), [USB device configuration](docs/usb-device-configuration-standard.md) |
+| Firmware design (proposed) | [Firmware blueprint](docs/firmware-blueprint.md), [serial/base API](docs/firmware-base-and-serial-api.md), [buffer API](docs/firmware-buffer-api.md), [USB flashing and provisioning](docs/usb-provisioning-standard.md) |
 | Drivers and readings | [Pi drivers](docs/pi-driver-instructions.md), [reading format](docs/reading-format.md), [channels](docs/channel-names.md) |
 | Identity and time | [Node naming](docs/node-naming-standard.md), [time synchronization](docs/time-sync-standard.md), [sessions](docs/session-model.md) |
 | Web presentation | [Web UI standard](docs/web-ui-standard.md) |
