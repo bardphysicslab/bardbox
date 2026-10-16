@@ -16,7 +16,7 @@ authoritative. Review and merge are separate from implementation and deployment.
 | Student serial/base interface | [Serial/base API](firmware-base-and-serial-api.md) | Proposal; exact names and compatibility unresolved |
 | Persistent delivery queue | [Buffer API](firmware-buffer-api.md) | Proposal |
 | USB provisioning contract | [USB flashing and provisioning](usb-provisioning-standard.md) | Proposal |
-| OTA lifecycle | [Existing OTA draft at its review head](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/ota-update-standard.md) | Pending review; no separate maintained OTA diagram verified here |
+| OTA lifecycle | [OTA lifecycle contract](ota-update-standard.md) | Optional contract; implementation and physical acceptance tracked separately |
 
 All three diagrams are maintained in this BardBox document. Firmware Tools owns
 its implementation code and links here; it does not maintain a second Mermaid copy.

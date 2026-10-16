@@ -122,6 +122,7 @@ do not make active project deadlines depend on an unrelated broad migration.
 
 | Area | Canonical documents |
 | --- | --- |
+| Optional OTA and compact storage | [OTA contract](docs/ota-update-standard.md), [compact storage](docs/compact-record-storage.md); read for relevant work, implementation acceptance remains separate |
 | Device/firmware contracts | [Device instructions](docs/device-instructions.md), [Web Nodes](docs/web-node-protocol.md), [transport recovery](docs/transport-recovery-standard.md), [USB device configuration](docs/usb-device-configuration-standard.md) |
 | Firmware design (proposed) | [Firmware blueprint](docs/firmware-blueprint.md), [serial/base API](docs/firmware-base-and-serial-api.md), [buffer API](docs/firmware-buffer-api.md), [USB flashing and provisioning](docs/usb-provisioning-standard.md) |
 | Drivers and readings | [Pi drivers](docs/pi-driver-instructions.md), [reading format](docs/reading-format.md), [channels](docs/channel-names.md) |
