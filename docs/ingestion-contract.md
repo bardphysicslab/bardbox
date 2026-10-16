@@ -21,17 +21,22 @@ The operation is `validate(record, delivery, registry_snapshot)`. It returns
 An accepted result has an empty `errors` array. Channel faults are inside the
 accepted record, not envelope errors. No validation result is a durable ACK.
 
-Registry owns identity bindings, registered channel definitions, required versus
-optional channels, validators and cadence configuration. Ingestion reads one
-consistent snapshot. Archive owns durable storage, conflict detection and
+Registry owns identity bindings, stable archive device keys, configured link type
+(`wifi` or the explicitly registered non-Wi-Fi link), device names, locations,
+latitude/longitude, registered channel definitions, required versus optional
+channels, validators and per-device cadence configuration. Link type comes from
+Registry, not an adapter name or untrusted payload, and determines the Wi-Fi RSSI
+requirement. Ingestion reads one consistent snapshot. Archive owns durable
+storage, conflict detection and
 deduplication. Latest state, health, science, alarms and query/rendering consume
 accepted records through their respective interfaces. Display configuration is
 separate from registration; incoming fields never add card rows.
 
-User-entered names, locations, latitude/longitude and operational settings enter
-through the authorized control API, not measurement ingestion. The persistent
-configuration owner validates, persists and applies its settings; the registry
-enforces validation for device configuration it owns. Reject invalid edits before
+User-entered settings enter through the authorized control API, not measurement
+ingestion. Registry validates, persists and applies device names, locations and
+coordinates; queries read that descriptive metadata from Registry by UID. The
+persistent configuration owner validates, persists and applies project settings,
+including project cadence defaults and backup policy. Reject invalid edits before
 changing stored or active values. Rendering may provide early feedback but cannot
 replace server validation. Query/rendering joins server-managed descriptive
 metadata to readings by UID; a renamed freezer keeps its device identity.
@@ -59,14 +64,14 @@ An accepted normalized record uses the existing reading object's `uid`,
 | `status` | `ok` when no channel is faulty; `error` when one or more are faulty. At ingestion this describes validity, not freshness. |
 | `message` | Bounded human-readable summary; applications use structured faults, not this text. |
 | `data` | Every registered channel, canonical name to typed valid value or null. Unregistered channels are ignored. |
-| `extended.record_id` | Stable opaque nonempty string required for queued archival push; optional for other observations. Assigned before queue persistence, unchanged on retry/reboot/preview. |
+| `extended.record_id` | ASCII string of 1–128 characters matching `[A-Za-z0-9][A-Za-z0-9._:-]{0,127}`, required for queued archival push; optional for other observations. Unique for the lifetime of the logical device's canonical UID, including reboot, reflash, recovery, queue clear and hardware replacement preserving that identity. Assigned before queue persistence, unchanged on retry/reboot/preview. |
 | `extended.reported_uid` | Original claimed UID before an explicit registry alias. |
 | `extended.firmware_version` | Device-reported firmware that produced the record, not assigned or available firmware. Nonempty string. |
 | `extended.protocol_version` | Supported protocol of the original record. Nonempty string, independently checked from firmware. |
 | `extended.rssi_dbm` | Original Wi-Fi diagnostic: finite number in dBm or explicit null with a metadata fault. Required presence for Wi-Fi devices, absent for other transports unless reported. |
 | `extended.time_source` | `device` for a usable reported measurement time; `unknown` otherwise. |
-| `extended.time_fault` | Null, `missing`, or `invalid`; unknown time does not invalidate otherwise usable channels. |
-| `extended.observed_at` | UTC ISO 8601 server observation time for a polling adapter, otherwise null. Does not claim exact sensor sampling time. |
+| `extended.time_fault` | Null, `missing`, `invalid`, `clock_unsynced`, or `outside_project_bounds`; unknown time does not invalidate otherwise usable channels. |
+| `extended.observed_at` | Trusted UTC ISO 8601 server observation time captured by Communications/source adapter on completing a live poll/serial observation; otherwise null. Does not claim exact sensor sampling time. |
 | `extended.channel_faults` | Map from each null channel to `{code}`; valid channels have no entry. |
 | `extended.metadata_faults` | Map of unavailable/invalid diagnostic metadata to `{code}`. Separate from channel faults. |
 | `extended.expected_report_interval_ms` | Positive integer effective reporting interval resolved below. |
@@ -80,13 +85,23 @@ Channel aliases and unit conversions are adapter mappings, not new canonical
 channel names. Preserve bounded explicitly reported diagnostics separately;
 never infer a disconnected sensor from a null value.
 
+Record-ID generation must survive erased counters and replacement hardware.
+Use a durable never-reused namespace plus sequence, or a random identifier with a
+documented collision budget; a resettable counter alone is insufficient. CESH's
+two 32-bit random words are an existing scheme to assess, not a proof of uniqueness
+for arbitrary device lifetime/volume. Server conflict checks remain necessary.
+Adapters explicitly map legacy IDs through the compatibility path rather than
+silently truncating, rewriting or accepting out-of-contract IDs.
+
 `delivery` is a separate trusted-context object, never merged into immutable
 record metadata. It contains `received_at` (UTC ISO 8601 captured by
 Communications), `authenticated_uid` (identity binding established by
 Communications), `kind` (`archive`, `preview`, or `observation`), and `transport`
 (adapter identifier). Optional `diagnostics` contains current sender-reported
 `firmware_version`, `protocol_version`, `rssi_dbm`, `buffer_count`, and
-`buffer_max_records`. Each keeps its send-time meaning and is not a substitute
+`buffer_max_records`. Optional `buffer_mounted` and `catchup_active` are booleans;
+`last_buffer_error` is a bounded diagnostic string. Each keeps its send-time
+meaning and is not a substitute
 for original record metadata. Sender diagnostics are authenticated reports,
 not independently verified hardware facts. Missing optional diagnostics remain
 absent; counters, when supplied, are nonnegative integers with count no greater
@@ -102,6 +117,35 @@ receipt; measurement freshness may not. Delivery diagnostics describe that
 attempt only: delayed replay must not overwrite newer current diagnostic state
 without a separately documented ordering rule. Receipt time alone cannot prove
 when a diagnostic was sampled. SSID remains optional protected diagnostics.
+
+## Measurement time and observation freshness
+
+A usable device time must parse as an explicit UTC ISO 8601 instant and pass the
+project's declared clock-quality, earliest-valid-time and future-skew policy.
+Projects enabling measurement-time freshness configure those bounds and a finite
+maximum future skew before activation. A parse failure is `invalid`; an explicit
+unsynchronized-clock indication is `clock_unsynced`; violation of those bounds is
+`outside_project_bounds`. Store null measurement time with that reason and preserve
+the original input as bounded source evidence; do not reject healthy channels.
+A 1970 RTC date is outside bounds when the project's earliest valid time excludes
+it; no universal earliest date is imposed. A future timestamp must never extend
+freshness beyond the configured skew allowance. No device timezone guessing or
+automatic clock-offset correction is performed. Clock quality not reported by
+the device remains unknown; project policy decides whether that suffices.
+
+CESH `clock_unsynced=1` maps to `clock_unsynced` regardless of the timestamp text;
+`0` means no explicit unsynchronized indication, not certified accuracy; null or
+absence means unknown clock quality. Preserve the original flag. CESH's project
+contract must supply its stricter window/time criteria and bounds.
+
+Health may use trusted `observed_at` for `delivery.kind=observation` under an
+explicit project policy, labeled `observation` as the freshness basis. This covers
+live RKC polling and directly attached serial observations even with null actual
+measurement time. Expire freshness against that observation time and the project's
+cadence/timeout; do not relabel it as device sampling time. Archived observations
+replayed later keep their original observation time and cannot become fresh from
+a new receipt. Archive and preview pushes cannot use receipt time as observation
+time. This exception does not turn unknown-time push records into fresh readings.
 
 ## Channel and aggregate faults
 
@@ -148,10 +192,10 @@ Aggregate `error` no longer means every channel is invalid in this target
 contract. `stale` and `node_unavailable` remain health projections for current
 views: unavailable/stale channel values are null there, without rewriting
 historical archive values. Health owns these projections and per-channel
-freshness. A recent replay receipt cannot make an old or unknown-time reading
-fresh. Unknown measurement time remains distinguishable in archive, latest,
-queries and rendering; a project may label server observation timing for its
-operational view without claiming exact device sampling time. No universal RTC
+freshness. A recent replay receipt cannot make an old or unknown-time push record
+fresh. Live `observation` freshness follows the explicit rule above. Unknown
+measurement time remains distinguishable in archive, latest, queries and rendering.
+No universal RTC
 or precision requirement is added.
 
 ## Envelope rejection and durable acceptance
@@ -159,7 +203,9 @@ or precision requirement is added.
 | Condition | Outcome / error code |
 | --- | --- |
 | Missing required UID, original firmware or original protocol; missing queued archival record ID; absent required Wi-Fi RSSI field | Reject, `missing_metadata`, with field path. |
-| Empty/invalid identity, version or ID field; invalid required trusted receipt context | Reject, `invalid_metadata`. Firmware/protocol sentinel `unknown` does not satisfy the requirement. |
+| Empty/invalid identity, version or ID field | Reject, `invalid_metadata`. Firmware/protocol sentinel `unknown` does not satisfy the requirement. |
+| Conflicting simultaneous metadata aliases | Reject, `metadata_conflict`, identifying the conflicting field. |
+| Missing/invalid required trusted receipt context, including an invalid server clock | Temporary server failure, `receipt_context_unavailable`; HTTP 503, not a device metadata fault. |
 | Present null/non-finite/wrong-type Wi-Fi RSSI | Keep usable measurements; normalize RSSI to null with `metadata_faults.rssi_dbm.code` = `unavailable` for null or `invalid` otherwise. No invented signal strength. |
 | Unsupported original or explicitly reported current delivery protocol | Reject, `unsupported_protocol`; never guess a nearest supported version. |
 | Unregistered UID or authenticated identity not bound to claimed UID through explicit registry mapping | Reject, `identity_mismatch`. A UID allowlist alone is not authentication. |
@@ -174,26 +220,75 @@ JSON, whereas a supported non-JSON adapter can report an individual non-finite
 channel as a channel fault. For multiple envelope errors return deterministic
 field-path/code order; do not echo unbounded input or credentials.
 
-Archive keys deduplication by `(canonical uid, record_id)`. Compare immutable
-source record content after documented wire normalization, before registry
-filtering/channel nulling. Include original reported identity, original metadata,
+The target archival HTTP route accepts exactly one record per request. Reject
+arrays/batches as `malformed_message` before processing any member; no member is
+accepted or ACKed. The base protocol permits batching generally, but this route
+does not support it until a separately reviewed per-record result/ACK contract
+exists. A caller cannot interpret one success as accepting an unexamined batch.
+
+Archive keys deduplication by `(archive_device_key, record_id)`, using an immutable
+server-side device key assigned by Registry and retained across canonical UID
+renaming or alias changes. This key is internal, not a new device payload field.
+At first registration Registry binds canonical and reported identities to that
+key. It must preserve accepted bindings and reject alias moves that would split
+or merge historical deduplication namespaces without a separately reviewed archive
+migration. A retry resolved through an updated alias map uses the original key
+and retains its original reported UID/content; historical rows retain their
+original canonical UID. Newly authorized replacement hardware
+using the same logical UID also inherits its ID-uniqueness obligations.
+
+Compare immutable source content before engineering unit conversion, registry
+filtering/channel nulling, or time validation. Include original reported identity, original metadata,
 timestamp (including invalid/missing distinctions), all supplied measurements
 (including ignored channels), and record diagnostic/fault indications. Exclude
 delivery context, current delivery diagnostics, and server-derived validation,
 cadence and health projections. This avoids configuration changes manufacturing
-conflicts or different bogus inputs becoming identical after nulling. The adapter
-must define deterministic comparison: map key order/whitespace are immaterial;
-types, null/absence and differing invalid values remain distinct. Retain bounded
-source evidence sufficient for comparison, or a stable digest of that content.
+conflicts or different bogus inputs becoming identical after nulling.
+
+Each supported wire contract has a documented source-comparison profile. For JSON,
+compare a deterministic structural encoding of original immutable fields with
+sorted object keys: key order/insignificant whitespace are immaterial; decoded
+strings, types, null/absence, array order and original numeric tokens are preserved.
+Exclude only delivery fields explicitly named by that wire profile. Do not compare
+values after unit conversion or sensor validation. For non-JSON profiles document
+the exact immutable byte segment or equivalent deterministic encoding. Archive
+stores `source_digest_sha256` (the SHA-256 digest) and the server-private
+`source_comparison_profile` identifier with
+first acceptance; lookup must use that original profile, not today's adapter
+normalizer. Retain the original profile implementation across upgrades while any
+retry is possible. Missing profile support is `comparison_unavailable`/503, never
+a guessed conflict or duplicate. New profiles apply only to new records and require
+documented compatibility checks; they add no wire schema/protocol-version field.
+
+Communications configures finite maximum message bytes and record bytes before
+enabling a route, rejects oversize work before acceptance, and streams/bounds
+comparison work within those limits. Archive stores fixed-size digests; optional
+raw evidence has a configured finite byte budget and protected access. Truncating
+raw debug evidence must never change the full-source digest. Malformed messages
+without a usable record ID are diagnostic events, not invented archival records.
 
 An identical accepted duplicate returns `duplicate`; conflicting immutable
 content returns `record_id_conflict`, preserves the original and does not publish
 the conflicting data. Concurrent submissions and restart between persistence
 and deduplication must be atomic or recoverably journaled by Archive. An in-memory
-ID set is insufficient. A retry after uncertain archive failure is safe and uses
+ID set is insufficient. Serialization must cover all workers/processes writing
+the same device key, with unique-key enforcement and commit/journal recovery;
+process-local locks alone are insufficient. A retry after uncertain archive failure is safe and uses
 the same ID. A known accepted identical duplicate remains ACK-eligible under its
 original acceptance; later registry changes do not erase durable acceptance.
 Identity authentication/binding and supported decoding still apply before lookup.
+
+Archive deduplication state must outlive every possible retry, including records
+on offline nodes and explicit legacy paths. Pruning measurement rows must retain
+acceptance tombstones containing device key, record ID, source digest/profile and
+acceptance result. No time-based expiry is safe while retries are unbounded.
+Retire a namespace only after explicit reconciliation that makes further retries
+impossible. Capacity exhaustion is visible and fails closed without advancing ACK.
+Backup/restore must reconcile archive commits, deduplication state and identity-key
+bindings as one consistent checkpoint/journal recovery. Mismatched or missing state
+blocks new archival acceptance with 503 until reconciled; never silently rebuild
+deduplication from incomplete pruned history. Restore validation includes a lost-ACK
+retry and a known conflicting ID before reopening writes.
 
 For retry handling the application first supplies authenticated, bounded, decoded
 source identity/content to Archive's duplicate lookup. An accepted exact duplicate
@@ -208,10 +303,54 @@ and dequeue. Partial channel faults may be durably accepted with their nulls and
 reasons; envelope rejection, conflict or archive failure cannot be ACKed.
 For HTTP archival routes, preserve the existing rule that every 2xx is an ACK:
 use non-2xx for all non-acceptance outcomes, including asynchronous pending work.
-Suggested mappings are 400 malformed, 403 identity, 422 metadata/protocol/cadence,
-409 ID conflict and 503 archive failure. Preview 2xx acknowledges preview receipt
-only on its dedicated route. Permanent rejection needs operator repair and bounded
-retry/backoff, never automatic queue clearing or content changes under the same ID.
+Suggested mappings are 400 malformed, 403 identity, 422 metadata (including
+`metadata_conflict`)/protocol/cadence, 409 ID conflict, and 503 archive failure,
+unavailable receipt context or unavailable comparison profile. Preview 2xx
+acknowledges preview receipt only on its dedicated route.
+
+### Rejected FIFO records and operator disposition
+
+Separate temporary server faults (receipt clock, storage or comparison unavailable:
+503), server-repairable admission failures (unknown identity binding, unsupported
+protocol, or missing configured cadence: 403/422), and immutable-content failures
+(missing/invalid original metadata, malformed record, conflicting metadata,
+invalid reported cadence, or conflicting record ID: 400/409/422). “Server-repairable”
+means an authorized correction or validated compatibility adapter may help; it is
+not permission to weaken authentication or invent original metadata. Node behavior
+must not assume all 422 errors can be fixed merely by retrying.
+
+All failures retain the original record and use finite retry deadlines/backoff.
+A permanently rejected head record intentionally stalls FIFO archival delivery;
+this is a visible recovery state, not successful drain. Acquisition continues
+within documented queue capacity/overflow limits. A compatible preview path may
+continue validated live monitoring but never bypasses FIFO archival acceptance.
+Node diagnostics and server Health must expose `archive_blocked`, blocked record
+ID if usable, error code, first/last failure time and retry/queue progress. This
+operational status is distinct from channel measurement validity and connection
+health. Legacy nodes lacking these diagnostics are an explicit migration gap;
+server-side rejection reporting is still required before strict adoption.
+
+Archive owns a separate protected rejection ledger for authenticated, identity-bound
+submissions with a usable ID: device key, original ID, full-source digest/profile,
+error codes and first/last receipt context (null with clock-failure diagnostics
+when trusted time is unavailable), plus source content within a configured
+finite evidence budget. A truncated source must be labeled. Aggregate repeated
+identical rejections; impose per-device entry/byte limits and a retention budget.
+On evidence-budget exhaustion keep bounded blocked-state/digest diagnostics and
+surface the limitation; no success ACK results. Anonymous/malformed input without
+a bound identity/usable ID goes only to rate-limited Communications diagnostics.
+Ledger entries are not acceptance tombstones, reserve no ID and authorize no dequeue.
+
+Current safe disposition is to retain and visibly block. An operator can correct
+server configuration/support, or investigate using preserved source evidence.
+Re-uploading altered content under the old ID and automatic queue clearing are
+forbidden. This proposal does not authorize dropping, skipping or ACKing rejected
+records. A future terminal disposition (such as supported export then selective
+removal) needs an explicit maintainer decision and a separately reviewed node/server
+recovery contract before strict rollout to a project that requires automatic drain.
+No such recovery feature is claimed implemented. Record the affected node/ID,
+evidence location and next operator action in its migration tracker; never hide an
+unresolved permanent head record behind a conformance claim.
 
 ## Reporting cadence
 
@@ -221,6 +360,10 @@ Configuration owner validates all configured values before activation; invalid
 configuration cannot silently fall through. Effective cadence and its source are
 stored with first acceptance and are not recomputed on replay. Reporting means
 completed-record cadence; acquisition and upload retry/catch-up are independent.
+If configuration changes while a record is queued but before its first acceptance,
+the effective cadence uses that new configuration. Preserve the record-reported
+cadence separately; the configured effective value is not a claim about historical
+device acquisition. Later duplicates retain the original acceptance's resolution.
 
 Canonical cadence is an integer in `[1, 2147483647]` milliseconds, inclusive.
 Projects may impose narrower bounds. This is a representational bound, not a
@@ -263,7 +406,7 @@ and does not claim legacy `web-node-v0.2` senders meet the stricter metadata rul
 | Consumer/source inspected | Gap and future migration |
 | --- | --- |
 | CESH `345b6bb7b18bd3d7eb7eb33b3bc7550a69021110`, `software/app/main.py:store_upload` | Combines validation, latest/contact, science and archive; substitutes receipt time when measurement time fails; ID-only duplicate checks cannot detect content conflict. Extract interfaces in development and preserve unknown time, archive acceptance and content-aware durable deduplication. |
-| CESH firmware at that revision, `software/firmware/esp32-air-node/src/main.cpp` | Flat payload uses `fw_version`, mixed cadence units and sensor aliases; payload construction can use current build/protocol information while sending stored data. Define adapter mappings and explicitly distinguish original record metadata from current delivery diagnostics. Existing queues lacking original metadata need a labeled legacy path, not invented historical versions/RSSI. |
+| CESH firmware at that revision, `software/firmware/esp32-air-node/src/main.cpp` | Aggregate JSON is frozen at window completion. `withCurrentUploadStatus` appends `current_*` queue diagnostics and `catchup_active` at send time: map them to `delivery.diagnostics`, exclude them from original-source comparison, and retain bounded fields under their declared meaning. Legacy CSV rows are rebuilt with current protocol and `fw_version:"unknown"`; they need the labeled legacy path, not invented original metadata. Disconnected Wi-Fi stores RSSI `0`; this documented sentinel maps to null/`unavailable`, not valid signal strength. Map `clock_unsynced` as above. Explicit cadence units and sensor aliases require adapter conversion. Existing aggregate record IDs use two random 32-bit words; assess lifetime collision risk before claiming target uniqueness. |
 | RKC `0c4f9238a7c85f282a69d92f4142c6eea06f184e`, `software/app/drivers/esp32_door_temp_driver.py` | TCP polling assigns server timestamps, firmware is cached optional INFO metadata, RSSI appears in data, and partial temperature failure already preserves door/RSSI. Preserve that behavior in its legacy view; target polling adapters distinguish observation from unknown measurement time. Queued push needs a separate future identity/metadata/ID/ACK migration. |
 | Project Template `4ea41e23de66e875253789f8429b375c9b3907e0` | Reference implementation remains future work: independent ingestion module, registry test interface and simulated air/freezer fixtures, then archive/latest/health/query/render integration. No firmware-template work in this slice. |
 
@@ -276,13 +419,27 @@ Stage compatible servers before nodes, retain the legacy path for rollback, and
 never rewrite historical unknowns as precise timestamps. Firmware-template work
 stays paused until validated project firmware supplies the evidence.
 
+Authentication is an adoption prerequisite, not existing evidence: the inspected
+CESH upload path's UID allowlist does not demonstrate verified per-device binding.
+A shared optional token, if configured elsewhere, also does not establish that
+binding on its own. Credential
+issuance remains deferred work (Firmware Tools issue 41). Development simulations
+may inject explicit test identities; real-service strict adoption requires a reviewed
+credential/binding plan before activation. This contract does not choose an issuance
+scheme, relax identity checks or claim those credentials already exist.
+
 Acceptance scenarios for the future implementation: mixed valid/faulty channels;
 required/optional/unknown channels; malformed envelope versus invalid value;
 missing metadata/null RSSI; supported/unsupported protocols; explicit UID alias
 and identity mismatch; unknown/invalid time; changed firmware/RSSI/queue during
 replay; cadence precedence, aliases, conversion and boundary values; identical
 duplicate versus changed invalid/ignored content; concurrent/lost-ACK/crash
-deduplication; and legacy/target rendering without false freshness. Use synthetic
+deduplication across processes; alias changes and replacement/reset IDs; immutable
+source comparison across adapter upgrades; archive pruning and mismatched restore;
+batch rejection with no member accepted; invalid server clock returning 503;
+permanent FIFO rejection with visible blocked state and bounded evidence; future
+device time/clock-quality bounds; observation-based polling freshness; and
+legacy/target rendering without false freshness. Use synthetic
 fixtures and injected registry/clock/archive results. These are required future
 evidence, not tests claimed to pass by this documentation change.
 

@@ -1,7 +1,8 @@
 # Time Synchronization Standard
 
-The Raspberry Pi operating system clock is the timestamp authority for BardBox
-applications.
+The Raspberry Pi operating system clock is the authority for server receipt
+and observation timestamps in BardBox applications. It does not replace unknown
+original device measurement time in the proposed ingestion target.
 
 ## Time Model
 
