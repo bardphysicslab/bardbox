@@ -209,6 +209,136 @@ application-watchdog requirements.
 Historical tool access remains the [authenticated read-only Data API/MCP boundary](data-api-mcp-boundary.md).
 The dashboard control API is not an extension of that historical-data boundary.
 
+### Server data inventory and module operations
+
+**Status: proposed for review (October 16, 2026), not settled policy.** This is
+an initial, category-level inventory of the data CESH and RKC collect or use. It
+was checked against CESH `259cba6` and RKC `0c4f923`; categories found later are
+added here.
+- **Current implementation** describes those revisions. Its evidence is pinned in
+  the companion [source evidence](server-data-inventory-evidence.md).
+- **Target owner** follows the diagram above and the
+  [ingestion contract](ingestion-contract.md).
+- **Gap** entries are review observations, not decisions.
+
+All measurements are one category, sensor data. Credentials are listed by
+purpose and storage location only. Module numbers refer to the
+[server roadmap](https://github.com/bardphysicslab/bardbox-project-template/issues/31).
+
+| # | Data category | Origin | Target owner | Projects | Current implementation | Gap for review |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Sensor data (all measurements) | Node sensors | Archive (history); Latest (current view) | Both | CESH: pushed aggregates in per-node daily CSV. RKC: polled readings and an interval CSV log | Per-channel faults and unknown time per contract; pruning owner (D3) |
+| 2 | Derived science and QA results | Science module | Science (project-owned); storage undecided (D1) | CESH | PurpleAir-compatible confidence and advisories, written into archive CSV rows | D1 |
+| 3 | Device identity and bindings (UID, reported/legacy alias, archive device key; factory MAC deferred) | Provisioning; Registry | Registry | Both | UID lists in config files; firmware UID in NVS (CESH) or build (RKC) | Archive device key not implemented |
+| 4 | Record identity, dedup and acceptance (record ID, source digest/profile, tombstones, rejection ledger, ACK outcome) | Node (ID); Communications (digest); Archive | Archive | CESH; RKC after push | CESH: ID-only check against an in-memory set rebuilt from CSVs. RKC: none (polling) | Content-aware durable dedup per contract |
+| 5 | Times (measurement, receipt, observation, contact, acceptance, event) and clock quality | Node clock; server clock | Ingestion validates; Clock supplies server time | Both | CESH: device time with RTC/NTP flag; falls back to receipt time. RKC: server poll time | Receipt-time fallback removed; observation basis labelled |
+| 6 | Firmware and protocol versions | Node | Archive (original record); Communications (supported list) | Both | CESH: in payload. RKC: optional cached INFO | Required original metadata per contract |
+| 7 | Link and delivery diagnostics (RSSI, node queue counts, catch-up, errors, sensor-health counters) | Node | Archive (original record); Health (current delivery) | Both | CESH: payload fields, with `current_*` appended at send time. RKC: RSSI inside data | Split original from delivery diagnostics |
+| 8 | Health and freshness projections (contact, stale/offline, `archive_blocked`) | Health | Health | Both | CESH: offline after three expected intervals. RKC: observation state per poll sweep | Backup scope (D4) |
+| 9 | Cadence (reporting, acquisition, retry/catch-up, poll, logging) | Firmware; configuration | Registry (per device); configuration owner (project default) | Both | CESH: reported seconds, last value cached in memory. RKC: configured poll and log intervals | Millisecond precision and precedence per contract |
+| 10 | Channel definitions, units and validity metadata | Project definitions | Registry | Both | Hard-coded per driver or node type | Registry-supplied definitions; archived snapshot (D5) |
+| 11 | Registration and descriptive metadata (name, location, coordinates, owner, notes, enabled, legacy host/port) | Operators | Registry | Both | JSON app config; RKC admin edits written back to config | Backup scope (D4) |
+| 12 | Alarm thresholds and alarm configuration (limits, delays, arm and door flags) | Operators | Alarm module | RKC | Per-node app-config fields, edited by admin and alert endpoints. The RKC CSV log reuses `min_temp_c`/`max_temp_c` for observed interval extremes | Kept distinct from ingestion validity limits; backup scope (D4) |
+| 13 | Project configuration (titles, timezone, clock and freshness policy, poll/stale/offline, feature flags, retention, backup policy) | Operators | Persistent configuration owner | Both | JSON app config, environment overrides, backup env file | Backup scope (D4) |
+| 14 | Display settings (visible fields, order, labels) | Project | Undecided (D2) | Both | Templates and code | D2 |
+| 15 | Users, roles and sessions (operator identity — not device UID) | Operators | Authorization at the control and query boundaries | Both | RKC: one admin login from environment; no user IDs or roles. CESH: no dashboard login; machine bearer token for the historical Data API | Operator user/role model (D6) |
+| 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, third-party API keys, device Wi-Fi/OTA secrets | Deployment; provisioning | Deployment secret storage outside source. Communications authenticates devices and Registry owns identity bindings (per the ingestion contract); issuance and lifecycle are separately owned ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; issuance scheme and credential-to-identity integration contract (D7) |
+| 17 | Contacts and availability (people, phone/email, order, availability, opt-outs) | Operators; inbound SMS | Escalation configuration; explicit owner open ([rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16)) | RKC | App config, updated by the admin page and inbound STOP | D4, D8 |
+| 18 | Alarm, escalation, acknowledgement and notification state (incidents, acknowledgement windows, processed inbound IDs, incident log, templates) | Alarm module; providers | Alarm and escalation modules | RKC | In-memory alert state; processed-ID JSON file; incident CSV copied by rclone | Restart durability; D4, D6 |
+| 19 | Inbound messages and request logs (SMS replies, sender numbers, unknown-node attempts with remote IP) | External senders | Communications diagnostics; notification adapter | Both | CESH logs rejected-UID attempts. RKC parses SMS replies (webhook and poller) | Retention and privacy (D9) |
+| 20 | Backup and recovery state (manifest, deferrals, lock, restore checkpoints) | Backup | Backup service, with Archive restore reconciliation | Both | CESH: rclone every 30 minutes, manifest, deferral file, lock, local retention deletion. RKC: incident-log copy only | No restore drill yet |
+| 21 | Third-party feed data (PurpleAir, QuantAQ) | External APIs | Excluded from the template ([bardbox#28](https://github.com/bardphysicslab/bardbox/issues/28)) | CESH | Fetch scripts and drivers; separate CSVs | Required removal from CESH |
+
+#### Proposed target: module operations by data category
+
+The matrix shows the **proposed target design, not current behavior**.
+
+| Mark | Meaning |
+| --- | --- |
+| C | Create |
+| R | Read only. V, T, D and X each include reading the data. |
+| V | Validate or verify |
+| T | Transform or derive |
+| S | Store as owner or durable copy |
+| D | Display |
+| X | Transmit to another module, a node or a provider. This includes ACKs and pass-through record envelopes. |
+| Del | Delete |
+| ? | Undecided; see decisions D1–D9 |
+| — | No access in the proposed design |
+
+Column 10 covers the authorized control API and the persistent configuration
+owner. For data owned elsewhere it passes edit requests (X) to that owner, which
+validates and stores them.
+
+| # | Ingestion 01 | Registry 02 | Clock/startup 03 | Archive 04 | Communications 05 | Backup 06 | Latest/Health 07 | Query/Render 08 | Controls/config 10 | Science 11 | Alarms 12 | Serial 13 (optional, low) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 Sensor data | V T | — | — | S Del ? | T X | X | S | D | — | R | R | C T X |
+| 2 Derived science | — | — | — | ? | — | ? | — | D | — | C T | ? | — |
+| 3 Device identity | V | C V S | — | S | V X | X | R | D | X | R | R | R X |
+| 4 Record ID, dedup, acceptance | V | — | — | C V S | C X | X | R | D | — | — | — | — |
+| 5 Times, clock quality | V T | — | C | S | C X | X | T | D | — | R | R C | C |
+| 6 Firmware/protocol | V | — | — | S | V X | X | S | D | — | — | — | X |
+| 7 Link/delivery diagnostics | V T | — | — | S | T X | X | S | D | — | — | R | X |
+| 8 Health projections | — | — | — | — | — | ? | C S | D | — | — | R | — |
+| 9 Cadence | V T | V S | R | S | X | X | R | D | V S X | — | R | R |
+| 10 Channel definitions | R | C V S | — | ? | R | ? | R | D | X | R | R | R |
+| 11 Registration metadata | — | C V S | — | — | R | ? | — | D | X | — | R | R |
+| 12 Alarm thresholds | — | — | — | — | — | ? | — | D | X | — | V S | — |
+| 13 Project configuration | R | — | R | R | R | R ? | R | D | C V S | R | R | R |
+| 14 Display settings | — | — | — | — | — | ? | — | D | X ? | — | — | — |
+| 15 Users, roles, sessions | — | — | — | — | — | — | — | V | V | — | ? | — |
+| 16 Credentials | — | ? | — | — | V | R | — | V | V | — | R | — |
+| 17 Contacts | — | — | — | — | — | ? | — | D | X | — | V S | — |
+| 18 Alarm/notification state | — | — | — | — | — | X ? | — | D | X | — | C T S X Del | — |
+| 19 Inbound messages/logs | — | — | — | — | C X | ? | — | ? | — | — | T | — |
+| 20 Backup/recovery state | — | — | — | R | — | C S Del | R | D | — | — | — | — |
+| 21 Third-party feeds | — | — | — | — | — | — | — | — | — | — | — | — |
+
+Notes:
+- **Backup (06)** copies whole archived record envelopes, including device keys,
+  original metadata, times, cadence and diagnostics. Restore reconciles archive,
+  deduplication and identity-key state before accepting writes, as the ingestion
+  contract requires.
+- **Credentials (16)** are read or verified only at the boundary that uses them:
+  device authentication in Communications, operator login in Controls,
+  historical Data API access in Query, and provider credentials in Alarms and
+  Backup. No module displays or returns secret values. Clock/startup has no
+  credential access merely by sharing a process. Registry's "?" in row 16 is
+  only about what credential-related data, if any, the integration contract
+  (D7) places beside the identity bindings Registry already owns.
+- **Serial (13)** is optional and low priority; neither CESH nor RKC needs it.
+- **Integration items** (the synthetic demo 09 and CESH/RKC adoption 14–15) own
+  no data categories.
+
+**Decisions needed (not settled here):**
+- **D1** Storage and backup owner for derived science values.
+- **D2** Display-configuration owner (validate and store).
+- **D3** Archive pruning and retention owner. CESH's backup script deletes local
+  readings today; the contract requires acceptance tombstones.
+- **D4** Backup scope for registry data, configuration, thresholds, contacts,
+  alarm state, health projections and request logs.
+- **D5** Whether Archive keeps a channel-definition snapshot for later
+  interpretation of records.
+- **D6** Operator user and role model, and whether acknowledgements bind to an
+  operator identity.
+- **D7** Device credential issuance and lifecycle scheme, and the concrete
+  contract linking a credential to its registered identity
+  ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)).
+  The existing owners are settled by the ingestion contract: Registry owns
+  identity bindings and archive device keys, and Communications authenticates.
+- **D8** Contacts configuration owner
+  ([rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16)).
+- **D9** Retention and privacy rules for inbound messages and request logs.
+
+**Per-module contract checklist** (fill in when a module's contract is written):
+1. Data categories touched (its matrix column) and the owner of each.
+2. Operations and invariants for each category.
+3. State owned, persistence and backup scope.
+4. Authorization boundary and credentials used.
+5. Failure, retry and restore behaviour.
+6. Open "?" decisions resolved, or explicitly deferred.
+7. New categories found are added to this inventory.
+
 ## USB flasher
 
 Diagram home: this BardBox Architecture Map. Implementation owner: Firmware Tools.
