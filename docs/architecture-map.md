@@ -222,13 +222,17 @@ added here.
 - **Gap** entries are review observations, not decisions.
 
 All measurements are one category, sensor data. Credentials are listed by
-purpose and storage location only. Module numbers refer to the
+purpose and storage location only. Third-party comparison feeds (PurpleAir,
+QuantAQ) and their API keys are outside BardBox and belong in separate
+repositories ([bardbox#28](https://github.com/bardphysicslab/bardbox/issues/28);
+see [required migration](#required-migration-and-limits)), so they are not
+inventoried here. Science computed from BardBox measurements stays in scope. Module numbers refer to the
 [server roadmap](https://github.com/bardphysicslab/bardbox-project-template/issues/31).
 
 | # | Data category | Origin | Target owner | Projects | Current implementation | Gap for review |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Sensor data (all measurements) | Node sensors | Archive (history); Latest (current view) | Both | CESH: pushed aggregates in per-node daily CSV. RKC: polled readings and an interval CSV log | Per-channel faults and unknown time per contract; pruning owner (D3) |
-| 2 | Derived science and QA results | Science module | Science (project-owned); storage undecided (D1) | CESH | PurpleAir-compatible confidence and advisories, written into archive CSV rows | D1 |
+| 1 | Sensor data (all measurements) | Node sensors | Archive (history); Latest (current view) | Both | Current: CESH nodes push aggregates (stored in per-node daily CSV); RKC server polls nodes over TCP (interval CSV log) | Target for both: node-initiated queued push. RKC polling is a required migration, not a permanent design ([required migration](#required-migration-and-limits)). Per-channel faults and unknown time per contract; pruning owner (D3) |
+| 2 | Derived science and QA results | Science module | Science (project-owned); storage undecided (D1) | CESH | Project-owned derived confidence and advisories computed from BardBox measurements, written into archive CSV rows | D1 |
 | 3 | Device identity and bindings (UID, reported/legacy alias, archive device key; factory MAC deferred) | Provisioning; Registry | Registry | Both | UID lists in config files; firmware UID in NVS (CESH) or build (RKC) | Archive device key not implemented |
 | 4 | Record identity, dedup and acceptance (record ID, source digest/profile, tombstones, rejection ledger, ACK outcome) | Node (ID); Communications (digest); Archive | Archive | CESH; RKC after push | CESH: ID-only check against an in-memory set rebuilt from CSVs. RKC: none (polling) | Content-aware durable dedup per contract |
 | 5 | Times (measurement, receipt, observation, contact, acceptance, event) and clock quality | Node clock; server clock | Ingestion validates; Clock supplies server time | Both | CESH: device time with RTC/NTP flag; falls back to receipt time. RKC: server poll time | Receipt-time fallback removed; observation basis labelled |
@@ -242,12 +246,11 @@ purpose and storage location only. Module numbers refer to the
 | 13 | Project configuration (titles, timezone, clock and freshness policy, poll/stale/offline, feature flags, retention, backup policy) | Operators | Persistent configuration owner | Both | JSON app config, environment overrides, backup env file | Backup scope (D4) |
 | 14 | Display settings (visible fields, order, labels) | Project | Undecided (D2) | Both | Templates and code | D2 |
 | 15 | Users, roles and sessions (operator identity — not device UID) | Operators | Authorization at the control and query boundaries | Both | RKC: one admin login from environment; no user IDs or roles. CESH: no dashboard login; machine bearer token for the historical Data API | Operator user/role model (D6) |
-| 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, third-party API keys, device Wi-Fi/OTA secrets | Deployment; provisioning | Deployment secret storage outside source. Communications authenticates devices and Registry owns identity bindings (per the ingestion contract); issuance and lifecycle are separately owned ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; issuance scheme and credential-to-identity integration contract (D7) |
+| 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, device Wi-Fi/OTA secrets | Deployment; provisioning | Deployment secret storage outside source. Communications authenticates devices and Registry owns identity bindings (per the ingestion contract); issuance and lifecycle are separately owned ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; issuance scheme and credential-to-identity integration contract (D7) |
 | 17 | Contacts and availability (people, phone/email, order, availability, opt-outs) | Operators; inbound SMS | Escalation configuration; explicit owner open ([rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16)) | RKC | App config, updated by the admin page and inbound STOP | D4, D8 |
 | 18 | Alarm, escalation, acknowledgement and notification state (incidents, acknowledgement windows, processed inbound IDs, incident log, templates) | Alarm module; providers | Alarm and escalation modules | RKC | In-memory alert state; processed-ID JSON file; incident CSV copied by rclone | Restart durability; D4, D6 |
 | 19 | Inbound messages and request logs (SMS replies, sender numbers, unknown-node attempts with remote IP) | External senders | Communications diagnostics; notification adapter | Both | CESH logs rejected-UID attempts. RKC parses SMS replies (webhook and poller) | Retention and privacy (D9) |
 | 20 | Backup and recovery state (manifest, deferrals, lock, restore checkpoints) | Backup | Backup service, with Archive restore reconciliation | Both | CESH: rclone every 30 minutes, manifest, deferral file, lock, local retention deletion. RKC: incident-log copy only | No restore drill yet |
-| 21 | Third-party feed data (PurpleAir, QuantAQ) | External APIs | Excluded from the template ([bardbox#28](https://github.com/bardphysicslab/bardbox/issues/28)) | CESH | Fetch scripts and drivers; separate CSVs | Required removal from CESH |
 
 #### Proposed target: module operations by data category
 
@@ -292,7 +295,6 @@ validates and stores them.
 | 18 Alarm/notification state | — | — | — | — | — | X ? | — | D | X | — | C T S X Del | — |
 | 19 Inbound messages/logs | — | — | — | — | C X | ? | — | ? | — | — | T | — |
 | 20 Backup/recovery state | — | — | — | R | — | C S Del | R | D | — | — | — | — |
-| 21 Third-party feeds | — | — | — | — | — | — | — | — | — | — | — | — |
 
 Notes:
 - **Backup (06)** copies whole archived record envelopes, including device keys,
