@@ -228,8 +228,15 @@ application-watchdog requirements.
 - **Per-node independence:** while one node catches up, other nodes' files stay
   independently eligible.
 - **Authority:** Archive's per-node files remain the authoritative history.
+- **Deferral until evidence:** a catching-up node's files stay deferred until
+  there is reliable completion evidence. Losing diagnostics, a timeout or an
+  expiry must not, on its own, silently clear the deferral or make those files
+  eligible. The visibility and escalation bound is D12; the completion
+  mechanism is still open.
 - **Not a control path:** a deferral is not an ACK and does not control
-  catch-up. Backup has no ingestion dependency and never changes archived data.
+  catch-up. Backup has no ingestion dependency and never rewrites measurement
+  content. Only the existing, separately authorized retention of verified
+  exact versions may remove local copies.
 
 Current CESH behaviour is described separately from that target:
 - **Source** (pinned in the [evidence](server-data-inventory-evidence.md)): the
@@ -247,8 +254,9 @@ Limits, kept open as D12:
 - Logs and successful jobs do not prove that every record reached Drive.
 - A node with missing, stale or untrustworthy progress diagnostics has no
   reliable completion evidence.
-- A deferral entry left by a node that went offline has no expiry or visibility
-  bound yet.
+- A deferral entry left by a node that went offline has no visibility or
+  escalation bound yet, and an expiry must not silently make its files
+  eligible.
 - Selection, copy and verification can race with late arrivals. A file version
   that changes after a late record arrives must be copied and verified again
   before retention.
@@ -353,7 +361,7 @@ The matrix shows the **proposed target design, not current behavior**.
 | D | Display |
 | X | Transmit to another module, a node or a provider. This includes ACKs and pass-through record envelopes. |
 | Del | Delete |
-| ? | Undecided; see decisions D1–D11 |
+| ? | Undecided; see decisions D1–D12 |
 | — | No access in the proposed design |
 
 Column 10 covers the authorized control API and the persistent configuration
@@ -448,7 +456,9 @@ Notes:
 - **D12** Backup completion evidence and per-node deferral limits:
   - what counts as reliable completion evidence;
   - handling of missing or stale progress diagnostics;
-  - a visibility or expiry bound for long-lived deferrals;
+  - a visibility or escalation bound for long-lived deferrals, without
+    automatically clearing them;
+  - the completion-evidence mechanism that ends a deferral;
   - version-snapshot rules for late arrivals.
 
 **Per-module contract checklist** (fill in when a module's contract is written):

@@ -56,4 +56,4 @@ These results do not prove every record reached Drive.
 
 ## Limits
 
-Repository source and safe example files only; deployed configuration, services and live data were not inspected. An unlinked entry names a code area without a single anchoring line.
+Source evidence comes from repository files and safe examples at the pinned revisions. The only deployment evidence is the dated, scoped backup check above. The runtime upload handler, live configuration values and record-level Drive completeness remain unverified. An unlinked entry names a code area without a single anchoring line.
