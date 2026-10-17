@@ -140,11 +140,13 @@ firmware-owned and is not a setting.
 - The budget only decides whether another request may start. A request already under way
   is not interrupted, so a burst can overrun the budget by one request, bounded by the
   firmware's HTTP timeouts. It is not a hard network deadline.
-- Measurement continues during a burst. A USB session takes priority: the firmware starts no
+- Measurement continues during a burst. Catch-up yields to USB: the firmware starts no
   further request in a burst once a USB command is waiting, and starts no burst for a while
-  after the last USB command (CESH: 60 s). A command that arrives during a request still waits
-  for it, so a tool starts each read and each save with one read-only command that may wait
-  longer than the largest supported budget. No reply means unknown, not unsupported, and
+  after the last complete USB command (CESH: 60 s, restarted by every command, so a tool that
+  polls more often keeps catch-up paused while it runs). This reduces, but does not bound,
+  USB reply delay: a request already under way and the device's other network work still come
+  first. A tool therefore starts each read and each save with one read-only command that may
+  wait longer than the largest supported budget. No reply means unknown, not unsupported, and
   nothing is written.
 - Cross-field effects: readings per burst and the budget together limit a burst, and the
   pause spaces bursts out. A firmware should not offer ranges whose upload caps alone cannot
