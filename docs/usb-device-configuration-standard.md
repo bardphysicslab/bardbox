@@ -117,6 +117,40 @@ The firmware validates every value. A stored value outside the range is ignored 
 the default. Changing the interval must not touch identity, Wi-Fi, telemetry settings or the
 measurement queue.
 
+### Queue catch-up
+
+Catch-up uploads buffered readings, oldest first, once the device is online. It runs in bursts:
+one request at a time, ending after a maximum number of readings, when a time budget has
+elapsed, or at the first failure. The next burst starts after a pause. These three values are
+one setting, read and written together as `pause_s:max_uploads:budget_ms`. Like the reporting
+interval, the firmware owns the defaults and supported ranges, an override is a mutable setting
+separate from the immutable records, and it applies at the next start. Buffer capacity is
+firmware-owned and is not a setting.
+
+| Command | Reply |
+| --- | --- |
+| `CATCHUP_STATUS` | `CATCHUP,fields=pause_s:max_uploads:budget_ms,default=<p:u:b>,active=<p:u:b>,override=<p:u:b\|none\|invalid>,min=<p:u:b>,max=<p:u:b>,activation=next_boot` |
+| `CATCHUP_SET <p> <u> <b>` | `CATCHUP_SET_OK,override=<p:u:b>,activation=next_boot`, or `ERR,CATCHUP_RANGE` / `ERR,CATCHUP_STORE` |
+| `CATCHUP_CLEAR` | `CATCHUP_CLEAR_OK,activation=next_boot`, or `ERR,CATCHUP_STORE` |
+
+- `override=invalid` means a stored value that cannot be read or is out of range. The firmware
+  ignores it in favour of the defaults. A malformed command answers `ERR,CATCHUP_COMMAND`.
+  Firmware without catch-up settings answers as for any unknown command; tools report it as
+  unsupported and send no catch-up write.
+- The budget only decides whether another request may start. A request already under way
+  is not interrupted, so a burst can overrun the budget by one request, bounded by the
+  firmware's HTTP timeouts. It is not a hard network deadline.
+- Measurement continues during a burst. USB commands wait until the burst ends, so a tool
+  that reads a busy device may see no reply and must treat that as unknown, not as
+  unsupported.
+- Cross-field effects: readings per burst and the budget together limit a burst, and the
+  pause spaces bursts out. A firmware must choose its ranges so that every supported
+  combination can drain the queue faster than its fastest reporting interval fills it;
+  CESH checks this at compile time. Actual throughput also depends on the request time.
+- Changing catch-up must not touch identity, Wi-Fi, telemetry settings or the queue.
+- A tool writes `CATCHUP_SET` only after validating all three values against the limits the
+  device reported, and treats a confirmation echoing other values as uncertain.
+
 ### Wi-Fi selection
 
 | Command | Reply |
@@ -155,7 +189,10 @@ without them are unchanged.
 - **Firmware defaults** record what the build compiled in. The project's release step emits
   them from the effective build configuration of the named source commit (the environment's
   flags and sources at that commit, not a working tree; CESH: `scripts/release_metadata.py`).
-  No tool parses source code to recover them later.
+  No tool parses source code to recover them later. Each firmware default is optional.
+  Besides `report_interval_s`, the allowlist holds `catchup_pause_s`, `catchup_max_uploads`
+  and `catchup_budget_ms`, in the same form. They appear only for firmware that has catch-up
+  settings, so metadata for an earlier release is unchanged.
 - **Operator defaults** are approved proposals for the form, each naming its approver. They
   are not firmware behaviour, and their origin stays distinct from firmware defaults.
 - **Allowlist:** only the keys above are accepted. Identities, passwords, tokens and private
