@@ -137,6 +137,17 @@ flowchart TB
     Archive -->|Stable files / snapshots| Backup["Scheduled rclone copy / verification"]
     Backup --> Drive["Configured BardBox Drive destination"]
     Backup -->|Backup health| Queries
+    Queries -->|Accepted records and derived values, read only| Export["Optional partner export: mapping, credentials, retries, deadlines, checkpoint"]
+    Export --> Partner["External partner, for example JustAir for CESH; interface undecided"]
+    Export -->|Export status| Queries
+    Settings -.-> Export
+    subgraph Operations["Service operations, outside application modules"]
+        Supervisor["Process supervisor: start on boot, restart on exit"]
+        Watchdog["Independent watchdog timer: probe once a minute, restart after 3 consecutive failures"]
+    end
+    Supervisor -.->|Start or restart the application| AppHealth["Application liveness: loopback GET /health, cheap and side-effect free"]
+    Watchdog -->|Probe| AppHealth
+    Watchdog -->|Restart request| Supervisor
     Settings -.-> Backup
     Settings -.-> Alarm
     Settings -.-> Escalation
@@ -145,6 +156,7 @@ flowchart TB
     Timers -.-> Alarm
     Timers -.-> Escalation
     Timers -.-> Backup
+    Timers -.-> Export
 ```
 
 Communications owns transport sessions, framing, deadlines and retries. Source
@@ -206,6 +218,37 @@ and outside repositories/read APIs. Restore acceptance and retention configurati
 remain deployment work. A container packaging choice does not waive process or
 application-watchdog requirements.
 
+**Optional partner export.** Outbound export to an external partner is optional.
+It is distinct from incoming third-party collection (outside BardBox),
+notifications and backup.
+- **Read boundary:** it reads accepted records and derived values through the
+  query and science read interfaces only. It has no ingestion or Archive ACK
+  role and never changes history.
+- **Ownership:** the export module owns its field mapping, partner credentials,
+  retries, deadlines and checkpoint policy.
+- **Example:** CESH's eventual JustAir export. Partner requirements are tracked
+  in [cesh-air-monitor#35](https://github.com/bardphysicslab/cesh-air-monitor/issues/35).
+- **Undecided (D10):** whether the partner pushes or pulls, the data subset,
+  checkpoint and replay semantics, and credential issuance. No JustAir
+  interface is assumed here.
+
+**Service supervision and application watchdog.** These follow
+[service operations](service-operations-standard.md).
+- **Process supervision:** a supervisor starts the service on boot and
+  restarts it whenever the process exits (for systemd, `Restart=always` and
+  `RestartSec=5`).
+- **Application watchdog:** an independent oneshot timer calls the loopback
+  `GET /health` once a minute and restarts the application after three
+  consecutive failures. A success resets the count.
+- **`/health` stays cheap and side-effect free:** no sensor, database, file or
+  network checks.
+- **Scope:** this watchdog measures application responsiveness only. Sensor
+  and node freshness belong to the Health module. Whole-host and power-loss
+  recovery is a separate concern, not covered here (D11).
+- **Docker Compose:** a restart policy restarts exited containers but does not
+  detect a hung application, so packaging does not replace the independent
+  watchdog.
+
 Historical tool access remains the [authenticated read-only Data API/MCP boundary](data-api-mcp-boundary.md).
 The dashboard control API is not an extension of that historical-data boundary.
 
@@ -246,11 +289,13 @@ inventoried here. Science computed from BardBox measurements stays in scope. Mod
 | 13 | Project configuration (titles, timezone, clock and freshness policy, poll/stale/offline, feature flags, retention, backup policy) | Operators | Persistent configuration owner | Both | JSON app config, environment overrides, backup env file | Backup scope (D4) |
 | 14 | Display settings (visible fields, order, labels) | Project | Undecided (D2) | Both | Templates and code | D2 |
 | 15 | Users, roles and sessions (operator identity — not device UID) | Operators | Authorization at the control and query boundaries | Both | RKC: one admin login from environment; no user IDs or roles. CESH: no dashboard login; machine bearer token for the historical Data API | Operator user/role model (D6) |
-| 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, device Wi-Fi/OTA secrets | Deployment; provisioning | Deployment secret storage outside source. Communications authenticates devices and Registry owns identity bindings (per the ingestion contract); issuance and lifecycle are separately owned ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; issuance scheme and credential-to-identity integration contract (D7) |
+| 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, device Wi-Fi/OTA secrets, partner export credentials (future) | Deployment; provisioning | Deployment secret storage outside source. Communications authenticates devices and Registry owns identity bindings (per the ingestion contract); issuance and lifecycle are separately owned ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; issuance scheme and credential-to-identity integration contract (D7) |
 | 17 | Contacts and availability (people, phone/email, order, availability, opt-outs) | Operators; inbound SMS | Escalation configuration; explicit owner open ([rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16)) | RKC | App config, updated by the admin page and inbound STOP | D4, D8 |
 | 18 | Alarm, escalation, acknowledgement and notification state (incidents, acknowledgement windows, processed inbound IDs, incident log, templates) | Alarm module; providers | Alarm and escalation modules | RKC | In-memory alert state; processed-ID JSON file; incident CSV copied by rclone | Restart durability; D4, D6 |
 | 19 | Inbound messages and request logs (SMS replies, sender numbers, unknown-node attempts with remote IP) | External senders | Communications diagnostics; notification adapter | Both | CESH logs rejected-UID attempts. RKC parses SMS replies (webhook and poller) | Retention and privacy (D9) |
 | 20 | Backup and recovery state (manifest, deferrals, lock, restore checkpoints) | Backup | Backup service, with Archive restore reconciliation | Both | CESH: rclone every 30 minutes, manifest, deferral file, lock, local retention deletion. RKC: incident-log copy only | No restore drill yet |
+| 21 | Partner export configuration and state (field mapping, schedule, credential reference, checkpoint, delivery status and errors) | Operators; Export | Optional partner export module | CESH (future) | None | Interface, data subset, checkpoint and deadline policy (D10) |
+| 22 | Service liveness and restart state (watchdog failure count, restart events) | Supervisor; watchdog | Service operations, outside application modules | Both | Watchdog service/timer units and scripts exist in both repositories; conformance not audited here | Separate from sensor freshness; whole-host recovery (D11) |
 
 #### Proposed target: module operations by data category
 
@@ -266,35 +311,37 @@ The matrix shows the **proposed target design, not current behavior**.
 | D | Display |
 | X | Transmit to another module, a node or a provider. This includes ACKs and pass-through record envelopes. |
 | Del | Delete |
-| ? | Undecided; see decisions D1–D9 |
+| ? | Undecided; see decisions D1–D11 |
 | — | No access in the proposed design |
 
 Column 10 covers the authorized control API and the persistent configuration
 owner. For data owned elsewhere it passes edit requests (X) to that owner, which
 validates and stores them.
 
-| # | Ingestion 01 | Registry 02 | Clock/startup 03 | Archive 04 | Communications 05 | Backup 06 | Latest/Health 07 | Query/Render 08 | Controls/config 10 | Science 11 | Alarms 12 | Serial 13 (optional, low) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 Sensor data | V T | — | — | S Del ? | T X | X | S | D | — | R | R | C T X |
-| 2 Derived science | — | — | — | ? | — | ? | — | D | — | C T | ? | — |
-| 3 Device identity | V | C V S | — | S | V X | X | R | D | X | R | R | R X |
-| 4 Record ID, dedup, acceptance | V | — | — | C V S | C X | X | R | D | — | — | — | — |
-| 5 Times, clock quality | V T | — | C | S | C X | X | T | D | — | R | R C | C |
-| 6 Firmware/protocol | V | — | — | S | V X | X | S | D | — | — | — | X |
-| 7 Link/delivery diagnostics | V T | — | — | S | T X | X | S | D | — | — | R | X |
-| 8 Health projections | — | — | — | — | — | ? | C S | D | — | — | R | — |
-| 9 Cadence | V T | V S | R | S | X | X | R | D | V S X | — | R | R |
-| 10 Channel definitions | R | C V S | — | ? | R | ? | R | D | X | R | R | R |
-| 11 Registration metadata | — | C V S | — | — | R | ? | — | D | X | — | R | R |
-| 12 Alarm thresholds | — | — | — | — | — | ? | — | D | X | — | V S | — |
-| 13 Project configuration | R | — | R | R | R | R ? | R | D | C V S | R | R | R |
-| 14 Display settings | — | — | — | — | — | ? | — | D | X ? | — | — | — |
-| 15 Users, roles, sessions | — | — | — | — | — | — | — | V | V | — | ? | — |
-| 16 Credentials | — | ? | — | — | V | R | — | V | V | — | R | — |
-| 17 Contacts | — | — | — | — | — | ? | — | D | X | — | V S | — |
-| 18 Alarm/notification state | — | — | — | — | — | X ? | — | D | X | — | C T S X Del | — |
-| 19 Inbound messages/logs | — | — | — | — | C X | ? | — | ? | — | — | T | — |
-| 20 Backup/recovery state | — | — | — | R | — | C S Del | R | D | — | — | — | — |
+| # | Ingestion 01 | Registry 02 | Clock/startup 03 | Archive 04 | Communications 05 | Backup 06 | Latest/Health 07 | Query/Render 08 | Controls/config 10 | Science 11 | Alarms 12 | Serial 13 (optional, low) | Export (optional) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 Sensor data | V T | — | — | S Del ? | T X | X | S | D | — | R | R | C T X | T X |
+| 2 Derived science | — | — | — | ? | — | ? | — | D | — | C T | ? | — | ? |
+| 3 Device identity | V | C V S | — | S | V X | X | R | D | X | R | R | R X | T X |
+| 4 Record ID, dedup, acceptance | V | — | — | C V S | C X | X | R | D | — | — | — | — | ? |
+| 5 Times, clock quality | V T | — | C | S | C X | X | T | D | — | R | R C | C | T X |
+| 6 Firmware/protocol | V | — | — | S | V X | X | S | D | — | — | — | X | — |
+| 7 Link/delivery diagnostics | V T | — | — | S | T X | X | S | D | — | — | R | X | — |
+| 8 Health projections | — | — | — | — | — | ? | C S | D | — | — | R | — | — |
+| 9 Cadence | V T | V S | R | S | X | X | R | D | V S X | — | R | R | — |
+| 10 Channel definitions | R | C V S | — | ? | R | ? | R | D | X | R | R | R | R |
+| 11 Registration metadata | — | C V S | — | — | R | ? | — | D | X | — | R | R | ? |
+| 12 Alarm thresholds | — | — | — | — | — | ? | — | D | X | — | V S | — | — |
+| 13 Project configuration | R | — | R | R | R | R ? | R | D | C V S | R | R | R | R |
+| 14 Display settings | — | — | — | — | — | ? | — | D | X ? | — | — | — | — |
+| 15 Users, roles, sessions | — | — | — | — | — | — | — | V | V | — | ? | — | — |
+| 16 Credentials | — | ? | — | — | V | R | — | V | V | — | R | — | R |
+| 17 Contacts | — | — | — | — | — | ? | — | D | X | — | V S | — | — |
+| 18 Alarm/notification state | — | — | — | — | — | X ? | — | D | X | — | C T S X Del | — | — |
+| 19 Inbound messages/logs | — | — | — | — | C X | ? | — | ? | — | — | T | — | — |
+| 20 Backup/recovery state | — | — | — | R | — | C S Del | R | D | — | — | — | — | — |
+| 21 Partner export config/state | — | — | — | — | — | ? | — | D | X | — | — | — | C V S |
+| 22 Service liveness/restart | — | — | — | — | — | — | — | — | — | — | — | — | — |
 
 Notes:
 - **Backup (06)** copies whole archived record envelopes, including device keys,
@@ -309,6 +356,12 @@ Notes:
   only about what credential-related data, if any, the integration contract
   (D7) places beside the identity bindings Registry already owns.
 - **Serial (13)** is optional and low priority; neither CESH nor RKC needs it.
+- **Partner export** (optional, no roadmap card yet) reads only through query
+  and science read interfaces, never through ingestion or Archive acceptance,
+  and changes no history.
+- **Service liveness (22)** belongs to service operations outside the
+  application modules; no module stores it, and `/health` reports
+  responsiveness only.
 - **Integration items** (the synthetic demo 09 and CESH/RKC adoption 14–15) own
   no data categories.
 
@@ -331,6 +384,12 @@ Notes:
 - **D8** Contacts configuration owner
   ([rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16)).
 - **D9** Retention and privacy rules for inbound messages and request logs.
+- **D10** Partner export specifics: push or pull interface, data subset
+  (including whether location or derived values are shared), checkpoint and
+  replay semantics, deadlines, and partner credential issuance
+  ([cesh-air-monitor#35](https://github.com/bardphysicslab/cesh-air-monitor/issues/35)).
+- **D11** Whole-host and power-loss recovery (for example hardware watchdog or
+  power protection), separate from the application watchdog.
 
 **Per-module contract checklist** (fill in when a module's contract is written):
 1. Data categories touched (its matrix column) and the owner of each.
