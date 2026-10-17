@@ -48,6 +48,48 @@ publication follows archive acceptance; preview publication follows validation
 under the separate [preview contract](web-node-live-preview.md), without an
 archive ACK or archival science side effects.
 
+## Diagnostic logging independent of rendering
+
+Ingestion-detected errors and faults must be available in the shared central
+application log for maintainer investigation, independently of dashboard or
+Health rendering. Preserve `validate(record, delivery, registry_snapshot)` as a
+pure operation with no external writes: it returns structured errors and fault
+annotations; the calling application layer reports those outcomes through the
+shared logging interface. Logging is not another responsibility of the validator.
+
+Record rejected-envelope errors and accepted channel/metadata fault outcomes with
+available event time, reporting component, processing stage, structured reason and
+usable device/record identity. Keep unavailable identity/time explicitly unknown;
+do not invent values. Bound entries and avoid credentials or unnecessary raw
+payloads. Optional-channel `not_reported` annotations and ignored unregistered
+channels do not by themselves require error entries. The precise logging API and
+severity mapping remain implementation choices to review before coding.
+
+Operational modules report failures they detect through the same interface; the
+application caller reports failed operations returned to it. A module need not
+know whether another module or the UI displays its failure. The logging facility
+owns collection, output/storage configuration and retention; ingestion owns none
+of those. This is a shared application facility, not a separate per-module store
+or a requirement to select an external logging service.
+
+Diagnostic entries do not establish durable acceptance, update validated latest
+measurements, authorize an ACK or replace Archive's protected rejection ledger.
+Logging also does not itself prescribe retry, recovery or alarm escalation.
+Central log availability must not turn validation rejection or failed archival
+acceptance into success. These boundaries apply when callers handle logging
+failures as well as ingestion outcomes.
+
+Start with useful diagnostic coverage. Occasional duplicate entries are acceptable;
+error-reporting ownership and correlation across propagated failures are a deferred
+refinement, not a prerequisite for initial logging. Do not introduce custom
+error-deduplication machinery without demonstrated need and a scoped decision.
+
+Future implementation acceptance includes an invalid envelope and a partial-channel
+fault producing useful diagnostic entries without any rendering consumer; unchanged
+validation results with logging enabled; and a logging failure never creating an
+archival ACK. These are required future evidence, not tests already performed.
+Decision discussion: [ingestion design issue](https://github.com/bardphysicslab/bardbox-project-template/issues/15#issuecomment-6243326846).
+
 ## Exact normalized fields
 
 This is the server interface, not a requirement that every device emit JSON.

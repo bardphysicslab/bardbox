@@ -142,6 +142,8 @@ flowchart TB
     Export --> Partner["External partner, for example JustAir for CESH; interface undecided"]
     Export -->|Export status| Queries
     Settings -.-> Export
+    DiagnosticSources["Server error reports: operational modules and callers of pure modules"]
+    DiagnosticSources -.->|Shared logging interface| DiagnosticLog["Central application diagnostic log: collection, output and retention"]
     subgraph Operations["Service operations, outside application modules"]
         Supervisor["Process supervisor: start the process after OS boot, restart it on exit"]
         Watchdog["Independent watchdog timer: probe once a minute, reset on success, restart after 3 consecutive failures"]
@@ -160,6 +162,17 @@ flowchart TB
     Timers -.-> Backup
     Timers -.-> Export
 ```
+
+The diagnostic reporting path applies across server modules; the common source
+box is a diagram shorthand, not a new controller or runtime module. It is
+independent of rendering. Pure ingestion returns structured errors/faults and its
+caller logs them; operational modules report their own failures through the shared
+logging interface. The logging facility owns collection, output and retention.
+Logging grants no archival ACK and does not replace Archive's rejection ledger.
+Duplicate-report ownership/correlation is a deferred refinement; occasional
+duplicates do not block basic logging. See the
+[ingestion diagnostic contract](ingestion-contract.md#diagnostic-logging-independent-of-rendering).
+This is target design, not evidence of an implemented central logging facility.
 
 Communications owns transport sessions, framing, deadlines and retries. Source
 drivers normalize observations. Ingestion validates registered identity, channels
