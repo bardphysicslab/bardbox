@@ -142,10 +142,11 @@ flowchart TB
     Export -->|Export status| Queries
     Settings -.-> Export
     subgraph Operations["Service operations, outside application modules"]
-        Supervisor["Process supervisor: start on boot, restart on exit"]
-        Watchdog["Independent watchdog timer: probe once a minute, restart after 3 consecutive failures"]
+        Supervisor["Process supervisor: start the process after OS boot, restart it on exit"]
+        Watchdog["Independent watchdog timer: probe once a minute, reset on success, restart after 3 consecutive failures"]
     end
-    Supervisor -.->|Start or restart the application| AppHealth["Application liveness: loopback GET /health, cheap and side-effect free"]
+    Supervisor -.->|Start or restart| AppProcess["Server application process, running the modules above"]
+    AppProcess -->|Serves| AppHealth["Loopback GET /health: cheap, side-effect free, responsiveness only"]
     Watchdog -->|Probe| AppHealth
     Watchdog -->|Restart request| Supervisor
     Settings -.-> Backup
@@ -224,27 +225,33 @@ notifications and backup.
 - **Read boundary:** it reads accepted records and derived values through the
   query and science read interfaces only. It has no ingestion or Archive ACK
   role and never changes history.
+- **Independence:** export runs on its own schedule with bounded work.
+  Partner failures, slowness and retries never block ingestion, durable
+  acceptance or ACKs.
 - **Ownership:** the export module owns its field mapping, partner credentials,
   retries, deadlines and checkpoint policy.
 - **Example:** CESH's eventual JustAir export. Partner requirements are tracked
   in [cesh-air-monitor#35](https://github.com/bardphysicslab/cesh-air-monitor/issues/35).
-- **Undecided (D10):** whether the partner pushes or pulls, the data subset,
-  checkpoint and replay semantics, and credential issuance. No JustAir
+- **Undecided (D10):** whether the server pushes to the partner or the
+  partner pulls from a read API; the data subset; checkpoint and replay
+  semantics; and credential issuance. No provider contract or JustAir
   interface is assumed here.
 
 **Service supervision and application watchdog.** These follow
 [service operations](service-operations-standard.md).
-- **Process supervision:** a supervisor starts the service on boot and
-  restarts it whenever the process exits (for systemd, `Restart=always` and
-  `RestartSec=5`).
+- **Process supervision:** a supervisor starts the application process after
+  the operating system boots and restarts the process whenever it exits (for
+  systemd, `Restart=always` and `RestartSec=5`).
 - **Application watchdog:** an independent oneshot timer calls the loopback
-  `GET /health` once a minute and restarts the application after three
-  consecutive failures. A success resets the count.
+  `GET /health` served by that process once a minute. After three
+  consecutive failures it asks the supervisor to restart the process. A
+  success resets the count.
 - **`/health` stays cheap and side-effect free:** no sensor, database, file or
   network checks.
 - **Scope:** this watchdog measures application responsiveness only. Sensor
-  and node freshness belong to the Health module. Whole-host and power-loss
-  recovery is a separate concern, not covered here (D11).
+  and node freshness belong to the Health module, which does not supervise
+  processes. Recovering the host itself (a hung host or power loss) is a
+  separate concern, not covered here (D11).
 - **Docker Compose:** a restart policy restarts exited containers but does not
   detect a hung application, so packaging does not replace the independent
   watchdog.
@@ -295,7 +302,7 @@ inventoried here. Science computed from BardBox measurements stays in scope. Mod
 | 19 | Inbound messages and request logs (SMS replies, sender numbers, unknown-node attempts with remote IP) | External senders | Communications diagnostics; notification adapter | Both | CESH logs rejected-UID attempts. RKC parses SMS replies (webhook and poller) | Retention and privacy (D9) |
 | 20 | Backup and recovery state (manifest, deferrals, lock, restore checkpoints) | Backup | Backup service, with Archive restore reconciliation | Both | CESH: rclone every 30 minutes, manifest, deferral file, lock, local retention deletion. RKC: incident-log copy only | No restore drill yet |
 | 21 | Partner export configuration and state (field mapping, schedule, credential reference, checkpoint, delivery status and errors) | Operators; Export | Optional partner export module | CESH (future) | None | Interface, data subset, checkpoint and deadline policy (D10) |
-| 22 | Service liveness and restart state (watchdog failure count, restart events) | Supervisor; watchdog | Service operations, outside application modules | Both | Watchdog service/timer units and scripts exist in both repositories; conformance not audited here | Separate from sensor freshness; whole-host recovery (D11) |
+| 22 | Service liveness and restart state (liveness response, watchdog failure count, restart events) | Application process; watchdog; supervisor | Service operations, outside application modules | Both | Both repositories have a one-minute watchdog timer, a loopback `/health` probe script and a failure-count file (CESH [timer](https://github.com/bardphysicslab/cesh-air-monitor/blob/259cba6951332b7ba48e3111c7a0f132c8036891/deploy/cesh-air-watchdog.timer), [script](https://github.com/bardphysicslab/cesh-air-monitor/blob/259cba6951332b7ba48e3111c7a0f132c8036891/scripts/cesh-air-watchdog.sh); RKC [timer](https://github.com/bardphysicslab/rkc-monitor/blob/0c4f9238a7c85f282a69d92f4142c6eea06f184e/deploy/rkc-monitor-watchdog.timer), [script](https://github.com/bardphysicslab/rkc-monitor/blob/0c4f9238a7c85f282a69d92f4142c6eea06f184e/scripts/watchdog.sh)). Full conformance with the standard not audited | Separate from sensor freshness; host recovery (D11) |
 
 #### Proposed target: module operations by data category
 
@@ -340,8 +347,8 @@ validates and stores them.
 | 18 Alarm/notification state | — | — | — | — | — | X ? | — | D | X | — | C T S X Del | — | — |
 | 19 Inbound messages/logs | — | — | — | — | C X | ? | — | ? | — | — | T | — | — |
 | 20 Backup/recovery state | — | — | — | R | — | C S Del | R | D | — | — | — | — | — |
-| 21 Partner export config/state | — | — | — | — | — | ? | — | D | X | — | — | — | C V S |
-| 22 Service liveness/restart | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| 21 Partner export config/state | — | — | — | — | — | ? | — | D | X | — | — | — | C V S X |
+| 22 Service liveness/restart | — | — | C X | — | — | — | — | — | — | — | — | — | — |
 
 Notes:
 - **Backup (06)** copies whole archived record envelopes, including device keys,
@@ -358,10 +365,19 @@ Notes:
 - **Serial (13)** is optional and low priority; neither CESH nor RKC needs it.
 - **Partner export** (optional, no roadmap card yet) reads only through query
   and science read interfaces, never through ingestion or Archive acceptance,
-  and changes no history.
-- **Service liveness (22)** belongs to service operations outside the
-  application modules; no module stores it, and `/health` reports
-  responsiveness only.
+  and changes no history. It is scheduled and bounded independently, so
+  partner failures and retries cannot block ingestion or durable ACKs. It
+  sends its status (21) to Query for display.
+- **Service liveness (22):** the application composition (column 03) serves
+  `/health` and creates only a transient response; no module stores it. The
+  Health module (07) owns sensor and node freshness, not process supervision.
+  Operations data outside the modules is mapped below.
+
+| Liveness data (22) | Application process | Watchdog timer | Process supervisor |
+| --- | --- | --- | --- |
+| `/health` response (transient) | C X | R | — |
+| Consecutive-failure count | — | C S Del (reset on success) | — |
+| Restart requests and restart events | — | C X | R S (deployment-specific log) |
 - **Integration items** (the synthetic demo 09 and CESH/RKC adoption 14–15) own
   no data categories.
 
