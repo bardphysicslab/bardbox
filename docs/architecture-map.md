@@ -134,7 +134,8 @@ flowchart TB
     Controls -->|Project setting edit requests| Settings["Persistent configuration owner — validate, persist and apply"]
     Controls --> Alarm
     Controls --> Escalation
-    Archive -->|Stable files / snapshots| Backup["Scheduled rclone copy / verification"]
+    Archive -->|Stable files / snapshots| Backup["Scheduled backup: per-node eligibility, deferral and checkpoint; rclone copy and verify"]
+    Health -->|Per-node catch-up progress, read only| Backup
     Backup --> Drive["Configured BardBox Drive destination"]
     Backup -->|Backup health| Queries
     Queries -->|Accepted records and derived values, read only| Export["Optional partner export: mapping, credentials, retries, deadlines, checkpoint"]
@@ -219,6 +220,40 @@ and outside repositories/read APIs. Restore acceptance and retention configurati
 remain deployment work. A container packaging choice does not waive process or
 application-watchdog requirements.
 
+**Per-node catch-up and backup boundary.** Proposed shared contract, under review.
+- **Inputs and ownership:** Backup reads authenticated, current per-node
+  catch-up and queue progress from Health and delivery diagnostics. Backup owns
+  per-node file eligibility, deferral and backup checkpoint state.
+- **Transport only:** rclone only copies and verifies.
+- **Per-node independence:** while one node catches up, other nodes' files stay
+  independently eligible.
+- **Authority:** Archive's per-node files remain the authoritative history.
+- **Not a control path:** a deferral is not an ACK and does not control
+  catch-up. Backup has no ingestion dependency and never changes archived data.
+
+Current CESH behaviour is described separately from that target:
+- **Source** (pinned in the [evidence](server-data-inventory-evidence.md)): the
+  server writes a per-node deferral entry from node-reported queue progress, and
+  legacy firmware never creates one. The backup script skips a deferred node's
+  files and never copies today's active daily CSV, so Drive is not a live copy
+  of the current day. It copies changed eligible files, verifies them, and only
+  then advances the manifest and local retention.
+- **Deployment:** a read-only check on 2026-10-17 found an active timer and
+  successful recent runs. Logs showed real deferrals on October 15 and 16 (runs
+  skipping 67 and 75 files) and no deferred nodes at inspection. The deployed
+  server's runtime handler was not audited.
+
+Limits, kept open as D12:
+- Logs and successful jobs do not prove that every record reached Drive.
+- A node with missing, stale or untrustworthy progress diagnostics has no
+  reliable completion evidence.
+- A deferral entry left by a node that went offline has no expiry or visibility
+  bound yet.
+- Selection, copy and verification can race with late arrivals. A file version
+  that changes after a late record arrives must be copied and verified again
+  before retention.
+- No completion policy is defined here.
+
 **Optional partner export.** Outbound export to an external partner is optional.
 It is distinct from incoming third-party collection (outside BardBox),
 notifications and backup.
@@ -300,7 +335,7 @@ inventoried here. Science computed from BardBox measurements stays in scope. Mod
 | 17 | Contacts and availability (people, phone/email, order, availability, opt-outs) | Operators; inbound SMS | Escalation configuration; explicit owner open ([rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16)) | RKC | App config, updated by the admin page and inbound STOP | D4, D8 |
 | 18 | Alarm, escalation, acknowledgement and notification state (incidents, acknowledgement windows, processed inbound IDs, incident log, templates) | Alarm module; providers | Alarm and escalation modules | RKC | In-memory alert state; processed-ID JSON file; incident CSV copied by rclone | Restart durability; D4, D6 |
 | 19 | Inbound messages and request logs (SMS replies, sender numbers, unknown-node attempts with remote IP) | External senders | Communications diagnostics; notification adapter | Both | CESH logs rejected-UID attempts. RKC parses SMS replies (webhook and poller) | Retention and privacy (D9) |
-| 20 | Backup and recovery state (manifest, deferrals, lock, restore checkpoints) | Backup | Backup service, with Archive restore reconciliation | Both | CESH: rclone every 30 minutes, manifest, deferral file, lock, local retention deletion. RKC: incident-log copy only | No restore drill yet |
+| 20 | Backup and recovery state (manifest, deferrals, lock, restore checkpoints) | Backup | Backup service, with Archive restore reconciliation | Both | CESH: rclone every 30 minutes, manifest, per-node catch-up deferral file, lock, verified local retention deletion; today's active CSV is never copied. RKC: incident-log copy only | No restore drill yet; completion evidence and deferral bounds (D12) |
 | 21 | Partner export configuration and state (field mapping, schedule, credential reference, checkpoint, delivery status and errors) | Operators; Export | Optional partner export module | CESH (future) | None | Interface, data subset, checkpoint and deadline policy (D10) |
 | 22 | Service liveness and restart state (liveness response, watchdog failure count, restart events) | Application process; watchdog; supervisor | Service operations, outside application modules | Both | Both repositories have a one-minute watchdog timer, a loopback `/health` probe script and a failure-count file (CESH [timer](https://github.com/bardphysicslab/cesh-air-monitor/blob/259cba6951332b7ba48e3111c7a0f132c8036891/deploy/cesh-air-watchdog.timer), [script](https://github.com/bardphysicslab/cesh-air-monitor/blob/259cba6951332b7ba48e3111c7a0f132c8036891/scripts/cesh-air-watchdog.sh); RKC [timer](https://github.com/bardphysicslab/rkc-monitor/blob/0c4f9238a7c85f282a69d92f4142c6eea06f184e/deploy/rkc-monitor-watchdog.timer), [script](https://github.com/bardphysicslab/rkc-monitor/blob/0c4f9238a7c85f282a69d92f4142c6eea06f184e/scripts/watchdog.sh)). Full conformance with the standard not audited | Separate from sensor freshness; host recovery (D11) |
 
@@ -333,8 +368,8 @@ validates and stores them.
 | 4 Record ID, dedup, acceptance | V | — | — | C V S | C X | X | R | D | — | — | — | — | ? |
 | 5 Times, clock quality | V T | — | C | S | C X | X | T | D | — | R | R C | C | T X |
 | 6 Firmware/protocol | V | — | — | S | V X | X | S | D | — | — | — | X | — |
-| 7 Link/delivery diagnostics | V T | — | — | S | T X | X | S | D | — | — | R | X | — |
-| 8 Health projections | — | — | — | — | — | ? | C S | D | — | — | R | — | — |
+| 7 Link/delivery diagnostics | V T | — | — | S | T X | R X | S | D | — | — | R | X | — |
+| 8 Health projections | — | — | — | — | — | R ? | C S | D | — | — | R | — | — |
 | 9 Cadence | V T | V S | R | S | X | X | R | D | V S X | — | R | R | — |
 | 10 Channel definitions | R | C V S | — | ? | R | ? | R | D | X | R | R | R | R |
 | 11 Registration metadata | — | C V S | — | — | R | ? | — | D | X | — | R | R | ? |
@@ -355,6 +390,10 @@ Notes:
   original metadata, times, cadence and diagnostics. Restore reconciles archive,
   deduplication and identity-key state before accepting writes, as the ingestion
   contract requires.
+- **Backup per-node deferral** reads current catch-up progress (rows 7 and 8)
+  and owns eligibility, deferral and checkpoint state (row 20). It is not an
+  ACK, not a catch-up controller and not an ingestion dependency. Archive's
+  per-node files stay authoritative.
 - **Credentials (16)** are read or verified only at the boundary that uses them:
   device authentication in Communications, operator login in Controls,
   historical Data API access in Query, and provider credentials in Alarms and
@@ -406,6 +445,11 @@ Notes:
   ([cesh-air-monitor#35](https://github.com/bardphysicslab/cesh-air-monitor/issues/35)).
 - **D11** Whole-host and power-loss recovery (for example hardware watchdog or
   power protection), separate from the application watchdog.
+- **D12** Backup completion evidence and per-node deferral limits:
+  - what counts as reliable completion evidence;
+  - handling of missing or stale progress diagnostics;
+  - a visibility or expiry bound for long-lived deferrals;
+  - version-snapshot rules for late arrivals.
 
 **Per-module contract checklist** (fill in when a module's contract is written):
 1. Data categories touched (its matrix column) and the owner of each.
