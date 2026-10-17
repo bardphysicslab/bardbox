@@ -140,13 +140,17 @@ firmware-owned and is not a setting.
 - The budget only decides whether another request may start. A request already under way
   is not interrupted, so a burst can overrun the budget by one request, bounded by the
   firmware's HTTP timeouts. It is not a hard network deadline.
-- Measurement continues during a burst. USB commands wait until the burst ends, so a tool
-  that reads a busy device may see no reply and must treat that as unknown, not as
-  unsupported.
+- Measurement continues during a burst. A USB session takes priority: the firmware starts no
+  further request in a burst once a USB command is waiting, and starts no burst for a while
+  after the last USB command (CESH: 60 s). A command that arrives during a request still waits
+  for it, so a tool starts each read and each save with one read-only command that may wait
+  longer than the largest supported budget. No reply means unknown, not unsupported, and
+  nothing is written.
 - Cross-field effects: readings per burst and the budget together limit a burst, and the
-  pause spaces bursts out. A firmware must choose its ranges so that every supported
-  combination can drain the queue faster than its fastest reporting interval fills it;
-  CESH checks this at compile time. Actual throughput also depends on the request time.
+  pause spaces bursts out. A firmware should not offer ranges whose upload caps alone cannot
+  keep up with its fastest reporting interval (CESH checks its caps at compile time). That is
+  not a drain guarantee: how fast a backlog clears depends on request time, that is on the
+  network, the server, the payload size and the load from other devices.
 - Changing catch-up must not touch identity, Wi-Fi, telemetry settings or the queue.
 - A tool writes `CATCHUP_SET` only after validating all three values against the limits the
   device reported, and treats a confirmation echoing other values as uncertain.
