@@ -199,6 +199,17 @@ without them are unchanged.
   Besides `report_interval_s`, the allowlist holds `catchup_pause_s`, `catchup_max_uploads`
   and `catchup_budget_ms`, in the same form. They appear only for firmware that has catch-up
   settings, so metadata for an earlier release is unchanged.
+- **Compiled ranges:** a firmware default may also carry `min` and `max` (both or neither, in
+  the firmware's units, with `min <= value <= max`): the supported range compiled into that
+  image, emitted by the same release step from the firmware's own constants (CESH: a host
+  probe compiled against the named commit). Tools show them before a board is connected,
+  labelled as release limits; once the selected board answers, its reported limits replace
+  them and alone decide what can be saved. Metadata without ranges is valid, and tools then
+  say that the board reports its limits when read, rather than inventing them.
+- **Units in tools:** tools may show durations in seconds, converting exactly at their own
+  boundary (for example 4.5 s to `budget_ms` 4500, at most millisecond precision, never
+  rounding an invalid entry into a valid one). Firmware, protocol, storage and metadata
+  keep their own units.
 - **Operator defaults** are approved proposals for the form, each naming its approver. They
   are not firmware behaviour, and their origin stays distinct from firmware defaults.
 - **Allowlist:** only the keys above are accepted. Identities, passwords, tokens and private
