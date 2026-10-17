@@ -242,7 +242,7 @@ purpose and storage location only. Module numbers refer to the
 | 13 | Project configuration (titles, timezone, clock and freshness policy, poll/stale/offline, feature flags, retention, backup policy) | Operators | Persistent configuration owner | Both | JSON app config, environment overrides, backup env file | Backup scope (D4) |
 | 14 | Display settings (visible fields, order, labels) | Project | Undecided (D2) | Both | Templates and code | D2 |
 | 15 | Users, roles and sessions (operator identity — not device UID) | Operators | Authorization at the control and query boundaries | Both | RKC: one admin login from environment; no user IDs or roles. CESH: no dashboard login; machine bearer token for the historical Data API | Operator user/role model (D6) |
-| 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, third-party API keys, device Wi-Fi/OTA secrets | Deployment; provisioning | Deployment secret storage outside source; device credential issuance separately owned ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; binding owner (D7) |
+| 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, third-party API keys, device Wi-Fi/OTA secrets | Deployment; provisioning | Deployment secret storage outside source. Communications authenticates devices and Registry owns identity bindings (per the ingestion contract); issuance and lifecycle are separately owned ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; issuance scheme and credential-to-identity integration contract (D7) |
 | 17 | Contacts and availability (people, phone/email, order, availability, opt-outs) | Operators; inbound SMS | Escalation configuration; explicit owner open ([rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16)) | RKC | App config, updated by the admin page and inbound STOP | D4, D8 |
 | 18 | Alarm, escalation, acknowledgement and notification state (incidents, acknowledgement windows, processed inbound IDs, incident log, templates) | Alarm module; providers | Alarm and escalation modules | RKC | In-memory alert state; processed-ID JSON file; incident CSV copied by rclone | Restart durability; D4, D6 |
 | 19 | Inbound messages and request logs (SMS replies, sender numbers, unknown-node attempts with remote IP) | External senders | Communications diagnostics; notification adapter | Both | CESH logs rejected-UID attempts. RKC parses SMS replies (webhook and poller) | Retention and privacy (D9) |
@@ -303,7 +303,9 @@ Notes:
   device authentication in Communications, operator login in Controls,
   historical Data API access in Query, and provider credentials in Alarms and
   Backup. No module displays or returns secret values. Clock/startup has no
-  credential access merely by sharing a process.
+  credential access merely by sharing a process. Registry's "?" in row 16 is
+  only about what credential-related data, if any, the integration contract
+  (D7) places beside the identity bindings Registry already owns.
 - **Serial (13)** is optional and low priority; neither CESH nor RKC needs it.
 - **Integration items** (the synthetic demo 09 and CESH/RKC adoption 14–15) own
   no data categories.
@@ -319,8 +321,11 @@ Notes:
   interpretation of records.
 - **D6** Operator user and role model, and whether acknowledgements bind to an
   operator identity.
-- **D7** Owner of device credential binding
+- **D7** Device credential issuance and lifecycle scheme, and the concrete
+  contract linking a credential to its registered identity
   ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)).
+  The existing owners are settled by the ingestion contract: Registry owns
+  identity bindings and archive device keys, and Communications authenticates.
 - **D8** Contacts configuration owner
   ([rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16)).
 - **D9** Retention and privacy rules for inbound messages and request logs.
