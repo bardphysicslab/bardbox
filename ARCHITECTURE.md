@@ -5,6 +5,11 @@ make changes. Topic-specific standards below define technical contracts; they
 are not parallel general-purpose checklists. The former BardBox Change Skill
 is consolidated into these two root documents.
 
+## Decision history
+
+The [decision index](docs/DECISIONS.md) links accepted platform choices to their
+authoritative reasoning, contracts and adoption status.
+
 ## Architecture map
 
 The [BardBox Architecture Map](docs/architecture-map.md) is the single maintained
