@@ -360,6 +360,8 @@ inventoried here. Science computed from BardBox measurements stays in scope. Mod
 | 21 | Partner export configuration and state (field mapping, schedule, credential reference, checkpoint, delivery status and errors) | Operators; Export | Optional partner export module | CESH (future) | None | Interface, data subset, checkpoint and deadline policy (D10) |
 | 22 | Service liveness and restart state (liveness response, watchdog failure count, restart events) | Application process; watchdog; supervisor | Service operations, outside application modules | Both | Both repositories have a one-minute watchdog timer, a loopback `/health` probe script and a failure-count file (CESH [timer](https://github.com/bardphysicslab/cesh-air-monitor/blob/259cba6951332b7ba48e3111c7a0f132c8036891/deploy/cesh-air-watchdog.timer), [script](https://github.com/bardphysicslab/cesh-air-monitor/blob/259cba6951332b7ba48e3111c7a0f132c8036891/scripts/cesh-air-watchdog.sh); RKC [timer](https://github.com/bardphysicslab/rkc-monitor/blob/0c4f9238a7c85f282a69d92f4142c6eea06f184e/deploy/rkc-monitor-watchdog.timer), [script](https://github.com/bardphysicslab/rkc-monitor/blob/0c4f9238a7c85f282a69d92f4142c6eea06f184e/scripts/watchdog.sh)). Full conformance with the standard not audited | Separate from sensor freshness; host recovery (D11) |
 
+| 23 | Application diagnostic events (component, stage, reason, available time and device/record identity) | Operational modules; application callers of pure modules | Shared diagnostic logging facility (collection, output and retention) | Both (target) | Existing logs are not audited here; no shared logging conformance claimed | Explicit shared reporting per ingestion contract; output, access and retention configuration remain to be specified; duplicate-report ownership/correlation deferred |
+
 #### Proposed target: module operations by data category
 
 The matrix shows the **proposed target design, not current behavior**.
@@ -381,32 +383,51 @@ Column 10 covers the authorized control API and the persistent configuration
 owner. For data owned elsewhere it passes edit requests (X) to that owner, which
 validates and stores them.
 
-| # | Ingestion 01 | Registry 02 | Clock/startup 03 | Archive 04 | Communications 05 | Backup 06 | Latest/Health 07 | Query/Render 08 | Controls/config 10 | Science 11 | Alarms 12 | Serial 13 (optional, low) | Export (optional) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 Sensor data | V T | — | — | S Del ? | T X | X | S | D | — | R | R | C T X | T X |
-| 2 Derived science | — | — | — | ? | — | ? | — | D | — | C T | ? | — | ? |
-| 3 Device identity | V | C V S | — | S | V X | X | R | D | X | R | R | R X | T X |
-| 4 Record ID, dedup, acceptance | V | — | — | C V S | C X | X | R | D | — | — | — | — | ? |
-| 5 Times, clock quality | V T | — | C | S | C X | X | T | D | — | R | R C | C | T X |
-| 6 Firmware/protocol | V | — | — | S | V X | X | S | D | — | — | — | X | — |
-| 7 Link/delivery diagnostics | V T | — | — | S | T X | R X | S | D | — | — | R | X | — |
-| 8 Health projections | — | — | — | — | — | R ? | C S | D | — | — | R | — | — |
-| 9 Cadence | V T | V S | R | S | X | X | R | D | V S X | — | R | R | — |
-| 10 Channel definitions | R | C V S | — | ? | R | ? | R | D | X | R | R | R | R |
-| 11 Registration metadata | — | C V S | — | — | R | ? | — | D | X | — | R | R | ? |
-| 12 Alarm thresholds | — | — | — | — | — | ? | — | D | X | — | V S | — | — |
-| 13 Project configuration | R | — | R | R | R | R ? | R | D | C V S | R | R | R | R |
-| 14 Display settings | — | — | — | — | — | ? | — | D | X ? | — | — | — | — |
-| 15 Users, roles, sessions | — | — | — | — | — | — | — | V | V | — | ? | — | — |
-| 16 Credentials | — | ? | — | — | V | R | — | V | V | — | R | — | R |
-| 17 Contacts | — | — | — | — | — | ? | — | D | X | — | V S | — | — |
-| 18 Alarm/notification state | — | — | — | — | — | X ? | — | D | X | — | C T S X Del | — | — |
-| 19 Inbound messages/logs | — | — | — | — | C X | ? | — | ? | — | — | T | — | — |
-| 20 Backup/recovery state | — | — | — | R | — | C S Del | R | D | — | — | — | — | — |
-| 21 Partner export config/state | — | — | — | — | — | ? | — | D | X | — | — | — | C V S X |
-| 22 Service liveness/restart | — | — | C X | — | — | — | — | — | — | — | — | — | — |
+| # | Ingestion 01 | Registry 02 | Clock/startup 03 | Archive 04 | Communications 05 | Backup 06 | Latest/Health 07 | Query/Render 08 | Controls/config 10 | Science 11 | Alarms 12 | Serial 13 (optional, low) | Export (optional) | Diagnostic logging (shared facility) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 Sensor data | V T | — | — | S Del ? | T X | X | S | D | — | R | R | C T X | T X | — |
+| 2 Derived science | — | — | — | ? | — | ? | — | D | — | C T | ? | — | ? | — |
+| 3 Device identity | V | C V S | — | S | V X | X | R | D | X | R | R | R X | T X | — |
+| 4 Record ID, dedup, acceptance | V | — | — | C V S | C X | X | R | D | — | — | — | — | ? | — |
+| 5 Times, clock quality | V T | — | C | S | C X | X | T | D | — | R | R C | C | T X | — |
+| 6 Firmware/protocol | V | — | — | S | V X | X | S | D | — | — | — | X | — | — |
+| 7 Link/delivery diagnostics | V T | — | — | S | T X | R X | S | D | — | — | R | X | — | — |
+| 8 Health projections | — | — | — | — | — | R ? | C S | D | — | — | R | — | — | — |
+| 9 Cadence | V T | V S | R | S | X | X | R | D | V S X | — | R | R | — | — |
+| 10 Channel definitions | R | C V S | — | ? | R | ? | R | D | X | R | R | R | R | — |
+| 11 Registration metadata | — | C V S | — | — | R | ? | — | D | X | — | R | R | ? | — |
+| 12 Alarm thresholds | — | — | — | — | — | ? | — | D | X | — | V S | — | — | — |
+| 13 Project configuration | R | — | R | R | R | R ? | R | D | C V S | R | R | R | R | — |
+| 14 Display settings | — | — | — | — | — | ? | — | D | X ? | — | — | — | — | — |
+| 15 Users, roles, sessions | — | — | — | — | — | — | — | V | V | — | ? | — | — | — |
+| 16 Credentials | — | ? | — | — | V | R | — | V | V | — | R | — | R | — |
+| 17 Contacts | — | — | — | — | — | ? | — | D | X | — | V S | — | — | — |
+| 18 Alarm/notification state | — | — | — | — | — | X ? | — | D | X | — | C T S X Del | — | — | — |
+| 19 Inbound messages/logs | — | — | — | — | C X | ? | — | ? | — | — | T | — | — | — |
+| 20 Backup/recovery state | — | — | — | R | — | C S Del | R | D | — | — | — | — | — | — |
+| 21 Partner export config/state | — | — | — | — | — | ? | — | D | X | — | — | — | C V S X | — |
+| 22 Service liveness/restart | — | — | C X | — | — | — | — | — | — | — | — | — | — | — |
+| 23 Application diagnostic events | C (returned faults only) | C X | C X | C X | C X | C X | C X | C X | C X | C X | C X | C X | C X | C S Del |
 
 Notes:
+- **Application diagnostic events (23)** are separate from inbound messages/request
+  logs (19), node delivery diagnostics (7) and Archive's rejection ledger (4).
+  `C X` in this row means a module may create/report errors it detects in its own
+  work; it grants no access to other modules' data. Pure ingestion creates
+  structured returned faults only. Its application caller transmits diagnostic
+  entries through the shared logging interface; the validator performs no log I/O.
+  Other pure modules follow the same caller-reporting boundary when applicable.
+- **Diagnostic logging** is a cross-cutting facility, not a new numbered server
+  roadmap stage or controller. It stores diagnostic events only, not measurement
+  history, credentials or acceptance state. `Del` applies only under a defined
+  retention policy, not permission to erase arbitrary evidence. Output/storage,
+  protected maintainer access and retention settings need specification before
+  implementation; this table selects no external service or public log endpoint.
+  Query/rendering may report their own failures, but displaying diagnostic events
+  is not required: the facility's protected maintainer access is independent of
+  rendering. Backup of these logs is not assumed. The `C` in the logging column
+  allows reporting its own failures, not recursive self-logging without bounds.
+  Duplicate-report ownership/correlation remains deferred, not an initial blocker.
 - **Backup (06)** copies whole archived record envelopes, including device keys,
   original metadata, times, cadence and diagnostics. Restore reconciles archive,
   deduplication and identity-key state before accepting writes, as the ingestion
