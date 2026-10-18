@@ -6,6 +6,11 @@ It defines the protocol, reading format, driver boundaries, UI standard,
 naming conventions, time rules, and design decisions shared by BardBox monitor
 projects.
 
+## Decision history
+
+The [decision index](docs/DECISIONS.md) links accepted platform choices to their
+authoritative reasoning, contracts and adoption status.
+
 ## Architecture map
 
 The [BardBox Architecture Map](docs/architecture-map.md) contains all three
