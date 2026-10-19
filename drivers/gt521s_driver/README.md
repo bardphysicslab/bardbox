@@ -1,5 +1,13 @@
 # gt521s_driver
 
+> **Legacy, non-conforming example (October 19, 2026).** This driver predates the
+> current driver contract and does not conform to it: `get_info()` lacks
+> `uid`/`transport`/`protocol`, `get_capabilities()` returns a list, readings are
+> not normalized and use the instrument's naive clock. Keep it as historical
+> GoLab reference only; do not copy it. Code, tests and fixtures are unchanged;
+> their drift is tracked in [bardbox#49](https://github.com/bardphysicslab/bardbox/issues/49).
+> Archived prompts that produced it: [archive/legacy/refactor](../../archive/legacy/refactor/README.md).
+
 Bard Box Pi driver for the **GT-521S optical particle counter**.
 
 ## Sensor overview
@@ -20,13 +28,13 @@ The GT-521S measures airborne particle concentrations in up to six size channels
 | Interface | USB serial (CP2102 USB-UART bridge) |
 | Baud rate | 9600 |
 | Line termination | `\r` (carriage return) |
-| Count units | count/ft³ (`CU 0`) |
+| Count units | count/ft³ (`CU 0`), the documented compatibility unit for particle-count channels |
 
 ## Key commands
 
 | Command | Description |
 |---|---|
-| `CU 0` | Set count units to count/ft³ (Bard Box standard) |
+| `CU 0` | Set count units to count/ft³ (the channel's documented compatibility unit) |
 | `ST NNNN` | Set sample time (seconds) |
 | `SH NNNN` | Set hold time (seconds) |
 | `SN NNN` | Set number of samples |

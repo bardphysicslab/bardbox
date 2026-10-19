@@ -55,10 +55,11 @@ the [firmware blueprint](docs/firmware-blueprint.md); its document map links the
 maintained [serial/base proposal](docs/firmware-base-and-serial-api.md),
 [optional buffer proposal](docs/firmware-buffer-api.md),
 [USB flashing and provisioning proposal](docs/usb-provisioning-standard.md),
-the pending storage/OTA review and the
+the merged storage/OTA draft contracts and the
 [continuation](docs/firmware-api-continuation.md). Then verify
 [the owning GitHub issue](https://github.com/bardphysicslab/bardbox/issues/31).
-These are pending design contracts, not implemented or adopted APIs. Update
+These are design contracts, not implemented or adopted APIs; merging a draft
+does not adopt it. Update
 these drafts rather than recreating them; settle relevant open decisions before
 implementation. Published device/Web Node contracts remain authoritative.
 
@@ -71,7 +72,11 @@ Record the governing main revision and any separate proposal revision checked.
 PR evidence names affected interfaces/state owners, compatibility, consumer
 impact and diagram updates or justified gaps. Preserve proposal/current labels;
 do not treat an unmerged diagram as adopted policy. Consumer repositories should
-link this entry point rather than copy diagrams.
+link this entry point rather than copy diagrams. The October 19 accepted
+direction ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991))
+is summarized in `ARCHITECTURE.md`; follow-up implementation still needs its own
+scoped authorization. Module-folder, checkout-synchronization and refactoring
+practice is shared guidance in `engineering-standards` (ENG-003).
 
 ## Recovery standards required reading
 
