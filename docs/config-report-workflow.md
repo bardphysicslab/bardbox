@@ -16,6 +16,11 @@ When this tooling is absent or outdated, treat synchronizing it from `bardbox-pr
 
 ## Module-owned configuration (accepted direction)
 
+Folder locations for each module's configuration, and how tracked non-secret
+settings are kept apart from private overrides, are in the
+[repository layout](repository-layout.md#configuration-files)
+([BB-004](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271296848)).
+
 October 19, 2026 ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 5): each owning module validates, persists and
 applies its own settings, and new reference configuration physically lives in
 the owning module's subtree (for example alarm settings under the Alarm module).

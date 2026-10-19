@@ -1,69 +1,61 @@
-# Claude handoff: October 19 documentation reconciliation
+# Claude handoff: annotated application layout
 
-- **Milestone ID:** `OCT19-DOCS-1`
+- **Milestone ID:** `OCT19-LAYOUT-1`
 - **Task:** [bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31),
-  [accepted entry BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991);
-  engineering companion [engineering-standards#17](https://github.com/bardphysicslab/engineering-standards/issues/17)
-  ([ENG-003](https://github.com/bardphysicslab/engineering-standards/issues/17#issuecomment-6269649466)).
-- **Shared guidance:** bardphysicslab/engineering-standards@2cb958318b5b603b2b250c351425212e10a64fed
-- **BardBox standards:** bardphysicslab/bardbox@31100b88958299560b672d88030bc8e11585d2dd
-- **Branches:** `codex/oct19-architecture-reconciliation` (bardbox) and
-  `codex/module-checkout-guidance` (engineering-standards), each from the
-  baseline above in the repository's canonical checkout. Exact heads and pull
-  requests are recorded in the pull requests and the #31 checkpoint comment; this
-  tracked file does not embed its own commit hash.
+  [BB-004](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271296848),
+  [critique dispositions](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271384280),
+  composition [owner supplement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271666389) (first named Application),
+  [naming refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271757925) (module renamed Composition, folder `composition/`),
+  [science-location clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271713054),
+  [configuration-tracking correction](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271790738).
+- **Shared guidance:** bardphysicslab/engineering-standards@aa8454649fc2e8bb5ad50a5829f8d0cbda736442
+- **BardBox standards:** bardphysicslab/bardbox@41fb97e7b0d7b80738ba44cb3942c795ecb3eaca
+- **Branch:** `codex/annotated-application-layout` from that baseline in the
+  canonical BardBox checkout. The exact head and pull request are recorded in
+  the pull request and the #31 checkpoint; this file does not embed its own hash.
 - **Roles:** Claude implements (sole writer); Codex independently reviews the
-  exact heads; the maintainer decides merge. Direct coordination authorized for
-  this milestone only.
+  exact head; the maintainer decides merge. engineering-standards is unchanged.
+- **Previous milestone records:** [OCT19-DOCS-1 handoff](archive/CLAUDE-HANDOFF-OCT19-DOCS-1.md)
+  and [review](archive/CODEX-REVIEW-OCT19-DOCS-1.md), archived unchanged.
 
-## State
+## Changes
 
-| Stage | Status |
-| --- | --- |
-| Documentation committed | Yes, on both feature branches |
-| Pushed / pull requests | See the pull requests linked from #31 and ES#17 |
-| Independent review | Pending (Codex, exact heads) |
-| Merged / deployed | No / not applicable (documentation only) |
-| Runtime, firmware, driver, test, script, policy page changes | None |
+- [docs/repository-layout.md](../docs/repository-layout.md) is the one annotated
+  general tree: repository roots (no top-level `data/`); 18 application modules,
+  each with `config/` and `data/` only where state applies; map-label mapping;
+  per-module table; locators; configuration files; state-survival caveats; the
+  central error log; Archive entity histories and receipts; tests, scripts and
+  deploy; the named nesting deviation; existing-project and adoption neutrality;
+  open engineering detail. Illustrative code files sit in every module. The tree
+  is explicitly the server application's layout; firmware keeps its own, and
+  calculation location (for example AQI) stays project design. Configuration is
+  classified by content: non-secret settings, including Composition's module
+  selection, may be tracked; credentials, private deployment values and runtime
+  state are not; the override mechanism, file names and reload lifecycle are open.
+  The central-log text follows BB-002 (pure modules return faults; callers log).
+- Pointers: README, ARCHITECTURE, Architecture Map (Composition owner row and
+  physical-folder pointer), config/report workflow, service operations, Pi
+  runtime; DECISIONS BB-004.
 
 ## Evidence
 
-- Link, anchor, fence, table and whitespace checks over all tracked Markdown;
-  structural check of the three Mermaid drawings (balanced subgraphs, quoted
-  labels, every edge endpoint defined); no Mermaid renderer was available, so
-  rendering was not verified. Engineering-standards workflow checker and its
-  unit test. Results at the exact heads are in the pull requests.
-- Findings and dispositions: [docs/reviews/2026-10-19-documentation-review-dispositions.md](../docs/reviews/2026-10-19-documentation-review-dispositions.md).
-- Current continuation: [docs/firmware-api-continuation.md](../docs/firmware-api-continuation.md).
+Link, anchor, fence, table and whitespace checks over all tracked Markdown and
+`git diff --check`; results at the exact head are in the pull request. No
+Mermaid drawing changed, and none was rendered. No scaffold, runtime, pilot,
+deployment or infrastructure change.
 
-## Open contracts (not settled by this milestone)
+## Open (unchanged by this milestone)
 
-Serial historical retrieval/ACK; saturation token safety, power loss, tiny
-capacities and blocked-head interaction; compact-chunk anchor representation;
-entity IDs and replacement-hardware attribution; measurement-contract format and
-archived snapshot (D5); timezone preference and persistence; partner fields,
-keys and hosting/access plan; multi-file config sync tooling; card field
-selection and status-label combination; module display-descriptor format;
-alignment of existing alarm toggles with the accepted "alarm disabled" target
-(notifications/escalation paused, evaluation continues); a future AQI/color
-indicator (deferred). Final accepted card refinement applied:
-[issuecomment-6270321987](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270321987).
-Active-alarm card outline amendment applied:
-[issuecomment-6270510607](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270510607);
-AQI methods and thresholds remain unstandardized.
-Alarm switch amendment applied:
-[issuecomment-6270769043](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043);
-open: switch scope with several alarm rules, escalation restart/resume on
-re-enable, toggle audit, exact wording and in-range reminder gating. Future CESH
-PurpleAir Flex method research is recorded, not adopted.
+Entity ID grammar and effective-time bindings; filing of unassigned or
+unknown-time records and corrections; storage formats and rotation; multi-file
+configuration sync; persistent-storage mechanism and permissions; consistent
+snapshots; hot reconfiguration and enable/disable transitions; log rotation and
+retention; owners for remaining project-wide settings; reconciling CESH-first
+adoption with the RKC next-demo discussion.
 
-## Loose ends and dispositions
+## Consumer impact
 
-- **bardbox#31 body:** refreshed with a current summary (accepted entries,
-  UI amendment, estimates, both PRs); the earlier body is kept below it as dated
-  history. No tracker loose end remains from this milestone.
-- **Template hardware work:** [template#33](https://github.com/bardphysicslab/bardbox-project-template/issues/33);
-  untouched; maintainer decides preservation.
-- **Code drift:** [bardbox#49](https://github.com/bardphysicslab/bardbox/issues/49).
+The project template and pilots are not changed. When the template adopts this
+layout, its own documentation should link this guide rather than copy the tree.
 
-**Next action:** Codex reviews both exact heads; maintainer decides merge.
+**Next action:** Codex reviews the exact head; maintainer decides merge.

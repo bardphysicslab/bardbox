@@ -297,7 +297,9 @@ All logged timestamps MUST be UTC ISO 8601 strings.
 
 ## Session and Export Storage
 
-The Pi app SHOULD use the standard storage layout:
+The legacy Pi app SHOULD use this existing storage layout (new reference
+projects use module-owned data folders in the
+[repository layout](repository-layout.md)):
 
 ```text
 ~/golab-monitor/data/

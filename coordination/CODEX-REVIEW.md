@@ -1,129 +1,72 @@
-# Codex review: OCT19-DOCS-1
+# Codex review: OCT19-LAYOUT-1
 
-Review date: October 19, 2026. Reviewer: Codex, independently of Claude's
-implementation. Result: **no remaining blocking findings for the documentation
-scope**. This review does not authorize merge, deployment or implementation.
+Reviewed implementation: `71c3c7348c9ba99bd90b0950863d763fc31f077f` on
+`codex/annotated-application-layout`, base
+`41fb97e7b0d7b80738ba44cb3942c795ecb3eaca`.
+[PR 51](https://github.com/bardphysicslab/bardbox/pull/51).
+Result: **no remaining blocking documentation findings**. No merge is authorized.
 
-## Exact reviewed implementation heads
+Claude provided the requested blind-spot critique before any documentation edit.
+The maintainer then settled the missing owner as Composition, with the naming
+and content-based configuration decisions preserved in the owning issue.
+Codex inspected the exact documentary diff and follow-up corrections independently.
 
-| Repository / PR | Reviewed head | Base |
-| --- | --- | --- |
-| [BardBox PR 50](https://github.com/bardphysicslab/bardbox/pull/50) | `ed4b93ad577bc946280b619670b22a5d8613dbef` | `31100b88958299560b672d88030bc8e11585d2dd` |
-| [Engineering standards PR 18](https://github.com/bardphysicslab/engineering-standards/pull/18) | `0fb5062b7665009b4e30318d573977d839a0946b` | `2cb958318b5b603b2b250c351425212e10a64fed` |
+## Acceptance and boundary review
 
-Review-record commits contain only reviewer-authored evidence; their exact
-published heads are recorded on the PR and owning issue. The initial review
-covers the heads above, including the final card-contract amendment and its
-state-versus-configuration correction. Later amendments are reviewed below.
+- The existing [repository layout](../docs/repository-layout.md) is the one
+  annotated guide. README and architecture entry points visibly link it; no
+  second application tree or executable scaffold was created.
+- All 18 named application-server modules have their own folder, illustrative
+  code and `config/`; optional folders do not enable capabilities. State folders
+  are conditional on owned saved state rather than invented for stateless code.
+- Composition owns module selection and startup wiring. It does not own Alarm
+  thresholds, Escalation contacts or project scientific formulas. `main.py`
+  delegates composition; runtime reload and transition semantics remain open.
+- Nonsecret settings, including actual Composition selections, can be tracked;
+  private configuration, credentials and runtime state remain excluded. No
+  filename, configuration schema or override mechanism is selected.
+- Module-local data and private configuration must survive redeploy and server
+  migration. Mounts, permissions, defaults and snapshot consistency are assessed
+  as requirements, not implemented infrastructure or verified pilot protection.
+- Diagnostics owns the single error-log home; pure validators return faults for
+  callers to log, preserving BB-002. Archive owns entity histories and separate
+  receipt bookkeeping under one atomic/recoverably journaled acceptance. Existing
+  attribution, deduplication, tombstone, per-node retention and restore invariants
+  remain; unresolved filing/correction mechanisms are not guessed.
+- Public static roots are separate from owner-mediated authorized historical
+  data responses. Private application directories are not published wholesale.
+- Tests, thin operational scripts and deployment helpers have distinct homes.
+  Existing single-file/legacy layouts remain explicitly labelled, not migrated.
+- The guide is a server-application map. Firmware and project scientific
+  execution stay flexible; AQI method/location and demo/adoption ordering are
+  not selected by folder documentation.
 
-## Scope and conclusions
+## Findings corrected before this review
 
-- The accepted decisions and later accepted UI amendments are linked from the
-  decision index and owning issue. Main-status vocabulary, exact field choices,
-  descriptor format and a future AQI/color light remain open or deferred.
-- Required Registry and Processing, module-owned configuration, units/time,
-  stable monitored entities, serial recording, bounded storage, backup defaults,
-  read-only partner access and the CESH-first development sequence are recorded
-  as target direction rather than implemented or deployed behavior.
-- The three diagrams retain one maintained home. Redundant guides redirect to
-  maintained owners; dated continuation and old prompts remain provenance.
-- Finite-storage loss does not become delivery acknowledgement. Ordinary
-  verified-backup cleanup, rolling history and saturation eviction are distinct;
-  protected deduplication metadata still fails closed. Unknown device time is
-  preserved rather than fabricated.
-- Card sections come from included modules. Modules declare displayable values
-  and controls without exposing complete configuration or secrets. Alarm owns
-  its control meaning and permissions; Rendering uses the authorized owner
-  path. Alerts-off semantics are explicitly target behavior. Escalation
-  acknowledgements and next action are operational state, not editable settings.
-- Runtime code, firmware, drivers, tests, fixtures, scripts, policy pages and PDF
-  are unchanged. The public README change corrects a sample redirect only.
-  Unpublished template hardware remains untouched under its separate follow-up.
+Added representative code files and test subfolders; preserved the distinction
+between stateless reference needs and later project science design; clarified
+static asset roots without banning the authenticated Data API; applied the
+Composition name consistently; corrected blanket private-config classification;
+and preserved pure Ingestion's caller-owned logging path.
 
-## Review corrections verified
+## Verification and limitations
 
-The implementation now preserves mobile GPS observation compatibility, narrows
-legacy ACK/retention/time-gate wording, removes stale proposal/layout claims,
-distinguishes target vendor separation from current CESH coupling, binds the
-sample backend to loopback, fixes the consent recipe, and separates Escalation
-state from configuration. The issue summary retains the earlier text as history.
+- All 67 tracked Markdown files at the reviewed implementation head pass
+  independent conventional relative-link, heading-anchor and balanced-fence
+  checks. The annotated tree includes the exact 18 module names, each with
+  `config/` and representative code. Whitespace checks pass.
+- Changed-file inspection confirms documentation only. No runtime tests, build,
+  device, live data, host, migration, deployment or DNS operation was performed.
+- No Mermaid drawing changed; the earlier unverified rendering limitation is
+  unchanged. No new diagram-rendering claim.
+- Prior milestone records were moved unchanged before labels/link repairs.
+  They remain historical evidence, not the current milestone's review.
 
-## Verification and limits
+This following reviewer-record commit changes evidence only; its exact published
+head is recorded on the PR and owning issue. The feature is preserved off-machine
+on the PR branch. Next: maintainer reviews PR 51 and decides merge; any later
+implementation needs its own bounded scope and prerequisite open decisions.
 
-- Independently inspected the changed-file scope and documentary diffs,
-  including follow-up commits and all changed contract boundaries.
-- Independently checked conventional relative Markdown links, heading anchors
-  and balanced fences over 65 BardBox and 12 engineering Markdown files at the
-  first published heads; checked subsequent changed files and anchors. No
-  unresolved link/fence finding. Final whitespace checks pass in both repos.
-- Engineering workflow checker passes; its two existing unit tests pass at the
-  reviewed engineering head. Its GitHub scaffold check also reports success.
-- Archive moves were committed unchanged before labels and relative-link fixes.
-- Mermaid source was structurally inspected; **rendering was not verified**.
-  The diagrams must not be described as renderer-tested. No runtime, device,
-  service, backup/restore or deployment acceptance is claimed by this review.
-- Open engineering contracts remain in the map and continuation; documentation
-  acceptance does not resolve them or authorize their implementation.
+Shared guidance: bardphysicslab/engineering-standards@aa8454649fc2e8bb5ad50a5829f8d0cbda736442
 
-Shared guidance: bardphysicslab/engineering-standards@2cb958318b5b603b2b250c351425212e10a64fed
-
-Next owner/action: maintainer reviews the two PRs and decides merge. Existing
-feature checkouts remain available; no cleanup or host synchronization occurs.
-
-## Active-alarm outline amendment review
-
-Reviewed implementation: `2bd65624b98989378936063ade5727a7baba3e71`, based on
-the previously published `d555edc294f2d13ef8f06aa6447f8a37e5770b91`. Accepted
-[owning-issue amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270510607).
-Result: **no blocking findings** in the four-file documentation amendment.
-
-- Active Alarm state alone triggers a slow red card-outline pulse with persistent
-  textual ALARM indication; reduced motion uses a static red outline and text.
-- Connection, freshness and AQI/category colors are separate and cannot trigger
-  that pulse. No AQI method or threshold is standardized.
-- The Web UI rule, decision index, disposition A20 and handoff agree. No runtime,
-  pilot, mockup, escalation or merge change. Engineering PR 18 is unchanged.
-- Independently inspected the exact diff and read back the accepted issue entry.
-  All 66 BardBox Markdown files pass conventional relative-link, heading-anchor
-  and balanced-fence checks at this implementation head; whitespace checks pass.
-  No new diagram change; the earlier Mermaid-rendering limitation remains.
-
-This review-record update changes evidence only. The final published head is
-recorded on PR 50 and issue 31; merge remains the maintainer's decision.
-
-## Alarm switch and disabled-state amendment review
-
-Reviewed implementation: `1b20d76b4429ee4c77838ca8758f020198464c4a`, following
-`7a29bb4` and the relevant-condition precision fix `9663e48`; base publication
-`7524c653c92ac07a97a3a6c73e01a68f3fe8dd78`.
-[Accepted owning decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043).
-Result: **no remaining blocking findings** in this five-file documentation delta.
-
-Claude's critique is incorporated into the maintained draft: switch placement,
-the explicit notification/escalation-only meaning of disabled, disabled plus
-active-condition visibility, truthful recovery reminders, and combined
-Identity/Health ownership. The prominent sliding switch sits below the heading
-and above readings when Alarm is included; detailed settings remain expandable.
-Acquisition and evaluation continue while disabled, and re-enable is manual.
-
-Codex corrections preserve per-channel validity and the existing explicit
-live-observation freshness exception. An unrelated channel fault does not erase
-valid condition evidence; unknown device measurement time does not invalidate
-an otherwise allowed, explicitly labelled live-observation freshness basis.
-Neither replay receipt time nor an unsupported freshness claim can make the
-reminder say currently within range. No new aggregate status policy is selected.
-
-Multiple-rule switch scope, escalation restart/resume after re-enable, audit
-specifics, exact wording and detailed reminder gating remain open. A CESH service
-alarm is illustrative with no selected inactivity timeout or detection rule;
-RKC's existing alarm requirement is preserved. PurpleAir Flex correction,
-averaging and AQI work is future research, with no chosen algorithm. Local
-mockup values and HTML are not adopted.
-
-Independent verification: inspected the exact delta and its condition/time
-compatibility against the ingestion contract; all 66 tracked Markdown files
-pass conventional relative-link, heading-anchor and balanced-fence checks;
-whitespace checks pass. No diagrams changed, so the earlier Mermaid rendering
-limitation remains. Engineering PR 18 is unchanged. No runtime, pilot, demo,
-merge or deployment acceptance is claimed. The following reviewer-record update
-changes evidence only; the final published head is recorded on PR 50 and issue 31.
+BardBox standards: bardphysicslab/bardbox@41fb97e7b0d7b80738ba44cb3942c795ecb3eaca

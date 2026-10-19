@@ -273,7 +273,10 @@ configuration physically lives in the owning module's subtree, refining the
 earlier single-file allowance; existing pilot configuration is not migrated by
 this decision, and sync/report tooling, preserved deployment values and protected
 secrets must be reconciled before any layout change
-([config/report workflow](config-report-workflow.md)).
+([config/report workflow](config-report-workflow.md)). Physical folders for each
+module's code, `config/` and saved `data/` are in the
+[repository layout](repository-layout.md#application-modules-softwareapp)
+([BB-004](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271296848)).
 
 | Settings | Owner | Notes |
 | --- | --- | --- |
@@ -287,7 +290,8 @@ secrets must be reconciled before any layout change
 | Drive backup enablement, schedule, destination | Backup (optional) | Included, OFF by default |
 | Freshness, stale and offline thresholds | Health | Per source; offline after stale |
 | Partner consumer access | Partner read API (optional) | Key lifecycle and access plan deferred |
-| Remaining project-wide settings | Persistent configuration owner | Until a module owner is named |
+| Which modules an instance includes and enables; startup wiring | Composition | [owner supplement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271666389) (first named Application; renamed by the [naming refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271757925)); not a catch-all for module settings; hot reconfiguration open |
+| Remaining project-wide settings without a named module owner | Open (persistent configuration owner) | Not moved into Composition by default |
 
 Authorized web edits follow one sequence: submit through the authorized control
 API; the owner validates and saves; then the saved configuration is read back and
