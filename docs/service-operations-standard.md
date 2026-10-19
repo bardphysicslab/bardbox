@@ -131,7 +131,10 @@ security posture without that shape
 Serving latest or time-range readings to that API is a query interface, not the
 dataset merging or analysis that the MCP boundary below keeps out of monitoring
 servers. RKC's `data/logs/` is an
-example of a mixed tree that must not be exposed wholesale.
+example of a mixed tree that must not be exposed wholesale. In the reference
+[repository layout](repository-layout.md#saved-state-that-must-survive-updates),
+only approved measurement data under `archive/data/measurements/` may be offered;
+`archive/data` as a whole also contains receipts.
 
 ## Verified backup and safe retention
 

@@ -59,6 +59,9 @@ It is design status, not implementation: draft or target documents merged to
   checkout and refactoring practice lives in
   [engineering-standards](https://github.com/bardphysicslab/engineering-standards)
   ([ENG-003](https://github.com/bardphysicslab/engineering-standards/issues/17#issuecomment-6269649466)).
+  The annotated application map, with one folder and `config/` per module and
+  module-owned saved data, is the [repository layout](docs/repository-layout.md)
+  ([BB-004](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271296848)).
 
 ## Ownership and project composition
 
@@ -172,7 +175,8 @@ Consolidated from the former implementation guide (October 19, 2026) and
 updated to the current architecture. Start from `bardbox-project-template`;
 do not copy this standards repository.
 
-1. Read the [Architecture Map](docs/architecture-map.md) and select the optional
+1. Read the [Architecture Map](docs/architecture-map.md) and the
+   [repository layout](docs/repository-layout.md), and select the optional
    capabilities the project needs; the minimum is a sensor and a way to display
    its measurements, with the Registry and Processing boundaries present.
 2. Declare the project measurement contract: canonical channels from

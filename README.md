@@ -86,6 +86,9 @@ broad refactor or deployment.
   [`bardphysicslab/engineering-standards`](https://github.com/bardphysicslab/engineering-standards).
 - [ARCHITECTURE.md](ARCHITECTURE.md): ownership, reuse, composition, UI templates,
   and an index of applicable detailed standards.
+- [Repository layout](docs/repository-layout.md): where every folder, module,
+  configuration file, saved data file, error log and test lives in a BardBox
+  project, with plain-language explanations.
 
 The former BardBox Change Skill and GPT-facing checklist are consolidated into
 these root documents. Existing detailed standards remain technical references;
