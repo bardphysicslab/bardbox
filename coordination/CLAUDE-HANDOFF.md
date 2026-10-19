@@ -47,8 +47,9 @@ selection and status-label combination.
 
 ## Loose ends and dispositions
 
-- **bardbox#31 body summary refresh:** not applied (tool permission refused);
-  the dated comments carry the decisions.
+- **bardbox#31 body:** refreshed with a current summary (accepted entries,
+  UI amendment, estimates, both PRs); the earlier body is kept below it as dated
+  history. No tracker loose end remains from this milestone.
 - **Template hardware work:** [template#33](https://github.com/bardphysicslab/bardbox-project-template/issues/33);
   untouched; maintainer decides preservation.
 - **Code drift:** [bardbox#49](https://github.com/bardphysicslab/bardbox/issues/49).
