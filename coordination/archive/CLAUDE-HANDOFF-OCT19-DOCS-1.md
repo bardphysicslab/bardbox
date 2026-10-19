@@ -1,3 +1,8 @@
+> **Historical record.** Claude handoff for milestone OCT19-DOCS-1 (merged in
+> [PR #50](https://github.com/bardphysicslab/bardbox/pull/50)), moved unchanged from
+> `coordination/` on October 19, 2026; only relative links were adjusted. It is
+> not the current milestone record.
+
 # Claude handoff: October 19 documentation reconciliation
 
 - **Milestone ID:** `OCT19-DOCS-1`
@@ -33,8 +38,8 @@
   labels, every edge endpoint defined); no Mermaid renderer was available, so
   rendering was not verified. Engineering-standards workflow checker and its
   unit test. Results at the exact heads are in the pull requests.
-- Findings and dispositions: [docs/reviews/2026-10-19-documentation-review-dispositions.md](../docs/reviews/2026-10-19-documentation-review-dispositions.md).
-- Current continuation: [docs/firmware-api-continuation.md](../docs/firmware-api-continuation.md).
+- Findings and dispositions: [docs/reviews/2026-10-19-documentation-review-dispositions.md](../../docs/reviews/2026-10-19-documentation-review-dispositions.md).
+- Current continuation: [docs/firmware-api-continuation.md](../../docs/firmware-api-continuation.md).
 
 ## Open contracts (not settled by this milestone)
 

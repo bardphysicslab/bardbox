@@ -1,3 +1,8 @@
+> **Historical record.** Codex review record for milestone OCT19-DOCS-1 (merged in
+> [PR #50](https://github.com/bardphysicslab/bardbox/pull/50)), moved unchanged from
+> `coordination/` on October 19, 2026; only relative links were adjusted. It is
+> not the current milestone record.
+
 # Codex review: OCT19-DOCS-1
 
 Review date: October 19, 2026. Reviewer: Codex, independently of Claude's
