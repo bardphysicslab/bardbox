@@ -13,6 +13,7 @@ Governing decisions: [BB-003](https://github.com/bardphysicslab/bardbox/issues/3
 [UI amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270151957),
 [card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270321987),
 [active-alarm outline](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270510607),
+[alarm switch](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043),
 [ENG-003](https://github.com/bardphysicslab/engineering-standards/issues/17#issuecomment-6269649466).
 Exploratory status-label discussion after those entries is not a decision.
 
@@ -44,6 +45,7 @@ elsewhere).
 | A18 | Later accepted UI amendment (heading, sections, catching-up, latest value, location source) | Changed | [Web UI standard](../web-ui-standard.md#card-top-area), [node naming](../node-naming-standard.md#identity-layers), [map](../architecture-map.md#health-status-and-presentation) |
 | A19 | Final accepted card refinement (module-supplied sections, Escalation section, declared display descriptors, alerts-control ownership and target meaning) | Changed | [Web UI standard](../web-ui-standard.md#card-sections-from-included-modules), [map configuration ownership](../architecture-map.md#configuration-ownership) |
 | A20 | Accepted active-alarm card outline (slow red pulse with persistent `ALARM` text; static outline under reduced motion; triggered only by Alarm-owned active state, never by AQI/category or freshness colors) | Changed | [Web UI standard](../web-ui-standard.md#active-alarm-card-outline) |
+| A21 | Alarm enable/disable switch placement and disabled-state behavior; Identity/Health composition; illustrative CESH service alarm; future PurpleAir Flex method research. Critique: "disabled" wording versus evaluation-continues target, in-range claims for stale/unknown data, disabled+active display | Changed; Open: switch scope with several rules, escalation restart/resume on re-enable, toggle audit, exact wording, reminder gating | [Web UI standard](../web-ui-standard.md#alarm-switch-and-disabled-state), [map configuration ownership](../architecture-map.md#configuration-ownership) |
 
 ## Complete-repository coverage findings
 

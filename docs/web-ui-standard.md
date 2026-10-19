@@ -87,9 +87,15 @@ representative RKC/CESH review. Every entity card shares one rough top structure
    the location. The stable entity ID and the hardware UID are distinct and need
    not be shown in the heading. Contributing hardware identity and health sit
    beneath, normally in a foldout.
-2. **Optional prominent reading.** A project may select one or more prominent
+2. **Alarm enable/disable switch (when the Alarm module is included).** A
+   prominent sliding switch directly below the name, location and status and
+   above the headline readings, following the RKC pilot pattern ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043)). It always
+   shows whether the alarm is enabled or disabled. Detailed alarm settings stay
+   in the expandable Alarm section. Behavior is defined under
+   [alarm switch and disabled state](#alarm-switch-and-disabled-state).
+3. **Optional prominent reading.** A project may select one or more prominent
    original or derived values (RKC: a single temperature) or none.
-3. **Optional buffer fill indicator.** A compact battery-style fill with a rough
+4. **Optional buffer fill indicator.** A compact battery-style fill with a rough
    percentage, as CESH does, computed only from telemetry the source actually
    reports (Web Node `buffer_count` and `buffer_max_records`). Omit it for sources
    without that telemetry; never estimate the fill itself or invent values.
@@ -114,20 +120,27 @@ and exact fields remain deferred.
 - Sections below the top area are supplied by the modules a project includes, not
   by bespoke project sections for the same capability. Identity and Health are
   common to every card; Hardware, Sensor QA and per-sensor groups (foldouts) are
-  optional and configurable.
+  optional and configurable; Alarm and Escalation sections are supplied by those
+  modules when included.
+- **Identity** combines Registry data (stable entity ID, display name, location)
+  with the contributing hardware UID. **Health** combines node-reported telemetry
+  (for example signal strength, firmware and buffer fill) with server-derived
+  contact and freshness owned by the Health module; not all of it is node-owned.
 - Prefer one standard **Escalation** section for contacts, acknowledgement and
   next action, independent of the delivery channel (SMS, email or other), shown
   only when escalation is included. An alarm alone does not require it.
 - Modules may explicitly declare displayable status, values and control
   descriptors; the project selects which are shown. Full configuration and
   secrets are never exposed automatically.
-- **Alerts control.** Alarm declares the allowed range and the alerts control's
-  meaning, state, permission and label; Rendering supplies the shared visual
-  control and the authorized edit path (save through Alarm, then re-read). The
-  accepted *target* meaning: turning alerts off pauses notifications and
-  escalation while measurement and alarm evaluation continue. Existing
+- **Alarm enable/disable control.** Alarm declares the allowed range and the
+  control's meaning, state, permission and label; Rendering supplies the shared
+  visual switch and the authorized edit path (save through Alarm, then re-read).
+  Its accepted *target* meaning is in
+  [alarm switch and disabled state](#alarm-switch-and-disabled-state). Existing
   implementations may differ; this is a documented target, not a runtime change.
-- A future AQI or color indicator light is explicitly deferred.
+- A future AQI or color indicator light is explicitly deferred. Future CESH
+  research may examine the PurpleAir Flex dual-PMS6003 correction, averaging and
+  AQI method to evaluate matching it; no algorithm is selected or implemented.
 
 ### Estimated values
 
@@ -178,6 +191,34 @@ Accepted direction ([active-alarm outline amendment](https://github.com/bardphys
   those colors.
 - This standard does not define AQI methods or thresholds, and it adds no
   escalation scope or runtime change.
+- The outline also applies while the alarm is disabled but its condition is
+  active (below).
+
+### Alarm switch and disabled state
+
+Accepted direction ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043)); documentation only, not a runtime change.
+
+- **Disabled pauses delivery, not evaluation.** "Alarm disabled" immediately
+  pauses notifications and escalation. Acquisition, measurement and evaluation of
+  the alarm condition continue. Re-enabling is manual only; automatic re-enable
+  and text-message reminders are not adopted.
+- **Disabled with an active condition never looks healthy.** The active-alarm
+  outline, the persistent `ALARM` text and the reduced-motion equivalent still
+  apply, together with the visible disabled state.
+- **Reminder when back in range.** When the alarm is disabled and its condition
+  has returned within range, the card shows an on-card reminder such as
+  "Within range — alarm disabled. Re-enable when ready."
+- **Only truthful in-range claims.** A stale, unknown-time, offline or faulted
+  reading is never presented as "within range"; in those cases the card shows the
+  disabled state with the applicable status instead. Precise gating (which
+  channels count, hold time, hysteresis) remains open.
+- **Service alarms are illustrative.** An alarm for a node going offline or
+  failing (for example at CESH) would be an Alarm rule consuming Health status;
+  no timeout or detection policy is settled, and no project must include alarms.
+- **Open:** switch scope when an entity has several alarm rules (per entity, as
+  in RKC, or per rule); whether escalation restarts or resumes when re-enabled
+  during an active condition; whether switch changes are audited with actor and
+  time; exact label and reminder wording.
 
 ## Foldouts, tables, charts, and controls
 
