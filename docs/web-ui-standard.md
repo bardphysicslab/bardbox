@@ -171,10 +171,14 @@ adoption or authorization for any particular editor.
   uncertain (for example, no response arrived), say so rather than claiming the
   change was rolled back, and offer a way to check the saved values.
 - **Exception for frequent operational controls.** A frequent, important
-  operational control may stay prominent on the main card, such as the accepted
-  [alarm enable/disable switch](#alarm-switch-and-disabled-state) with its
-  enabled or disabled state always visible. The owner, permission, save and
-  readback rules above still apply to it.
+  operational control may stay prominent on the main card. The current accepted
+  baseline is the [alarm enable/disable switch](#alarm-switch-and-disabled-state)
+  on the main card. Its exact placement is under discussion (one option being
+  explored keeps the switch inside the Alarm section with a labelled indicator
+  on the main card); until that is separately decided, the baseline stands.
+  Either way, the alarm's enabled or disabled state stays visible on the main
+  card at all times, labelled distinctly from an active `ALARM` condition, and
+  the owner, permission, save and readback rules above still apply.
 - Existing implementations may differ until adopted. Reference evidence of the
   Identity placement: [BardBox-Reference verification](https://github.com/bardphysicslab/BardBox-Reference/issues/1#issuecomment-6274298406).
 
