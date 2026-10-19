@@ -402,7 +402,7 @@ Rules:
 
 * mode is defined in config
 * Pi app must provide all data required by the monitor
-* layout rules belong in `monitor-instructions.md`
+* layout rules belong in [web-ui-standard.md](web-ui-standard.md)
 
 ---
 

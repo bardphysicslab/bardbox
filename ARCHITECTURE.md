@@ -123,6 +123,33 @@ components. Check each authoritative implementation before planning an
 extraction. Record gaps separately and improve one bounded capability at a time;
 do not make active project deadlines depend on an unrelated broad migration.
 
+## Starting a new project
+
+Consolidated from the former implementation guide (October 19, 2026) and
+updated to the current architecture. Start from `bardbox-project-template`;
+do not copy this standards repository.
+
+1. Read the [Architecture Map](docs/architecture-map.md) and select the optional
+   capabilities the project needs; the minimum is a sensor and a way to display
+   its measurements, with the Registry and Processing boundaries present.
+2. Declare the project measurement contract: canonical channels from
+   [channel names](docs/channel-names.md), explicit units (metric by default)
+   and validity rules. Add new channels there before using them.
+3. Register each node UID and its monitored entity in the project Registry
+   ([node naming](docs/node-naming-standard.md#identity-layers)); assign an
+   [App ID](docs/node-naming-standard.md#application-identity).
+4. Write BardBox firmware from the [firmware blueprint](docs/firmware-blueprint.md),
+   [device instructions](docs/device-instructions.md) and, for network nodes,
+   the [Web Node protocol](docs/web-node-protocol.md).
+5. Integrate instruments that do not run BardBox firmware through a driver
+   ([Pi driver instructions](docs/pi-driver-instructions.md)); timed devices also
+   follow the [session model](docs/session-model.md).
+6. Reuse existing drivers and shared components before writing new ones.
+
+When something breaks, look first for the contract that was violated (wire
+protocol, delivery, driver interface, reading format or channel naming) and fix
+the contract boundary rather than the symptom.
+
 ## Detailed standards: read those applicable to the task
 
 | Area | Canonical documents |

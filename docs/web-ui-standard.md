@@ -15,6 +15,23 @@ structure, not project-specific sensor content.
   compact local/UTC time or primary navigation on the right.
 - Use 26px page titles (22px mobile), 18px section headings, 17-18px card
   titles, 11-14px labels, and 18-24px live values.
+- Avoid large white or light-theme cards in BardBox dashboards.
+
+Reference palette tokens (moved from the former monitor instructions):
+
+```css
+:root {
+  --bg: #050505;
+  --panel: #111111;
+  --panel-border: #2f2f2f;
+  --text: #f5f5f5;
+  --muted: #a7a7a7;
+  --ok: #52d273;
+  --warn: #ffcf5c;
+  --bad: #ff7b7b;
+  --bard-red: #c9232d;
+}
+```
 
 ## Page structure and navigation
 
@@ -45,6 +62,11 @@ mobile widths. Do not hide critical status behind navigation.
 - Missing values render as `—`. Labels precede values; units are visually muted
   and never fused into field names. Timestamps explicitly identify UTC or local
   time and unavailable timestamps render as `—`.
+- Never display stale readings as current. Show unavailable and error states
+  prominently, and show the last successful time (`last_seen`) separately when
+  useful.
+- Human-readable names and locations come from server configuration (the
+  Registry), never from firmware.
 
 ## Foldouts, tables, charts, and controls
 
