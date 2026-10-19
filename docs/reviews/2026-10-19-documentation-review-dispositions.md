@@ -54,7 +54,7 @@ elsewhere).
 | C7 | Compact chunk granularity versus record anchor | Changed: preserve base chunk or copy/re-encode, no mandated approach | [compact storage](../compact-record-storage.md) |
 | C8 | Restart policy, plain-HTTP example, DNS fallback, stale references in Pi docs | Changed: Pi setup aligned to `Restart=always` with legacy status notes; example values replaced in network access | [Pi setup](../pi-setup.md), [Pi runtime](../pi-runtime-instructions.md) |
 | C9 | Internal addresses, device serial and workstation paths in a public repository | Changed in active text (network access placeholders). Unchanged: archived prompts and legacy device notes keep their historical text (no history rewrite); the driver's default port is code and is tracked in bardbox#49 | |
-| C10 | Existing public web surface (static policy pages) | Unchanged: policy pages and PDF untouched; the README nginx recipe correction for the missing `consent.html` was not applied in this pass (tool permission refused) and remains pending | [public README](../../public/README.md) |
+| C10 | Existing public web surface (static policy pages) | Changed: the README recipe now sends `/consent` to the tracked `consent.pdf` instead of a missing `consent.html`. Unchanged: policy pages, PDF and any deployed server configuration | [public README](../../public/README.md) |
 | C11 | RKC SMS webhook signature gap versus the written rule | Unchanged here: dated evidence stays dated; RKC owns the fix | [evidence](../server-data-inventory-evidence.md) |
 | C12 | Duplicate UI standards | Changed: monitor instructions consolidated into the Web UI standard | |
 | C13 | UID registry placeholder link | Changed: redirect to naming standard and registry owners, no-reuse rule preserved | |
@@ -70,6 +70,7 @@ elsewhere).
 | C23 | Driver, tests, fixtures, dependency manifest and CI drift | Follow-up: [bardbox#49](https://github.com/bardphysicslab/bardbox/issues/49); driver README labelled legacy and non-conforming | [driver README](../../drivers/gt521s_driver/README.md) |
 | C24 | Unpublished PCB work in the template checkout | Follow-up: [template#33](https://github.com/bardphysicslab/bardbox-project-template/issues/33); untouched | |
 | C25 | Legacy exact-version retention and time-gate wording contradicting accepted finite-storage and unknown-time policies (review) | Changed: scoped to their cases | [map](../architecture-map.md#local-history-and-backup), [service operations](../service-operations-standard.md), [time sync](../time-sync-standard.md) |
+| C26 | Exact-head review of `cc0a99d`: blueprint still described device instructions as using the old root; Pi setup gave a copyable public `0.0.0.0` plain-HTTP bind; data-source drivers implied vendor collection was already extracted | Changed: current status stated; backend bound to loopback behind the canonical HTTPS proxy rules; target versus current CESH coupling separated | [blueprint](../firmware-blueprint.md), [Pi setup](../pi-setup.md), [data source drivers](../data-source-drivers.md) |
 
 ## Codex cautions (all accepted)
 

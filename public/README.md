@@ -26,13 +26,18 @@ location = /terms {
 }
 
 location = /consent {
-    alias /opt/bardbox/public/consent.html;
+    return 302 /consent.pdf;
 }
 
 location = /consent.pdf {
     alias /opt/bardbox/public/consent.pdf;
 }
 ```
+
+No `consent.html` is tracked, so this recipe sends `/consent` to the tracked
+`consent.pdf` (documentation correction, October 19, 2026). The deployed web
+server configuration was not inspected or changed, and the policy pages and PDF
+are unchanged.
 
 Regenerate the RKC Monitor SMS Alert consent PDF after changing the form copy:
 

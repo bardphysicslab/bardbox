@@ -11,9 +11,12 @@ Examples include:
 - a directly attached serial instrument such as a GT-521S particle counter
 - a directly attached SPN1 solar instrument
 - a BardBox microcontroller node aggregating multiple sensors
-- a remote/vendor source (historical examples: PurpleAir and QuantAQ, whose
-  collection is now outside BardBox per
-  [bardbox#28](https://github.com/bardphysicslab/bardbox/issues/28))
+- a remote/vendor source (historical examples: PurpleAir and QuantAQ). The
+  BardBox target excludes third-party comparison collection and assigns it to
+  separately owned repositories
+  ([bardbox#28](https://github.com/bardphysicslab/bardbox/issues/28)); that
+  extraction is planned, not completed, and the current CESH runtime still
+  contains these integrations until its owner migrates them
 
 The Pi/runtime application consumes normalized driver output and must not contain vendor-specific protocol, API, CSV, or transport logic.
 

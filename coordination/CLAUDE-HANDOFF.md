@@ -47,9 +47,6 @@ selection and status-label combination.
 
 ## Loose ends and dispositions
 
-- **Public README `/consent` recipe:** correction not applied in this pass (tool
-  permission refused); owner: maintainer decides whether Claude applies it on
-  this branch.
 - **bardbox#31 body summary refresh:** not applied (tool permission refused);
   the dated comments carry the decisions.
 - **Template hardware work:** [template#33](https://github.com/bardphysicslab/bardbox-project-template/issues/33);

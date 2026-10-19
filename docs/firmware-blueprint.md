@@ -53,9 +53,9 @@ documentation home, tracker policy) keep their own reviews and dispositions in
 
 **Existing (CESH 0.8.6, 2026-10-12).** One PlatformIO project per firmware
 product, under `software/firmware/<project>/`. The template keeps a single project
-directly in `software/firmware/`. [Device instructions](device-instructions.md)
-still name the older `firmware/` root; the merged
-[repository layout](repository-layout.md) uses `software/firmware/`.
+directly in `software/firmware/`, as the merged
+[repository layout](repository-layout.md) specifies; [device instructions](device-instructions.md)
+follow that layout and note that older projects still use a top-level `firmware/` root.
 
 ```text
 software/firmware/<project>/

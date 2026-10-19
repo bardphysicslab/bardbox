@@ -294,13 +294,20 @@ After=network.target time-sync.target
 Type=simple
 User=golab
 WorkingDirectory=/home/golab/golab-monitor/raspi
-ExecStart=/home/golab/golab-monitor/venv/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
+ExecStart=/home/golab/golab-monitor/venv/bin/python3 -m uvicorn main:app --host 127.0.0.1 --port 8000
 Restart=always
 RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 ```
+
+The application binds to loopback only. Viewers reach it through a local HTTPS
+reverse proxy configured per the canonical access rules in
+[network access](network-access.md#optional-authenticated-campus-dashboards)
+and the applicable
+[Bard web and hosting requirements](https://github.com/bardphysicslab/engineering-standards/blob/main/docs/bard-it/README.md);
+do not expose the backend port directly. This guide does not cover proxy setup.
 
 Enable and start:
 
@@ -359,7 +366,8 @@ Before handing off the deployment, verify each item:
 - [ ] Bard VPN access confirmed
 - [ ] Virtual environment is created and packages installed
 - [ ] Application starts without errors (`systemctl status labdash`)
-- [ ] Dashboard is accessible at `http://<pi-ip>:8000`
+- [ ] Dashboard is reachable through the configured HTTPS proxy, and the backend
+      port answers only on loopback
 - [ ] All connected devices appear in the dashboard
 - [ ] Serial devices visible under `/dev/serial/by-id/`
 - [ ] Logs show no repeated errors (`journalctl -u labdash -n 50`)
