@@ -290,8 +290,8 @@ module's code, `config/` and saved `data/` are in the
 | Drive backup enablement, schedule, destination | Backup (optional) | Included, OFF by default |
 | Freshness, stale and offline thresholds | Health | Per source; offline after stale |
 | Partner consumer access | Partner read API (optional) | Key lifecycle and access plan deferred |
-| Which modules an instance includes and enables; startup wiring | Application | [Application supplement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271666389); not a catch-all for module settings; hot reconfiguration open |
-| Remaining project-wide settings without a named module owner | Open (persistent configuration owner) | Not moved into Application by default |
+| Which modules an instance includes and enables; startup wiring | Composition | [owner supplement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271666389) (first named Application; renamed by the [naming refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271757925)); not a catch-all for module settings; hot reconfiguration open |
+| Remaining project-wide settings without a named module owner | Open (persistent configuration owner) | Not moved into Composition by default |
 
 Authorized web edits follow one sequence: submit through the authorized control
 API; the owner validates and saves; then the saved configuration is read back and

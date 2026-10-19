@@ -7,7 +7,8 @@ here instead of keeping their own tree.
 
 **Status.** Accepted reference layout for new BardBox projects
 ([BB-004](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271296848),
-with the [Application supplement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271666389)
+with the composition [owner supplement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271666389), which named the module "Application" before the
+[naming refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271757925) renamed it Composition,
 and the [pre-write critique dispositions](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271384280)).
 It is a *proposed map*, not an inventory of existing CESH or RKC files, not
 generated scaffolding and not evidence that any module is implemented or
@@ -56,8 +57,8 @@ enabled. A module has a `data/` folder only when it actually keeps saved state.
 
 ```text
 software/app/
-  main.py                     thin entry point: starts the Application module, nothing else
-  application/                which modules are included and enabled; startup wiring
+  main.py                     thin entry point: calls the Composition module, nothing else
+  composition/                which modules are included and enabled; startup wiring
     composition.py
     config/
   registry/                   node definitions, monitored entities, names, locations
@@ -145,8 +146,8 @@ Where the map uses a combined or older label, the folders are:
 | Map label | Folder(s) |
 | --- | --- |
 | Latest-reading store / "Latest/Health 07" | `latest_readings/` and `health/` |
-| Clock / scheduling utilities, "Clock/startup 03" | `time/` (mechanisms) and `application/` with `main.py` (startup wiring) |
-| Persistent configuration owner, capability selection | `application/` owns which modules are included and enabled; each module owns its own settings |
+| Clock / scheduling utilities, "Clock/startup 03" | `time/` (mechanisms) and `composition/` with `main.py` (startup wiring) |
+| Persistent configuration owner, capability selection | `composition/` owns which modules are included and enabled; each module owns its own settings |
 | Notification adapters | `escalation/notification_adapters/` |
 | Analysis / sensor QA, "Science 11" | `processing/` |
 | Optional partner export / read API | `partner_api/` |
@@ -155,7 +156,7 @@ Where the map uses a combined or older label, the folders are:
 
 | Module | Plain-language job | `config/` holds | `data/` holds |
 | --- | --- | --- | --- |
-| `application` | Decides which modules this instance includes and enables, and wires them together at startup | Included/enabled module list and wiring choices (not scientific formulas, cutoffs or other modules' settings) | None |
+| `composition` | Decides which modules this instance includes and enables, and wires them together at startup | Included/enabled module list and wiring choices (not scientific formulas, cutoffs or other modules' settings) | None |
 | `registry` | Knows every node, the entity it monitors, and its display name and location | Validation rules and defaults; where the project measurement contract is declared (its format is open) | Registered nodes, entities, bindings and descriptive metadata |
 | `communications` | Accepts pushed records, reads serial sources, fetches remote sources | Endpoints, size/rate limits, adapter settings | None in the reference layout |
 | `ingestion` | Checks each observation against the registry and contracts | Validation options | None (no owned saved state) |
@@ -187,13 +188,15 @@ module is disabled.
 
 ### Including, enabling and empty folders
 
-- **Folder presence never enables anything.** The Application module's
+- **Folder presence never enables anything.** The Composition module's
   configuration decides which modules are included and enabled. A disabled module
   needs no live configuration and no saved data; nothing is fabricated for it.
-- **Application is not a catch-all.** It owns instance composition only. Alarm
+- **Composition is not a catch-all.** It owns instance composition only. Alarm
   still owns thresholds, Escalation still owns contacts, and every other module
   keeps its own settings and state. Settings that have no named owner yet stay
-  explicitly open; they are not moved into Application by default.
+  explicitly open; they are not moved into Composition by default. (Composition
+  was first named "Application"; only the name changed, to avoid confusion with
+  the overall `software/app` application.)
 - **Hot changes are open.** Reload, runtime enable/disable transitions and
   restart semantics are not decided by this layout.
 - **Named deviation from the shared nesting guidance.** The shared guidance
@@ -215,7 +218,7 @@ module is disabled.
 | One entity's measurements (for example a freezer) | `software/app/archive/data/measurements/<stable-entity-id>/` |
 | Whether a record was accepted or is a duplicate | `software/app/archive/data/receipts/` (through Archive, never by editing files) |
 | A module's settings | `software/app/<module>/config/` |
-| Which modules are enabled | `software/app/application/config/` |
+| Which modules are enabled | `software/app/composition/config/` |
 | A module's code | `software/app/<module>/` |
 | A module's tests | `tests/<module>/`; cross-module scenarios in `tests/integration/` |
 | Service, update and rollback setup | `deploy/` |

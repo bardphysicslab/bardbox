@@ -4,7 +4,8 @@
 - **Task:** [bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31),
   [BB-004](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271296848),
   [critique dispositions](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271384280),
-  [Application supplement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271666389),
+  composition [owner supplement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271666389) (first named Application),
+  [naming refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271757925) (module renamed Composition, folder `composition/`),
   [science-location clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271713054).
 - **Shared guidance:** bardphysicslab/engineering-standards@aa8454649fc2e8bb5ad50a5829f8d0cbda736442
 - **BardBox standards:** bardphysicslab/bardbox@41fb97e7b0d7b80738ba44cb3942c795ecb3eaca
@@ -27,7 +28,7 @@
   open engineering detail. Illustrative code files sit in every module. The tree
   is explicitly the server application's layout; firmware keeps its own, and
   calculation location (for example AQI) stays project design.
-- Pointers: README, ARCHITECTURE, Architecture Map (Application owner row and
+- Pointers: README, ARCHITECTURE, Architecture Map (Composition owner row and
   physical-folder pointer), config/report workflow, service operations, Pi
   runtime; DECISIONS BB-004.
 
