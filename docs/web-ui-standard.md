@@ -4,6 +4,9 @@
 is derived from the mature CESH Air and RKC dashboards. It standardizes product
 structure, not project-specific sensor content.
 
+October 19, 2026 accepted direction ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 10, [UI clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269649488), [buffer-estimate note](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269868018)) is included
+below as documentation; no runtime UI change is implied.
+
 ## Foundation
 
 - Use the native system sans-serif stack and the shared dark palette: near-black
@@ -11,8 +14,10 @@ structure, not project-specific sensor content.
   healthy, amber warning, and soft red failure.
 - Use a centered content shell no wider than 1400px, with 16-20px desktop
   padding and 14-16px mobile padding.
-- Use a sticky top header with Bard logo and application title on the left and
-  compact local/UTC time or primary navigation on the right.
+- Every BardBox dashboard uses a sticky top header with shared Bard branding
+  (logo) and the project title on the left, and shows the current time. Absolute
+  times are UTC internally; the header may show local time with an explicit
+  timezone label. Primary navigation may share the right side of the header.
 - Use 26px page titles (22px mobile), 18px section headings, 17-18px card
   titles, 11-14px labels, and 18-24px live values.
 - Avoid large white or light-theme cards in BardBox dashboards.
@@ -57,8 +62,9 @@ mobile widths. Do not hide critical status behind navigation.
   card counts vary, but cards must retain a practical minimum width.
 - Keep identity at the top-left and status badges at the top-right.
 - Status badges are compact uppercase pills with a border in the status color.
-  Standard wording is `LIVE`/`OK`, `STALE`/`WARNING`, `OFFLINE`/`ERROR`, and
-  `ALARM` where applicable. Never use color as the only signal.
+  Never use color as the only signal. Standard meanings and labels are below.
+- Availability of a field never implies its display: projects select the
+  original and derived values a card shows.
 - Missing values render as `—`. Labels precede values; units are visually muted
   and never fused into field names. Timestamps explicitly identify UTC or local
   time and unavailable timestamps render as `—`.
@@ -69,6 +75,57 @@ mobile widths. Do not hide critical status behind navigation.
   locations) comes from the server Registry, not firmware. Observed GPS
   coordinates from mobile or moving nodes are measurements and are shown as
   such, with their time and units, not as configured location.
+
+### Card top area
+
+Accepted direction; exact remaining fields and placement are deferred to a
+representative RKC/CESH review. Every entity card shares one rough top structure:
+
+1. **Entity or place heading and status.** The monitored entity or place (a
+   freezer, Stevenson Roof) leads the card. Contributing hardware identity and
+   health sit beneath it, normally in a foldout.
+2. **Optional prominent reading.** A project may select one or more prominent
+   original or derived values (RKC: a single temperature) or none.
+3. **Optional buffer fill indicator.** A compact battery-style fill with a rough
+   percentage, as CESH does, computed only from telemetry the source actually
+   reports (Web Node `buffer_count` and `buffer_max_records`). Omit it for sources
+   without that telemetry; never estimate the fill itself or invent values. Do not
+   show raw record counts on the card by default; exact diagnostics stay
+   available elsewhere. The indicator must not hide full, error or
+   archive-blocked conditions, and it adds no loss display: capacity losses go
+   only to the central error log.
+
+### Estimated values
+
+Processing may compute buffer estimates and Rendering shows them clearly
+labelled **Estimated**, next to but distinct from the last reported actual
+value: for an offline node, the time until its buffer fills (from last-known
+occupancy and capacity, recording rate and elapsed time, assuming the node stays
+powered and acquiring); for catch-up, the time until the backlog clears, only
+when observed net drain supports it. Omit an estimate when inputs are
+insufficient or the backlog is growing or not progressing; never show an
+invented ETA. These help a technician judge whether a site visit is needed.
+
+### Standard status meanings
+
+Status meanings and labels are standard across BardBox and keep separate
+dimensions separate. They reuse existing codes; future runtime adoption maps the
+existing statuses explicitly and preserves legacy and target compatibility
+labels. Which labels a card combines, and how, is still under discussion.
+
+| Meaning | Label | Legacy reading status | Target owner and representation |
+| --- | --- | --- | --- |
+| Fresh valid measurement | `LIVE` / `OK` | `ok` | Health freshness; accepted record without channel faults |
+| Stale measurement (last valid value older than its stale-after threshold) | `STALE` | `stale` (legacy view nulls declared channels) | Health per-channel freshness; archived values unchanged |
+| Node disconnected or unreachable past its offline threshold | `OFFLINE` | `node_unavailable` | Health contact projection from Communications evidence |
+| Sensor fault (the source responded but a channel is invalid) | `ERROR` | `error` (legacy view nulls all channels) | Accepted record `status: error` with per-channel `extended.channel_faults`; healthy channels kept |
+| FIFO archival delivery blocked by a rejected record | operational health detail | none | `archive_blocked` (Health, from Archive rejection) |
+| Alarm condition | `ALARM` | not a reading status | Alarm module state |
+
+`OFFLINE` and `ERROR` are distinct meanings, as in the
+[data source drivers](data-source-drivers.md#ui-rule) UI rule. Alarm state is
+shown independently of availability: healthy communications (`LIVE`) can coexist
+with an active freezer `ALARM`. Project measurement content remains configurable.
 
 ## Foldouts, tables, charts, and controls
 
