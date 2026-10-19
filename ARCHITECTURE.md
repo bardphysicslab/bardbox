@@ -51,7 +51,8 @@ It is design status, not implementation: draft or target documents merged to
   fields, keys and hosting are deferred and existing network restrictions stay.
 - **Presentation.** Shared branding, project title and current time on every
   dashboard; entity-led cards; standard status meanings; field availability
-  never implies display ([Web UI standard](docs/web-ui-standard.md)).
+  never implies display; settings are edited only in the owning module's UI
+  section ([Web UI standard](docs/web-ui-standard.md#where-editing-controls-live)).
 - **Adoption.** CESH first in a development instance of the shared template,
   then RKC; pilots are preserved.
 - **Organization.** New module folders and names reflect responsibility; Time

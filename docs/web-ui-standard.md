@@ -147,6 +147,42 @@ and exact fields remain deferred.
   research may examine the PurpleAir Flex dual-PMS6003 correction, averaging and
   AQI method to evaluate matching it; no algorithm is selected or implemented.
 
+### Where editing controls live
+
+Accepted direction ([editable-field rule](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274318475), a BB-003 supplement); documentation only, not runtime
+adoption or authorization for any particular editor.
+
+- **Show values where useful; edit them in one place: the UI section of the
+  module that owns the setting.** For example, an entity's name and location
+  are edited under Identity (Registry owns them); thresholds under Alarm;
+  contacts and escalation under Escalation; display preferences under Rendering
+  settings. Values may still be shown elsewhere, but not edited there.
+- The card heading and location are ordinary display text. The only way to
+  change them is a clearly labelled **Edit name and location** button inside
+  Identity.
+- **Owners decide what is editable.** Each owning module explicitly declares
+  its editable fields and who may change them, and it validates, persists and
+  applies changes. Only declared fields are offered: configuration, secrets,
+  internal settings and read-only values are never exposed or made editable
+  just because they exist.
+- **Save path.** Rendering sends an authorized request through Controls, waits
+  for the owner to finish saving, then reads and shows the saved values. The
+  owner never calls Rendering (for example, Registry never calls Rendering).
+- **Drafts and refresh.** Automatic refresh leaves an open editor, its section
+  and its unfinished draft alone until Save or Cancel. A response older than a
+  completed save must not overwrite the newly saved values.
+- **Failures.** A rejected or failed edit keeps the old authoritative values,
+  shows useful feedback and is reported centrally. When the outcome is
+  uncertain (for example, no response arrived), say so rather than claiming the
+  change was rolled back, and offer a way to check the saved values.
+- **Exception for frequent operational controls.** A frequent, important
+  operational control may stay prominent on the main card, such as the accepted
+  [alarm enable/disable switch](#alarm-switch-and-disabled-state) with its
+  enabled or disabled state always visible. The owner, permission, save and
+  readback rules above still apply to it.
+- Existing implementations may differ until adopted. Reference evidence of the
+  Identity placement: [BardBox-Reference verification](https://github.com/bardphysicslab/BardBox-Reference/issues/1#issuecomment-6274298406).
+
 ### Estimated values
 
 Processing may compute buffer estimates and Rendering shows them clearly
