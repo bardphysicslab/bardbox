@@ -353,7 +353,10 @@ policy (history allowance, backup-OFF rolling window, enabled-backup saturation
 anchor; [BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 8): an exact lost-ACK retry stays ACK-eligible without
 recreating the removed measurement. Each eviction is logged centrally. No time-based expiry is safe while retries are unbounded.
 Retire a namespace only after explicit reconciliation that makes further retries
-impossible. Capacity exhaustion is visible and fails closed without advancing ACK.
+impossible. Measurement rows may be evicted under the configured storage
+allowance (logged centrally), but tombstones and deduplication metadata count
+inside that allowance and are never evicted to make room: exhaustion of that
+protected metadata is visible and fails closed without advancing ACK.
 Backup/restore must reconcile archive commits, deduplication state and identity-key
 bindings as one consistent checkpoint/journal recovery. Mismatched or missing state
 blocks new archival acceptance with 503 until reconciled; never silently rebuild

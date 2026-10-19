@@ -21,7 +21,9 @@ does not inherently require averaging; aggregation remains CESH's chosen policy.
 Recording defaults ON for every device running BardBox firmware, including
 serial-connected nodes, so this module is part of the default base; a project
 may only omit it deliberately. Vendor instruments not running BardBox firmware
-are outside this requirement.
+are outside this requirement. Boards with little or no spare flash (for example
+current RKC firmware, which has no queue) need a capacity and wear assessment
+before adopting it; the default does not by itself make every board capable.
 
 ## Proposed C++ interface
 
