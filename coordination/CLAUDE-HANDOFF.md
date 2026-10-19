@@ -21,17 +21,25 @@
   authorized owner interfaces are not ruled out); owners declare editable fields
   and permission; save through Controls, then read back; drafts survive refresh;
   honest failure and uncertain-outcome handling; no automatic exposure of
-  configuration or secrets; frequent operational-control exception.
+  configuration or secrets; a frequent operational control can sit on the main
+  card only by an explicit accepted decision.
+- Alarm-control placement (final, [accepted decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274413539),
+  superseding only the earlier prominent-slider placement): the enable/disable
+  switch is inside the expandable Alarm section; the main card always shows a
+  read-only "Alarm enabled"/"Alarm disabled" indicator (text plus color), not a
+  toggle and distinct from the active `ALARM` condition and red outline. Disable
+  semantics, manual re-enable, the truthful in-range reminder and the outline
+  while disabled are unchanged. Reconciled in the card top area, module
+  sections, editing-rule exception and alarm section; map row and DECISIONS
+  link updated.
 - [DECISIONS](../docs/DECISIONS.md) BB-003 link and the ARCHITECTURE presentation
   summary point to it.
 
 ## Open
 
-- **Alarm-control placement is under discussion, not accepted**
-  ([discussion record](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274357927)).
-  The prominent main-card switch remains the current baseline; the enabled or
-  disabled state must stay visible on the main card, distinct from an active
-  `ALARM` condition.
+Unchanged alarm open items: switch scope with several alarm rules, escalation
+restart or resume on re-enable, toggle audit, exact wording and reminder gating.
+No confirmation, hold or authentication workflow is selected.
 
 ## State
 
