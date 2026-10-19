@@ -100,15 +100,34 @@ representative RKC/CESH review. Every entity card shares one rough top structure
    archive-blocked conditions, and it adds no loss display: capacity losses go
    only to the central error log.
 
-Below the top area, Identity is a standard section; Sensor QA, Hardware and
-Phone Chain are optional sections shown where the capability exists, and
-per-sensor foldouts are supported. Exact fields remain deferred.
-
 **Latest value.** A card shows the newest valid measurement by trustworthy
 measurement time. Older records that arrive during catch-up go to history and
 never replace a newer latest value. If the newest measurement is stale it is
 labelled stale; no fresh-preview or unknown-clock behavior is promised beyond the
 existing contracts.
+
+### Card sections from included modules
+
+Accepted direction ([card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270321987)); the provisional mockup is not an accepted field list,
+and exact fields remain deferred.
+
+- Sections below the top area are supplied by the modules a project includes, not
+  by bespoke project sections for the same capability. Identity and Health are
+  common to every card; Hardware, Sensor QA and per-sensor groups (foldouts) are
+  optional and configurable.
+- Prefer one standard **Escalation** section for contacts, acknowledgement and
+  next action, independent of the delivery channel (SMS, email or other), shown
+  only when escalation is included. An alarm alone does not require it.
+- Modules may explicitly declare displayable status, values and control
+  descriptors; the project selects which are shown. Full configuration and
+  secrets are never exposed automatically.
+- **Alerts control.** Alarm declares the allowed range and the alerts control's
+  meaning, state, permission and label; Rendering supplies the shared visual
+  control and the authorized edit path (save through Alarm, then re-read). The
+  accepted *target* meaning: turning alerts off pauses notifications and
+  escalation while measurement and alarm evaluation continue. Existing
+  implementations may differ; this is a documented target, not a runtime change.
+- A future AQI or color indicator light is explicitly deferred.
 
 ### Estimated values
 

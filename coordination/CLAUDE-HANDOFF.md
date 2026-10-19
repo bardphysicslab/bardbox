@@ -43,7 +43,11 @@ capacities and blocked-head interaction; compact-chunk anchor representation;
 entity IDs and replacement-hardware attribution; measurement-contract format and
 archived snapshot (D5); timezone preference and persistence; partner fields,
 keys and hosting/access plan; multi-file config sync tooling; card field
-selection and status-label combination.
+selection and status-label combination; module display-descriptor format;
+alignment of existing alerts toggles with the accepted alerts-off target
+(notifications/escalation paused, evaluation continues); a future AQI/color
+indicator (deferred). Final accepted card refinement applied:
+[issuecomment-6270321987](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270321987).
 
 ## Loose ends and dispositions
 

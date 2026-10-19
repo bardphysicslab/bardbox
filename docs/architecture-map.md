@@ -280,9 +280,9 @@ secrets must be reconciled before any layout change
 | Node definitions, entity association, names, installation location/coordinates, link type, per-device cadence | Registry | Required module |
 | Project measurement contract: channels, units, validators | Declared by the project; resolved by Registry | Metric default; units always explicit |
 | Calculations, derived-result definitions, conversion helpers | Processing | Required module; may be a no-op |
-| Alarm thresholds, delays and arming | Alarm (optional) | Thresholds stay in the alarm's units; display units never change alarm semantics |
-| Contacts, order, availability, opt-outs, message templates | Phone chain / escalation (optional) | RKC ownership work: [rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16) |
-| Display selections: card content, optional prominent reading, optional buffer indicator, display units, timezone presentation | Rendering | Field selection and timezone preference persistence remain open |
+| Alarm thresholds, delays, allowed ranges, and the alerts control's meaning, state, permission and label | Alarm (optional) | Thresholds stay in the alarm's units; display units never change alarm semantics. Target: alerts off pauses notifications/escalation, not measurement or alarm evaluation ([card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270321987)) |
+| Contacts, order, availability, opt-outs, message templates, acknowledgement and next action | Phone chain / escalation (optional, independent of delivery channel) | RKC ownership work: [rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16) |
+| Display selections: which module-declared sections, status, values and controls appear; optional prominent reading and buffer indicator; display units; timezone presentation | Rendering (shared visual controls and authorized edit path) | Modules declare displayable descriptors; full configuration and secrets are never auto-exposed. Field selection and timezone preference persistence remain open |
 | Local history storage allowance and target window | Archive | About two weeks is an adjustable target, not a guarantee |
 | Drive backup enablement, schedule, destination | Backup (optional) | Included, OFF by default |
 | Freshness, stale and offline thresholds | Health | Per source; offline after stale |
@@ -350,7 +350,11 @@ The rendering layer reads through query interfaces, not ingestion. Cards are led
 by the monitored entity or place, with contributing hardware identity and health
 beneath, following the shared rough structure in the
 [Web UI standard](web-ui-standard.md#card-top-area). Availability of a field never
-implies its display. Operator requests pass through authorized control interfaces;
+implies its display. Card sections come from included modules: Identity and
+Health are common, Hardware, Sensor QA and sensor groups optional, and a standard
+Escalation section appears only when escalation is included
+([Web UI standard](web-ui-standard.md#card-sections-from-included-modules)).
+Operator requests pass through authorized control interfaces;
 the browser owns neither alarm timing nor safety decisions.
 
 Timer utilities provide clocks/deadlines (mechanisms); each module keeps its own
