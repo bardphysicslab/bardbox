@@ -37,7 +37,9 @@ calculation library is selected.
     app/             the server application: one folder per module (next section)
     firmware/        BardBox firmware; one PlatformIO project directly here, or
                      firmware/<project>/ when there is more than one
-  tests/             automatic application tests, per module plus integration
+  tests/             automatic application tests
+    <module>/        tests for one application module
+    integration/     cross-module scenarios
   scripts/           occasional operational utilities that call module interfaces
   deploy/            installation, service, endpoint, update and rollback configuration and helpers
   docs/              project documentation
@@ -114,7 +116,7 @@ software/app/
     pages.py
     config/
     templates/
-    static/                   the only folder served as static files
+    static/                   the only public static asset root
   authentication/             operator, device and partner-consumer authentication
     authentication.py
     config/
@@ -266,12 +268,13 @@ with the repository revision.
   security boundaries: modules in one process can read each other's files. Use
   least-privilege file ownership for the service user and keep secrets out of
   logs and reports.
-- **Static files come only from `rendering/static/`.** No web server or route
-  serves any other folder of the application tree as files, and private `config/`
-  or `data/` folders are never exposed wholesale. Rendered pages from
-  `rendering/templates/` and owner-mediated, authorized responses (for example
-  measurement data through the read-only API below) are normal application
-  output, not file serving.
+- **`rendering/static/` is the only public static asset root.** It is the only
+  application folder mounted or exposed as a public static file root; no other
+  application directory becomes a static or public file root, and private
+  `config/` or `data/` folders are never exposed wholesale. Rendered pages from
+  `rendering/templates/` and owner-mediated, authorized data responses remain
+  permitted, including selected historical files returned by the canonical
+  authenticated [Data API](service-operations-standard.md#read-only-historical-data-api).
 - **Data access is narrow.** Only approved measurement data or snapshots from
   `archive/data/measurements/` may be offered through the authenticated read-only
   [Data API boundary](data-api-mcp-boundary.md); `archive/data` as a whole is not
