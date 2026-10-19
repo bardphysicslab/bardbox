@@ -152,9 +152,10 @@ adoption or authorization for any particular editor.
   are edited under Identity (Registry owns them); thresholds under Alarm;
   contacts and escalation under Escalation; display preferences under Rendering
   settings. Values may still be shown elsewhere, but not edited there.
-- The card heading and location are ordinary display text. The only way to
-  change them is a clearly labelled **Edit name and location** button inside
-  Identity.
+- The card heading and location are ordinary display text. In the card UI,
+  they are changed only through a clearly labelled **Edit name and location**
+  button inside Identity. This organizes the dashboard; it does not rule out
+  other authorized owner interfaces, such as a Registry API or admin tool.
 - **Owners decide what is editable.** Each owning module explicitly declares
   its editable fields and who may change them, and it validates, persists and
   applies changes. Only declared fields are offered: configuration, secrets,
@@ -173,9 +174,11 @@ adoption or authorization for any particular editor.
 - **Exception for frequent operational controls.** A frequent, important
   operational control may stay prominent on the main card. The current accepted
   baseline is the [alarm enable/disable switch](#alarm-switch-and-disabled-state)
-  on the main card. Its exact placement is under discussion (one option being
-  explored keeps the switch inside the Alarm section with a labelled indicator
-  on the main card); until that is separately decided, the baseline stands.
+  on the main card. Its exact placement is under discussion
+  ([discussion record](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274357927);
+  one option being explored keeps the switch inside the Alarm section with a
+  labelled indicator on the main card, not accepted); until that is separately
+  decided, the baseline stands.
   Either way, the alarm's enabled or disabled state stays visible on the main
   card at all times, labelled distinctly from an active `ALARM` condition, and
   the owner, permission, save and readback rules above still apply.
