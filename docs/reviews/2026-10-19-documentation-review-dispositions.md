@@ -10,6 +10,7 @@ guidance: the linked documents govern.
 Governing decisions: [BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991),
 [UI clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269649488),
 [buffer estimates](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269868018),
+[UI amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270151957),
 [ENG-003](https://github.com/bardphysicslab/engineering-standards/issues/17#issuecomment-6269649466).
 Exploratory status-label discussion after those entries is not a decision.
 
@@ -38,6 +39,7 @@ elsewhere).
 | A15 | Metric default | Changed; `count/ft3` kept as a documented compatibility exception | [channel names](../channel-names.md), [reading format](../reading-format.md#units-and-time) |
 | A16 | Bard IT policy conditions | Unchanged: linked in its original conditional wording, no compliance claimed and no permission inferred from a proxy | [network access](../network-access.md) |
 | A17 | Decision recording | Changed: BB-003 index row linking the dated entry | [DECISIONS](../DECISIONS.md) |
+| A18 | Later accepted UI amendment (heading, sections, catching-up, latest value, location source) | Changed | [Web UI standard](../web-ui-standard.md#card-top-area), [node naming](../node-naming-standard.md#identity-layers), [map](../architecture-map.md#health-status-and-presentation) |
 
 ## Complete-repository coverage findings
 
@@ -67,6 +69,7 @@ elsewhere).
 | C22 | Privacy policy states no retention period | Unchanged: operational policy pages are out of scope; map D9 stays open | |
 | C23 | Driver, tests, fixtures, dependency manifest and CI drift | Follow-up: [bardbox#49](https://github.com/bardphysicslab/bardbox/issues/49); driver README labelled legacy and non-conforming | [driver README](../../drivers/gt521s_driver/README.md) |
 | C24 | Unpublished PCB work in the template checkout | Follow-up: [template#33](https://github.com/bardphysicslab/bardbox-project-template/issues/33); untouched | |
+| C25 | Legacy exact-version retention and time-gate wording contradicting accepted finite-storage and unknown-time policies (review) | Changed: scoped to their cases | [map](../architecture-map.md#local-history-and-backup), [service operations](../service-operations-standard.md), [time sync](../time-sync-standard.md) |
 
 ## Codex cautions (all accepted)
 

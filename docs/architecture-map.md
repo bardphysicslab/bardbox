@@ -170,7 +170,7 @@ flowchart TB
     Alarm --> Queries
     Escalation --> Queries
     Auth -.-> Controls
-    Controls -->|Edit requests: owner validates, saves; then saved values are re-read| Registry
+    Controls -->|"Edit requests: owner validates and saves, then saved values are re-read"| Registry
     Controls -->|Project setting edit requests| Settings["Module-owned configuration: each owner validates, persists and applies"]
     Controls --> Alarm
     Controls --> Escalation

@@ -29,8 +29,10 @@
 ## Evidence
 
 - Link, anchor, fence, table and whitespace checks over all tracked Markdown;
-  the three Mermaid drawings parsed; engineering-standards workflow checker and
-  its unit test. Results at the exact heads are in the pull requests.
+  structural check of the three Mermaid drawings (balanced subgraphs, quoted
+  labels, every edge endpoint defined); no Mermaid renderer was available, so
+  rendering was not verified. Engineering-standards workflow checker and its
+  unit test. Results at the exact heads are in the pull requests.
 - Findings and dispositions: [docs/reviews/2026-10-19-documentation-review-dispositions.md](../docs/reviews/2026-10-19-documentation-review-dispositions.md).
 - Current continuation: [docs/firmware-api-continuation.md](../docs/firmware-api-continuation.md).
 
