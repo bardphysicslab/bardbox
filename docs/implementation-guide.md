@@ -16,7 +16,7 @@ each:
 | Driver interface and capabilities | [Pi driver instructions](pi-driver-instructions.md) and [data source drivers](data-source-drivers.md) |
 | Polling, sampling and freshness | [Data source drivers](data-source-drivers.md) and [reading format](reading-format.md) |
 | Network access | [Network access](network-access.md) |
-| Location and coordinates | Server Registry ([Architecture Map](architecture-map.md#project-server-template)); never firmware |
+| Location and coordinates | Deployment metadata for fixed installations is owned by the Registry; measured GPS position from mobile, moving or vehicle-mounted nodes remains legitimate observation data ([Architecture Map, location metadata](architecture-map.md#location-metadata-and-observed-position)) |
 | Dashboard conventions | [Web UI standard](web-ui-standard.md) |
 
 The earlier text remains in Git history at

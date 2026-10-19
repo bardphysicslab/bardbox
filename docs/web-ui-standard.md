@@ -65,8 +65,10 @@ mobile widths. Do not hide critical status behind navigation.
 - Never display stale readings as current. Show unavailable and error states
   prominently, and show the last successful time (`last_seen`) separately when
   useful.
-- Human-readable names and locations come from server configuration (the
-  Registry), never from firmware.
+- Configured display metadata (human-readable names and installation
+  locations) comes from the server Registry, not firmware. Observed GPS
+  coordinates from mobile or moving nodes are measurements and are shown as
+  such, with their time and units, not as configured location.
 
 ## Foldouts, tables, charts, and controls
 

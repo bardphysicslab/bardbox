@@ -7,7 +7,8 @@ define its reference.
 
 - Palette tokens, dark theme and card geometry moved there unchanged.
 - The data display rules (no stale data shown as current, `—` for nulls,
-  separate `last_seen`, names from server configuration) moved there.
+  separate `last_seen`, configured names and locations from server
+  configuration) moved there.
 - This file's earlier 1440px shell example conflicted with the Web UI standard's
   1400px shell; the Web UI standard governs.
 - Its claim that RKC alone is the visual reference is superseded by the joint
