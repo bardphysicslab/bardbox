@@ -257,10 +257,12 @@ These edits are not sensor-ingestion input.
 Installation location and coordinates of fixed nodes (freezer monitors, roof
 sensors, lab air monitors, room displays) are deployment metadata owned by the
 Registry and edited through authorized controls; firmware GPS is usually
-unnecessary for them. A mobile, moving or vehicle-mounted node may legitimately
+unnecessary for them. Current devices have no GPS: the assembler configures
+latitude and longitude through the Registry ([UI amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270151957)). A mobile, moving or vehicle-mounted node may legitimately
 measure its position with GPS: that position is observation data with time,
 units and validity, carried and validated like any other declared channel, not
-a replacement for Registry metadata. Rendering labels which one it shows.
+a replacement for Registry metadata, and compatibility with such future
+observations is retained. Rendering labels which one it shows.
 
 ### Configuration ownership
 
@@ -335,9 +337,13 @@ different conditions, and alarm state is separate, so healthy communications can
 coexist with an active freezer alarm. Health keeps validity, freshness, contact
 and `archive_blocked` distinct; the existing reading statuses map onto these
 meanings in the [Web UI standard](web-ui-standard.md#standard-status-meanings).
-The exact combination of labels on a card is still under discussion. Latest state
-preserves measurement time separately from receipt/contact time, so Health can
-show a connected node delivering old records without calling them fresh.
+The full main-status vocabulary, its precedence and how a card combines labels
+remain open; "catching up" is only a supplementary indication beside the buffer
+indicator ([UI amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270151957)). Latest state preserves measurement time separately from
+receipt/contact time, so Health can show a connected node delivering old records
+without calling them fresh. The latest value is the newest valid measurement by
+trustworthy measurement time; older catch-up arrivals go to history and never
+regress it.
 Registry definitions, latest state and historical archive are different owners.
 
 The rendering layer reads through query interfaces, not ingestion. Cards are led
@@ -516,7 +522,7 @@ inventoried here. Science computed from BardBox measurements stays in scope. Mod
 | 8 | Health and freshness projections (contact, stale/offline, `archive_blocked`) | Health | Health | Both | CESH: offline after three expected intervals. RKC: observation state per poll sweep | Backup scope (D4) |
 | 9 | Cadence (reporting, acquisition, retry/catch-up, poll, logging) | Firmware; configuration | Registry (per device); configuration owner (project default) | Both | CESH: reported seconds, last value cached in memory. RKC: configured poll and log intervals | Millisecond precision and precedence per contract |
 | 10 | Channel definitions, units and validity metadata | Declared project measurement contract | Registry resolves (a minimal demo Registry may hold only UIDs) | Both | Hard-coded per driver or node type | Contract format; archived snapshot (D5) |
-| 11 | Registration and descriptive metadata (monitored entities, name, installation location, coordinates, owner, notes, enabled, legacy host/port) | Operators | Registry | Both | JSON app config; RKC admin edits written back to config | Backup scope (D4) |
+| 11 | Registration and descriptive metadata (monitored entities with entity ID, display name and separate location, installation coordinates, owner, notes, enabled, legacy host/port) | Operators | Registry | Both | JSON app config; RKC admin edits written back to config | Backup scope (D4) |
 | 12 | Alarm thresholds and alarm configuration (limits, delays, arm and door flags) | Operators | Alarm module (optional) | RKC | Per-node app-config fields, edited by admin and alert endpoints. The RKC CSV log reuses `min_temp_c`/`max_temp_c` for observed interval extremes | Kept distinct from ingestion validity limits; backup scope (D4) |
 | 13 | Project configuration (titles, timezone, clock and freshness policy, poll/stale/offline, feature flags, retention, backup policy) | Operators | Persistent configuration owner | Both | JSON app config, environment overrides, backup env file | Backup scope (D4) |
 | 14 | Display settings (visible fields, order, labels, optional prominent reading and buffer indicator, display units, timezone presentation) | Project | Rendering (module-owned configuration) | Both | Templates and code | Field selection and timezone preference persistence (D2) |

@@ -96,7 +96,7 @@ The UID grammar above is unchanged.
 | Identity | Identifies | Owner |
 | --- | --- | --- |
 | Node UID | A BardBox node definition (the hardware data source) | Project Registry |
-| Monitored entity | The thing or place measured, such as a freezer or Stevenson Roof; stable across hardware replacement | Project Registry (entity association) |
+| Monitored entity | The thing or place measured, such as a freezer or a rooftop site; a stable entity ID, a familiar display name and a separate location (several entities may share one location; the name need not equal the location) | Project Registry (entity association) |
 | Application ID | The deployed software system and what it provides | Project configuration |
 
 - Settings and history that belong to the entity (for example alarm settings and

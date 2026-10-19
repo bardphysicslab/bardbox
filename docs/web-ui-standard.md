@@ -81,19 +81,34 @@ mobile widths. Do not hide critical status behind navigation.
 Accepted direction; exact remaining fields and placement are deferred to a
 representative RKC/CESH review. Every entity card shares one rough top structure:
 
-1. **Entity or place heading and status.** The monitored entity or place (a
-   freezer, Stevenson Roof) leads the card. Contributing hardware identity and
-   health sit beneath it, normally in a foldout.
+1. **Entity heading and status.** The entity's familiar display name comes
+   first, with its location beneath it ([UI amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270151957)). Name and location are separate
+   fields, several entities may share a location, and the name need not equal
+   the location. The stable entity ID and the hardware UID are distinct and need
+   not be shown in the heading. Contributing hardware identity and health sit
+   beneath, normally in a foldout.
 2. **Optional prominent reading.** A project may select one or more prominent
    original or derived values (RKC: a single temperature) or none.
 3. **Optional buffer fill indicator.** A compact battery-style fill with a rough
    percentage, as CESH does, computed only from telemetry the source actually
    reports (Web Node `buffer_count` and `buffer_max_records`). Omit it for sources
-   without that telemetry; never estimate the fill itself or invent values. Do not
+   without that telemetry; never estimate the fill itself or invent values.
+   "Catching up" may appear only as a supplementary indication beside this
+   indicator, never as the card's main status. Do not
    show raw record counts on the card by default; exact diagnostics stay
    available elsewhere. The indicator must not hide full, error or
    archive-blocked conditions, and it adds no loss display: capacity losses go
    only to the central error log.
+
+Below the top area, Identity is a standard section; Sensor QA, Hardware and
+Phone Chain are optional sections shown where the capability exists, and
+per-sensor foldouts are supported. Exact fields remain deferred.
+
+**Latest value.** A card shows the newest valid measurement by trustworthy
+measurement time. Older records that arrive during catch-up go to history and
+never replace a newer latest value. If the newest measurement is stale it is
+labelled stale; no fresh-preview or unknown-clock behavior is promised beyond the
+existing contracts.
 
 ### Estimated values
 
@@ -111,7 +126,9 @@ invented ETA. These help a technician judge whether a site visit is needed.
 Status meanings and labels are standard across BardBox and keep separate
 dimensions separate. They reuse existing codes; future runtime adoption maps the
 existing statuses explicitly and preserves legacy and target compatibility
-labels. Which labels a card combines, and how, is still under discussion.
+labels. The table maps existing meanings and labels; it is not a new main-status
+model. The full main-status vocabulary, its precedence and how a card combines
+labels remain open.
 
 | Meaning | Label | Legacy reading status | Target owner and representation |
 | --- | --- | --- | --- |
