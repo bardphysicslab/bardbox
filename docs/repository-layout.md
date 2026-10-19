@@ -14,6 +14,17 @@ generated scaffolding and not evidence that any module is implemented or
 enabled. Existing projects are not migrated by this guide. Paths below are
 proposed; example code filenames are illustrative, not frozen APIs.
 
+**Scope.** The application tree describes the *server application's* source
+layout ([science-location clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271713054)). It is not a requirement to run every calculation on the server:
+firmware keeps its own layout and code under `software/firmware/`, and this guide
+moves no logic between firmware and server modules and no existing CESH logic.
+A project chooses where a scientific calculation runs. For example, a future
+CESH node indicator might compute an index locally in firmware while another
+instance computes it server-side in Processing. Methods such as AQI, and where
+they execute, remain future project design; keeping scientific definitions
+consistent across implementations is desirable, but no algorithm or central
+calculation library is selected.
+
 ## Repository roots
 
 ```text
@@ -45,62 +56,88 @@ enabled. A module has a `data/` folder only when it actually keeps saved state.
 
 ```text
 software/app/
-  main.py                   thin entry point: starts the Application module, nothing else
-  application/              which modules are included and enabled; startup wiring
+  main.py                     thin entry point: starts the Application module, nothing else
+  application/                which modules are included and enabled; startup wiring
+    composition.py
     config/
-  registry/                 node definitions, monitored entities, names, locations
+  registry/                   node definitions, monitored entities, names, locations
+    registry.py
     config/
-    data/                   registered definitions and identity bindings
-  communications/           receives and fetches data from nodes and sources
+    data/                     registered definitions and identity bindings
+  communications/             receives and fetches data from nodes and sources
     config/
-    http/                   HTTP push receiver
-    serial/                 serial adapter (optional)
-    drivers/                source drivers that parse and normalize each source
-  ingestion/                validates incoming observations (pure; no saved state)
+    http/
+      push_receiver.py        HTTP push receiver
+    serial/
+      serial_adapter.py       serial adapter (optional)
+    drivers/
+      <source>_driver.py      one source driver per source type: parse and normalize
+  ingestion/                  validates incoming observations (no owned saved state)
+    validate.py
     config/
-  latest_readings/          newest accepted value per entity and channel
+  latest_readings/            newest accepted value per entity and channel
+    latest_store.py
     config/
-    data/                   only if the latest view must survive a restart
-  archive/                  durable measurement history and acceptance bookkeeping
+    data/                     only if the latest view must survive a restart
+  archive/                    durable measurement history and acceptance bookkeeping
+    archive.py
     config/
     data/
       measurements/<stable-entity-id>/   one entity's history, possibly several rotated files
       receipts/                          acceptance, deduplication and tombstone bookkeeping
-  health/                   freshness, contact and delivery status
+  health/                     freshness, contact and delivery status
+    health.py
     config/
-    data/                   only if health projections must survive a restart
-  processing/               project calculations, derived results, conversions (pure)
+    data/                     only if health projections must survive a restart
+  processing/                 project calculations, derived results, conversions
+    calculations.py
+    units.py
     config/
-  alarm/                    alarm rules, thresholds and alarm state (optional)
+  alarm/                      alarm rules, thresholds and alarm state (optional)
+    alarm.py
     config/
-    data/                   active alarm state and history
-  escalation/               contacts, acknowledgement, next action (optional)
+    data/                     active alarm state and history
+  escalation/                 contacts, acknowledgement, next action (optional)
+    escalation.py
     config/
-    data/                   escalation and acknowledgement state
-    notification_adapters/  SMS, email and other delivery providers
-  queries/                  read interfaces used by rendering and the partner API (pure)
+    data/                     escalation and acknowledgement state
+    notification_adapters/
+      <provider>_adapter.py   SMS, email or other delivery provider
+  queries/                    read interfaces used by rendering and the partner API
+    queries.py
     config/
-  controls/                 authorized edit requests routed to the owning module (no saved state)
+  controls/                   authorized edit requests routed to the owning module
+    controls.py
     config/
-  rendering/                dashboards, cards and charts
+  rendering/                  dashboards, cards and charts
+    pages.py
     config/
     templates/
-    static/                 the only folder served directly to browsers
-  authentication/           operator, device and partner-consumer authentication
+    static/                   the only folder served as static files
+  authentication/             operator, device and partner-consumer authentication
+    authentication.py
     config/
-    data/                   credential verification material and sessions, never in Git
-  time/                     clocks, deadlines and scheduling mechanisms (pure)
+    data/                     credential verification material and sessions, never in Git
+  time/                       clocks, deadlines and scheduling mechanisms
+    clock.py
     config/
-  diagnostics/              the central application error log
+  diagnostics/                the central application error log
+    error_log.py
     config/
     data/
-      errors.log            the one application error log
-  backup/                   optional Drive backup (included, OFF by default)
+      errors.log              the one application error log
+  backup/                     optional Drive backup (included, OFF by default)
+    backup.py
     config/
-    data/                   manifest, deferrals, lock and checkpoint state
-  partner_api/              optional read-only pull API for external consumers
+    data/                     manifest, deferrals, lock and checkpoint state
+  partner_api/                optional read-only pull API for external consumers
+    partner_api.py
     config/
 ```
+
+Code filenames such as `registry.py` or `<source>_driver.py` are illustrative: they
+show that each module's code sits beside its `config/` and `data/`, not a required
+file list, API or scaffold. A module may have several code files or subfolders.
 
 The 18 modules match the [Architecture Map](architecture-map.md#project-server-template).
 Where the map uses a combined or older label, the folders are:
@@ -118,27 +155,32 @@ Where the map uses a combined or older label, the folders are:
 
 | Module | Plain-language job | `config/` holds | `data/` holds |
 | --- | --- | --- | --- |
-| `application` | Decides which modules this instance includes and enables, and wires them together at startup | Included/enabled module list and wiring choices | None |
+| `application` | Decides which modules this instance includes and enables, and wires them together at startup | Included/enabled module list and wiring choices (not scientific formulas, cutoffs or other modules' settings) | None |
 | `registry` | Knows every node, the entity it monitors, and its display name and location | Validation rules and defaults; where the project measurement contract is declared (its format is open) | Registered nodes, entities, bindings and descriptive metadata |
 | `communications` | Accepts pushed records, reads serial sources, fetches remote sources | Endpoints, size/rate limits, adapter settings | None in the reference layout |
-| `ingestion` | Checks each observation against the registry and contracts | Validation options | None (pure) |
+| `ingestion` | Checks each observation against the registry and contracts | Validation options | None (no owned saved state) |
 | `latest_readings` | Holds the newest valid value per entity and channel | Retention of the current view | Only if the current view must survive restart |
 | `archive` | Stores measurement history per entity and records what was accepted | Storage allowance, rotation and retention policy | `measurements/<stable-entity-id>/`, `receipts/` |
 | `health` | Works out freshness, contact and delivery status | Stale and offline thresholds | Only if projections must survive restart |
-| `processing` | Calculates derived results and unit conversions | Calculation definitions and parameters | None (pure) |
+| `processing` | Calculates server-side derived results and unit conversions where the project runs them on the server | Calculation definitions and parameters | None in the reference layout; project-specific state only if later designed (derived-value storage is open, map D1) |
 | `alarm` | Evaluates alarm conditions and owns the enable/disable state | Thresholds, delays, allowed ranges, control declarations | Active alarm state and history |
 | `escalation` | Tracks who is contacted, acknowledgements and next actions | Contacts, order, availability, opt-outs, templates, provider settings | Escalation and acknowledgement state |
-| `queries` | Serves read requests from other modules' read interfaces | Query bounds | None (pure) |
+| `queries` | Serves read requests through other modules' read interfaces | Query bounds | None (no owned saved state) |
 | `controls` | Passes authorized edits to the owning module, then re-reads them | Which edits are offered and to whom | None |
 | `rendering` | Draws dashboards and cards | Display selections, display units, timezone presentation | None |
 | `authentication` | Verifies operators, devices and partner consumers | Authentication methods and policies (no secret values) | Credential verification material and, where used, sessions |
-| `time` | Supplies clocks, deadlines and schedulers | Clock sources | None (pure) |
+| `time` | Supplies clocks, deadlines and schedulers | Clock sources | None (no owned saved state) |
 | `diagnostics` | Collects, writes and rotates the central error log | Redaction, rotation and size bounds | `errors.log` |
 | `backup` | Copies and verifies Archive snapshots to Drive when enabled | Enabled flag, schedule, destination reference | Manifest, deferrals, lock, checkpoint |
 | `partner_api` | Answers read-only external pull requests | Field mapping and request bounds (keys are verified by `authentication`) | None |
 
-Ingestion, Processing, Time, Queries and Controls keep no saved state; do not
-invent persistence for them. Latest readings and Health keep state only when a
+In the reference layout Ingestion, Processing, Time, Queries and Controls own no
+saved state, and none should be invented for them. That describes their
+reference needs, not a ban: a project may later design explicit state for one of
+them (for example stored derived science values, whose storage owner is open as
+map D1) through the normal design and review path. Queries and clock reads still
+read live data and time; "no owned saved state" is not a claim that they are
+mathematically pure. Latest readings and Health keep state only when a
 project needs it to survive a restart. Communications keeps none in the
 reference layout. A module's `config/` may hold only a tracked example while the
 module is disabled.
@@ -211,8 +253,12 @@ rebuilds and moving the application to another server.
   security boundaries: modules in one process can read each other's files. Use
   least-privilege file ownership for the service user and keep secrets out of
   logs and reports.
-- **Serve only `rendering/static/`.** No web server or route serves any other
-  part of the application tree, and never `config/` or `data/`.
+- **Static files come only from `rendering/static/`.** No web server or route
+  serves any other folder of the application tree as files, and private `config/`
+  or `data/` folders are never exposed wholesale. Rendered pages from
+  `rendering/templates/` and owner-mediated, authorized responses (for example
+  measurement data through the read-only API below) are normal application
+  output, not file serving.
 - **Data access is narrow.** Only approved measurement data or snapshots from
   `archive/data/measurements/` may be offered through the authenticated read-only
   [Data API boundary](data-api-mcp-boundary.md); `archive/data` as a whole is not

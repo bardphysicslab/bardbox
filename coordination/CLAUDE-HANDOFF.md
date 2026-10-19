@@ -4,7 +4,8 @@
 - **Task:** [bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31),
   [BB-004](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271296848),
   [critique dispositions](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271384280),
-  [Application supplement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271666389).
+  [Application supplement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271666389),
+  [science-location clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271713054).
 - **Shared guidance:** bardphysicslab/engineering-standards@aa8454649fc2e8bb5ad50a5829f8d0cbda736442
 - **BardBox standards:** bardphysicslab/bardbox@41fb97e7b0d7b80738ba44cb3942c795ecb3eaca
 - **Branch:** `codex/annotated-application-layout` from that baseline in the
@@ -23,7 +24,9 @@
   per-module table; locators; configuration files; state-survival caveats; the
   central error log; Archive entity histories and receipts; tests, scripts and
   deploy; the named nesting deviation; existing-project and adoption neutrality;
-  open engineering detail.
+  open engineering detail. Illustrative code files sit in every module. The tree
+  is explicitly the server application's layout; firmware keeps its own, and
+  calculation location (for example AQI) stays project design.
 - Pointers: README, ARCHITECTURE, Architecture Map (Application owner row and
   physical-folder pointer), config/report workflow, service operations, Pi
   runtime; DECISIONS BB-004.
