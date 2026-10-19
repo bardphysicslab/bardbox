@@ -208,10 +208,15 @@ Accepted direction ([switch amendment](https://github.com/bardphysicslab/bardbox
 - **Reminder when back in range.** When the alarm is disabled and its condition
   has returned within range, the card shows an on-card reminder such as
   "Within range — alarm disabled. Re-enable when ready."
-- **Only truthful in-range claims.** A stale, unknown-time, offline or faulted
-  reading is never presented as "within range"; in those cases the card shows the
-  disabled state with the applicable status instead. Precise gating (which
-  channels count, hold time, hysteresis) remains open.
+- **Only truthful in-range claims.** The reminder rests on valid, fresh evidence
+  for the alarm's *condition channels*. Under per-channel validity
+  ([BB-001](DECISIONS.md)), a fault on an unrelated channel does not null or
+  invalidate a healthy in-range condition channel. If a condition channel's
+  evidence is stale, unknown-time, offline or faulted, the card does not claim a
+  current "within range"; it shows the disabled state with the applicable status
+  instead. The precise freshness basis and gating (hold time, hysteresis) stay
+  open against the existing reading, health and ingestion contracts; this
+  section selects no aggregate status policy.
 - **Service alarms are illustrative.** An alarm for a node going offline or
   failing (for example at CESH) would be an Alarm rule consuming Health status;
   no timeout or detection policy is settled, and no project must include alarms.
