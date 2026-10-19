@@ -90,3 +90,40 @@ Result: **no blocking findings** in the four-file documentation amendment.
 
 This review-record update changes evidence only. The final published head is
 recorded on PR 50 and issue 31; merge remains the maintainer's decision.
+
+## Alarm switch and disabled-state amendment review
+
+Reviewed implementation: `1b20d76b4429ee4c77838ca8758f020198464c4a`, following
+`7a29bb4` and the relevant-condition precision fix `9663e48`; base publication
+`7524c653c92ac07a97a3a6c73e01a68f3fe8dd78`.
+[Accepted owning decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043).
+Result: **no remaining blocking findings** in this five-file documentation delta.
+
+Claude's critique is incorporated into the maintained draft: switch placement,
+the explicit notification/escalation-only meaning of disabled, disabled plus
+active-condition visibility, truthful recovery reminders, and combined
+Identity/Health ownership. The prominent sliding switch sits below the heading
+and above readings when Alarm is included; detailed settings remain expandable.
+Acquisition and evaluation continue while disabled, and re-enable is manual.
+
+Codex corrections preserve per-channel validity and the existing explicit
+live-observation freshness exception. An unrelated channel fault does not erase
+valid condition evidence; unknown device measurement time does not invalidate
+an otherwise allowed, explicitly labelled live-observation freshness basis.
+Neither replay receipt time nor an unsupported freshness claim can make the
+reminder say currently within range. No new aggregate status policy is selected.
+
+Multiple-rule switch scope, escalation restart/resume after re-enable, audit
+specifics, exact wording and detailed reminder gating remain open. A CESH service
+alarm is illustrative with no selected inactivity timeout or detection rule;
+RKC's existing alarm requirement is preserved. PurpleAir Flex correction,
+averaging and AQI work is future research, with no chosen algorithm. Local
+mockup values and HTML are not adopted.
+
+Independent verification: inspected the exact delta and its condition/time
+compatibility against the ingestion contract; all 66 tracked Markdown files
+pass conventional relative-link, heading-anchor and balanced-fence checks;
+whitespace checks pass. No diagrams changed, so the earlier Mermaid rendering
+limitation remains. Engineering PR 18 is unchanged. No runtime, pilot, demo,
+merge or deployment acceptance is claimed. The following reviewer-record update
+changes evidence only; the final published head is recorded on PR 50 and issue 31.
