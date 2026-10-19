@@ -17,10 +17,9 @@ Firmware development standard:
 
 - VS Code
 - PlatformIO
-- `firmware/platformio.ini`
-- `firmware/src/main.cpp`
-- `firmware/include/`
-- `firmware/lib/` when needed
+- `software/firmware/` per the [repository layout](repository-layout.md)
+  (older projects use a top-level `firmware/` root): `platformio.ini`,
+  `src/main.cpp`, `include/`, and `lib/` when needed
 
 Arduino libraries are allowed when used through PlatformIO. New examples should
 not be Arduino IDE `.ino` sketches as the primary source of truth.
@@ -44,8 +43,14 @@ bb-<site>-<type>-<instance>
 The site and type codes are exactly 3 lowercase letters, and the instance is
 exactly 3 digits. See `node-naming-standard.md`.
 
-Human-readable names and locations belong in Pi/backend configuration. UIDs are
-immutable once deployed.
+Human-readable names and installation locations belong in server Registry
+configuration. UIDs are immutable once deployed; the monitored entity's identity
+is separate from the node's ([identity layers](node-naming-standard.md#identity-layers)).
+All absolute device timestamps are UTC.
+
+Devices running BardBox firmware record persistently by default, including
+serial-connected nodes; `READ` serves the latest sample and never drains or
+acknowledges recorded data ([firmware blueprint](firmware-blueprint.md)).
 
 Legacy IDs like `bb-0001`, `bb-0002`, and `bb-0003` remain supported for
 existing deployments, but are deprecated. All new deployments must use

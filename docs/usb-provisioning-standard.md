@@ -145,10 +145,12 @@ Do not disable OTA or accept an unexpected pending image to make a demo work.
 
 ## OTA document authority
 
-`docs/ota-update-standard.md` was absent at main `da62d8d` and remains a separate pending proposal at this reconciliation.
-Its actual maintained proposal is
-[PR #16 at 7b947be](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/ota-update-standard.md),
-not an adopted main standard. Keep one draft there; do not create a replacement.
+October 19 status: PR #16 merged on October 16, so the maintained OTA draft is
+[ota-update-standard.md](ota-update-standard.md) on `main`. It remains a draft
+contract, not an implemented, adopted or deployed capability; do not create a
+replacement. Historical note (October 14–15): the file was then absent at main
+`da62d8d` and lived only at
+[PR #16 head 7b947be](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/ota-update-standard.md).
 The October 15 audit identified CESH references to the absent main path. Those
 are historical findings; consumer owners reconcile their current references with
 this pinned draft/status and preserve implementation evidence.

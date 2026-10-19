@@ -12,8 +12,8 @@ metadata when firmware changes. Unsupported scalar layouts use the general codec
 
 ## Framing and recovery
 
-All integers are unsigned little endian. The12-byte header consists of `BQ1\0`,
-a32-bit chunk sequence, and CRC32 of the preceding8 bytes. Each frame has a16-bit
+All integers are unsigned little endian. The 12-byte header consists of `BQ1\0`,
+a 32-bit chunk sequence, and CRC32 of the preceding 8 bytes. Each frame has a 16-bit
 payload length, payload, and CRC32 of length plus payload. The first payload is
 the base record; later payloads are versioned codec output. Lengths are bounded
 before allocation. CRC is corruption detection, not authentication.
@@ -35,9 +35,19 @@ The server must deduplicate stable record IDs. Keep old-format files readable,
 and prohibit OTA rollback to firmware that cannot read the new queue schema.
 Do not format the filesystem automatically when mounting fails.
 
+## Saturation anchor (accepted direction, open engineering detail)
+
+[BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 7 prefers keeping the oldest unacknowledged record as an anchor and
+evicting the oldest *unprotected* record at saturation. Because a chunk stores
+later records as references to its raw base, an implementation must keep any
+retained record decodable: for example by preserving the anchor's base chunk,
+or by copying or re-encoding retained records. This contract does not mandate
+one approach. Eviction is loss, never an ACK; ACK-cursor durability rules above
+still apply.
+
 ## Acceptance still required
 
-Host tests exercise every truncation position and byte corruption in a50-record
+Host tests exercise every truncation position and byte corruption in a 50-record
 chunk, with address/undefined-behavior sanitizers. This proves parsing properties,
 not LittleFS durability. Device integration must test interrupted flushes and ACK
 commits, full storage, legacy migration, acquisition timing, heap use and actual

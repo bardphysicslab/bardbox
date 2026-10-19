@@ -127,7 +127,11 @@ Flash filesystems, SD cards, databases, append-only logs, rotating files,
 fixed-size segments, or other documented mechanisms are acceptable. The
 implementation should define a finite capacity and must document what happens
 when that capacity is reached. Keeping newer monitoring data is generally
-preferred when finite storage forces data loss.
+preferred when finite storage forces data loss. The accepted BardBox direction
+([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 7) keeps the oldest unacknowledged record as an anchor and evicts the
+oldest unprotected record; such capacity eviction is recorded loss, never an
+acknowledgment. Its exact contract is open engineering work and this protocol
+version is unchanged.
 
 Long-term deployments should use storage-efficient queue designs that avoid
 rewriting a large archive after every acknowledgment.
@@ -139,8 +143,10 @@ For HTTP and HTTPS implementations, any HTTP `2xx` response is an
 acknowledgment. Redirects, `4xx`, `5xx`, timeouts, connection failures, TLS
 failures, malformed responses, and missing responses are not acknowledgments.
 
-A node must never remove a buffered measurement before acknowledgment. A failed
-upload leaves the current record queued and updates diagnostic error state.
+A node must never remove a buffered measurement before acknowledgment, except
+by documented capacity eviction, which is counted as data loss and never treated
+as delivery. A failed upload leaves the current record queued and updates
+diagnostic error state.
 
 ## Retry and catch-up
 

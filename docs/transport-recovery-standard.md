@@ -46,7 +46,7 @@ A reporting outage must never stop sensor acquisition, timestamping, or persiste
 1. sample at the sensor-appropriate cadence and validate each observation;
 2. complete an immutable record and persist it before it becomes eligible for upload;
 3. upload the oldest unacknowledged record first;
-4. remove that record only after the configured acknowledgement is received (HTTP/HTTPS: any 2xx response);
+4. remove that record only after the configured acknowledgement is received (HTTP/HTTPS: any 2xx response), except documented capacity eviction, which is recorded loss ([Web Node protocol](web-node-protocol.md#persistent-buffering));
 5. keep sampling and appending while an upload, retry, or catch-up is pending.
 
 Every network operation—association, DNS, TLS, request write, response wait, and acknowledgement—must have an explicit, finite deadline. A timeout, non-success response, or lost connection leaves the record queued and records a classified failure; it must not create an unbounded wait or a busy retry loop.

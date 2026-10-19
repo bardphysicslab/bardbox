@@ -2,7 +2,8 @@
 
 Status: proposed, 2026-10-16. Scope: two device-side interfaces shared by the BardBox USB
 installer (Firmware Tools) and ESP32 project firmware (CESH first). It does not define
-network OTA, which remains a separate draft (bardbox PR #16), registration, MAC handling or
+network OTA (the separate [OTA draft contract](ota-update-standard.md), merged October 16 via PR #16
+but not an implemented or adopted capability), registration, MAC handling or
 credential issuance.
 
 Ownership: BardBox owns these definitions. Firmware Tools writes them. Readers follow the

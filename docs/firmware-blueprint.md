@@ -1,7 +1,8 @@
 # BardBox firmware blueprint (proposed)
 
-Status: **design proposal**, consolidated 2026-10-14. Documentation only; it
-governs nothing until merged to `main`. It does not establish that any repository
+Status: **design proposal**, consolidated 2026-10-14 and merged to `main` on
+2026-10-16 (PR #32) as a proposal, not an adopted or implemented design. October
+19 accepted direction ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991)) updates recording and saturation below. It does not establish that any repository
 conforms, and it does not authorize building, flashing, publication or deployment.
 Tracker: [firmware API design #31](https://github.com/bardphysicslab/bardbox/issues/31);
 dispositions: [branch and proposal autopsy #33](https://github.com/bardphysicslab/bardbox/issues/33).
@@ -38,13 +39,12 @@ work. Published standards are authoritative; proposals are pending design contra
 | Base firmware, serial module, settings, beginner API | [Serial/base API](firmware-base-and-serial-api.md) | Proposal |
 | Optional durable delivery queue | [Buffer API](firmware-buffer-api.md) | Proposal |
 | USB flash, provisioning and boot verification | [USB flashing and provisioning](usb-provisioning-standard.md) | Proposal |
-| Compact record storage format | [compact-record-storage.md at PR #16 head `7b947be`](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/compact-record-storage.md) | Pending review, not adopted |
-| OTA lifecycle and validation | [ota-update-standard.md at PR #16 head `7b947be`](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/ota-update-standard.md) | Pending review, not adopted |
-| Continuation, decisions and handoff | [Firmware API continuation](firmware-api-continuation.md) | Dated record |
+| Compact record storage format | [Compact record storage](compact-record-storage.md) | Draft contract merged October 16 (PR #16); not implemented or adopted |
+| OTA lifecycle and validation | [OTA update standard](ota-update-standard.md) | Draft contract merged October 16 (PR #16); not implemented or adopted |
+| Continuation, decisions and handoff | [Firmware API continuation](firmware-api-continuation.md) | Current entry; dated history archived |
 
-The [PR #16](https://github.com/bardphysicslab/bardbox/pull/16) documents remain
-owned by that review; they are linked at an exact commit rather than copied, so
-there is one storage format and one OTA draft. Other pending topics (repository
+PR #16 merged on October 16, so its storage format and OTA draft are maintained
+on `main` (one copy each); merging did not adopt or implement them. Other pending topics (repository
 layout and config filenames, Wi-Fi recovery, live previews, campus access, Drive
 documentation home, tracker policy) keep their own reviews and dispositions in
 [#33](https://github.com/bardphysicslab/bardbox/issues/33).
@@ -54,8 +54,8 @@ documentation home, tracker policy) keep their own reviews and dispositions in
 **Existing (CESH 0.8.6, 2026-10-12).** One PlatformIO project per firmware
 product, under `software/firmware/<project>/`. The template keeps a single project
 directly in `software/firmware/`. [Device instructions](device-instructions.md)
-still name the older `firmware/` root; the layout change is pending in
-[PR #23](https://github.com/bardphysicslab/bardbox/pull/23).
+still name the older `firmware/` root; the merged
+[repository layout](repository-layout.md) uses `software/firmware/`.
 
 ```text
 software/firmware/<project>/
@@ -112,7 +112,7 @@ such as blocked unprovisioned INFO and immutable records remain current at
 | UID, display name, Wi-Fi and telemetry; optional OTA trust/image identity | Per device, at runtime | **Existing (CESH `34ff50a`):** immutable DB1 basic or DC1 including OTA inputs, written via `PROVISION_*` into NVS, mutually exclusive. Separate supported mutable settings do not replace these records. [USB configuration records](usb-device-configuration-standard.md#2-device-configuration-records). General revisioned identity/settings maintenance remains proposed. |
 | Reporting interval | Firmware default at build; supported override per device | **Existing (CESH 0.11.0 at `34ff50a`):** `REPORT_INTERVAL_STATUS/SET/CLEAR`; override stored separately from immutable DB1/DC1 and active at next boot. Reporting/aggregation cadence is not sensor polling or catch-up. See the [USB standard](usb-device-configuration-standard.md#3-device-settings-over-usb). |
 | Acquisition/streaming intervals and retry, buffer and time policy | Project build/runtime policy | General typed operational settings remain proposed; do not infer that the implemented reporting override makes every interval mutable. |
-| Location, ownership, coordinates, display metadata | Server | Never in firmware |
+| Installation location, ownership, coordinates, display metadata | Server Registry | Not firmware configuration; GPS position measured by a mobile node is observation data ([map](architecture-map.md#location-metadata-and-observed-position)) |
 
 - `config.example.h` holds tracked placeholders for a per-device local build.
 - `config.h` is ignored, private and per device.
@@ -197,7 +197,7 @@ marker. Do not generalize this bounded marker to a universal health approval.
   per-device settings are separate; an old immutable image hash is not retained
   as identity after the app bytes change.
 - **OTA commissioning stays separate** from installation and is governed by the
-  pending OTA proposal.
+  OTA draft contract.
 
 Migrating CESH from DC1 to the proposed settings contract needs its own reviewed
 plan; existing DC1 records must remain readable until then.
@@ -235,8 +235,9 @@ Rules for this recipe:
   remains separate from untouched bytes. The planner checks approved partition
   boundaries; that alone does not prove preservation under a foreign table.
   No whole-chip erase.
-- **Buffering is optional** even though space is reserved. Retention depends on
-  record size, cadence and storage overhead.
+- **Recording defaults ON** for BardBox firmware, including serial-connected
+  nodes ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 6); the data partition holds it. Retention depends on record
+  size, cadence and storage overhead; no unlimited retention is promised.
 - **Hashes versus padding.** Writes are padded with 0xFF to 4 KiB sectors, and
   read-back covers each full padded range, including any otadata reset. Image
   identity uses the unpadded app bytes: initial length/hash and the bundle's
@@ -267,7 +268,7 @@ can disagree with newly written bytes even when NVS is untouched.
 
 **Proposed remaining health/lifecycle contract, not adopted policy.** This narrows
 the previously open reinstall question; it does not change CESH validation or
-the pending [OTA draft](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/ota-update-standard.md).
+the [OTA draft contract](ota-update-standard.md).
 
 1. Installer evidence states exact image identity, layout/bootloader, write ranges,
    before/after metadata and preserved or lost fallback/data. Read-back completion
@@ -381,7 +382,8 @@ Adoption steps, each a bounded template PR. Do not copy CESH acquisition logic.
    settings contract. Choose one maintained home and do not copy them per project,
    following [promotion governance](promotion-governance.md).
 5. Add host tests and a firmware CI job that builds every environment.
-6. Keep buffering and OTA optional, adopted only after their reviews and bench gates.
+6. Recording defaults ON (accepted direction) but the shared recording component
+   is adopted only after its review and bench gates; OTA stays optional.
 
 ## 9. Evidence and limits
 
