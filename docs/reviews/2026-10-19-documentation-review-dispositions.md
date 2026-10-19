@@ -12,6 +12,7 @@ Governing decisions: [BB-003](https://github.com/bardphysicslab/bardbox/issues/3
 [buffer estimates](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269868018),
 [UI amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270151957),
 [card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270321987),
+[active-alarm outline](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270510607),
 [ENG-003](https://github.com/bardphysicslab/engineering-standards/issues/17#issuecomment-6269649466).
 Exploratory status-label discussion after those entries is not a decision.
 
@@ -42,6 +43,7 @@ elsewhere).
 | A17 | Decision recording | Changed: BB-003 index row linking the dated entry | [DECISIONS](../DECISIONS.md) |
 | A18 | Later accepted UI amendment (heading, sections, catching-up, latest value, location source) | Changed | [Web UI standard](../web-ui-standard.md#card-top-area), [node naming](../node-naming-standard.md#identity-layers), [map](../architecture-map.md#health-status-and-presentation) |
 | A19 | Final accepted card refinement (module-supplied sections, Escalation section, declared display descriptors, alerts-control ownership and target meaning) | Changed | [Web UI standard](../web-ui-standard.md#card-sections-from-included-modules), [map configuration ownership](../architecture-map.md#configuration-ownership) |
+| A20 | Accepted active-alarm card outline (slow red pulse with persistent `ALARM` text; static outline under reduced motion; triggered only by Alarm-owned active state, never by AQI/category or freshness colors) | Changed | [Web UI standard](../web-ui-standard.md#active-alarm-card-outline) |
 
 ## Complete-repository coverage findings
 

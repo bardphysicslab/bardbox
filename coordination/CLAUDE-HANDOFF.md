@@ -48,6 +48,9 @@ alignment of existing alerts toggles with the accepted alerts-off target
 (notifications/escalation paused, evaluation continues); a future AQI/color
 indicator (deferred). Final accepted card refinement applied:
 [issuecomment-6270321987](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270321987).
+Active-alarm card outline amendment applied:
+[issuecomment-6270510607](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270510607);
+AQI methods and thresholds remain unstandardized.
 
 ## Loose ends and dispositions
 

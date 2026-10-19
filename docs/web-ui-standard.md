@@ -163,6 +163,22 @@ labels remain open.
 shown independently of availability: healthy communications (`LIVE`) can coexist
 with an active freezer `ALARM`. Project measurement content remains configurable.
 
+### Active-alarm card outline
+
+Accepted direction ([active-alarm outline amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270510607)), codifying the existing RKC behavior as a shared rule:
+
+- While the Alarm module reports an active alarm for the card's entity, the card
+  outline pulses red slowly (no rapid flashing) and the card keeps a persistent
+  textual `ALARM` indication; color and motion are never the only signal.
+- When the viewer prefers reduced motion, show a static red outline with the
+  same text instead of the pulse.
+- Only the Alarm-owned active alarm state triggers it. Freshness or connection
+  status and air-quality or other category colors never do: an orange AQI
+  category alone does not pulse. Keep the alarm outline visually distinct from
+  those colors.
+- This standard does not define AQI methods or thresholds, and it adds no
+  escalation scope or runtime change.
+
 ## Foldouts, tables, charts, and controls
 
 - Use native `<details>`/`<summary>` for secondary card information. Identity,
