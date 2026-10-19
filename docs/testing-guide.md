@@ -2,6 +2,13 @@
 
 BardBox tests should prove both driver contracts and runtime freshness behavior.
 
+The coverage below is the legacy reading projection. The
+[ingestion contract](ingestion-contract.md) target (per-channel faults, unknown
+time) needs its own acceptance scenarios listed there. Timestamps are UTC with an
+explicit `Z` or offset. The repository's own legacy driver, contract test and
+fixtures do not yet meet this guide; see
+[bardbox#49](https://github.com/bardphysicslab/bardbox/issues/49).
+
 ## Required Contract Coverage
 
 Drivers and template apps should test:

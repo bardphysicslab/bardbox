@@ -13,6 +13,19 @@ original device measurement time in the proposed ingestion target.
 Applications must expose time status to operators. Logging and formal sessions
 must not start when time is `invalid`.
 
+## UTC everywhere, labelled local display
+
+Accepted October 19, 2026 ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 3). UTC is the convention for absolute time
+in BardBox firmware, internal interfaces, storage and APIs. Unknown or
+unsynchronized time stays explicit and is never fabricated; measurement,
+observation and receipt time stay distinct. Monotonic elapsed timing remains the
+right tool for intervals and deadlines. Rendering may convert to local time for
+people, labelling the timezone; this supersedes earlier UTC-primary display
+wording. Which timezone (site, user or server) and where that preference is
+stored remain open. Instruments not running BardBox firmware keep their own
+conventions until their driver normalizes them. A Pi's operating-system timezone
+setting does not change this rule.
+
 ## Measurement time versus server time
 
 For the [proposed ingestion target](ingestion-contract.md), the server clock

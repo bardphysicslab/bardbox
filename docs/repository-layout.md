@@ -21,6 +21,18 @@ do not move them blindly and break consumers. Software-only tools and standards
 repositories do not need artificial ECAD/MCAD folders. Existing legacy archives
 retain their historical paths; active project entry points use this layout.
 
+## Module folders in new reference code
+
+Accepted October 19, 2026 ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 12; shared rule in
+[engineering-standards ENG-003](https://github.com/bardphysicslab/engineering-standards/issues/17#issuecomment-6269649466)).
+New reference structures (the template and new instances) name folders and code
+after documented module responsibilities, so a reader finds Processing, Registry
+or Time directly, with each module's configuration in its own subtree. Shared
+time mechanisms live in Time; each module keeps its own scheduling policy. Avoid
+empty nesting for trivial code, and link shared implementations by source rather
+than copying them to fill a folder. A folder alone does not prove a dependency
+boundary. Existing pilots are not reorganized by this rule.
+
 ECAD contains KiCad schematics, boards, libraries and revisioned fabrication
 exports. MCAD contains enclosure/mechanical source and exports. Do not treat an
 empty folder or README as proof that drawings exist or an assembly is validated.

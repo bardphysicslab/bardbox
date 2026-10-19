@@ -8,11 +8,24 @@ Each BardBox project should provide:
 
 - `scripts/sync_app_config.py`
 - `scripts/generate_reports.py`
-- a repository-owned example/default config such as `raspi/config/app_config.example.json`
-- an ignored live config such as `raspi/config/app_config.json`
+- a repository-owned example/default config such as `software/app/config/app_config.example.json` (older projects: `raspi/config/`)
+- an ignored live config such as `software/app/config/app_config.json`
 - a disposable `reports/` directory for generated diagnostic text files
 
 When this tooling is absent or outdated, treat synchronizing it from `bardbox-project-template` as an early repository setup task.
+
+## Module-owned configuration (accepted direction)
+
+October 19, 2026 ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 5): each owning module validates, persists and
+applies its own settings, and new reference configuration physically lives in
+the owning module's subtree (for example alarm settings under the Alarm module).
+This refines the earlier single-file allowance for new reference structures.
+Existing pilot configuration is not moved by this decision. Before any layout
+change, the synchronizer and reports must handle per-module files while still
+preserving deployment values, local-only fields and protected secrets. Each
+setting declares who may edit it and when a change takes effect; authorized web
+edits save through the owner and then re-read the saved value
+([configuration ownership](architecture-map.md#configuration-ownership)).
 
 ## Standard report command
 

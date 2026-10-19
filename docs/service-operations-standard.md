@@ -11,12 +11,14 @@ Project-specific sensor, alert, and analysis logic does not belong here.
 | Process restart and application watchdog | REQUIRED for FastAPI/Uvicorn web services |
 | Read-only Data API | REQUIRED WHEN APPLICABLE |
 | Verified archive backup and retention | REQUIRED WHEN local historical data is retained and pruned |
+| Drive history backup in new reference instances | Included, OFF by default (accepted direction, see below) |
 | Tailscale remote administration | RECOMMENDED for Raspberry Pi deployments |
 | Central MCP/query boundary | REQUIRED architectural boundary |
 
 ## Safe configuration synchronization
 
-`raspi/config/app_config.example.json` is the sanitized, version-controlled
+`raspi/config/app_config.example.json` (in the current layout
+`software/app/config/app_config.example.json`) is the sanitized, version-controlled
 schema and default-value template. It must contain no real credentials.
 `raspi/config/app_config.json` contains local or production values, including
 secrets, and must be ignored by Git.
@@ -122,7 +124,13 @@ The canonical CESH Air router is the reference. Requirements:
 - read-only behavior: no write, shell, admin, config, service, or analysis API.
 
 This standard is conditional. Do not point it at a tree that mixes readings
-with alert, audit, credential, or configuration data. RKC's `data/logs/` is an
+with alert, audit, credential, or configuration data. Its file-listing shape is
+specific to historical file access: the optional partner read API reuses this
+security posture without that shape
+([Data API/MCP boundary](data-api-mcp-boundary.md#optional-partner-read-api)).
+Serving latest or time-range readings to that API is a query interface, not the
+dataset merging or analysis that the MCP boundary below keeps out of monitoring
+servers. RKC's `data/logs/` is an
 example of a mixed tree that must not be exposed wholesale.
 
 ## Verified backup and safe retention
@@ -145,6 +153,28 @@ copied but must not be verified or retained until stable; compressed files are
 closed candidates. Changed files invalidate older manifest versions. Archive
 destinations use copy semantics, never sync semantics that delete remote
 history. Services without local historical archives do not need this component.
+
+### Server history and backup defaults (accepted direction)
+
+October 19, 2026 ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 8; drawn in the
+[Architecture Map](architecture-map.md#local-history-and-backup)). Target design for
+new reference instances; existing deployments are unchanged until adopted.
+
+- Local measurement history is ON by default (a disposable demo may omit it),
+  bounded by a configurable storage allowance and reserve; about two weeks is an
+  adjustable target, not a guarantee, and history must not consume the whole disk.
+- Drive backup is included but OFF by default. With backup OFF, local history is
+  an ordinary rolling window with no permanent oldest anchor, and no backup or
+  network failure is reported merely because backup is disabled.
+- With backup enabled but failing when storage is saturated, keep a per-node
+  oldest-unbacked anchor plus the newest data and evict the oldest unprotected
+  records. This exceptional loss of unbacked data is distinct from the ordinary
+  verified-exact-version retention above, which is unchanged.
+- Every capacity discard is logged to the central application error log; no new
+  loss dashboard or alerting is defined.
+- Acceptance/deduplication tombstones survive row eviction, and exhausted
+  protected metadata or an inconsistent restore fails closed
+  ([ingestion contract](ingestion-contract.md#envelope-rejection-and-durable-acceptance)).
 
 ## Data access and MCP boundary
 

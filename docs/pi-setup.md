@@ -1,5 +1,14 @@
 # Bard Box — Raspberry Pi Setup Guide
 
+> **Status (October 19, 2026):** legacy Raspberry Pi preparation guide from the
+> Pi-hub era. Sections 1–6 (OS, SSH, updates, chrony, RTC, timezone) remain useful
+> practice. Where it differs from current standards, these govern: process
+> restart (`Restart=always`) and the application watchdog in
+> [service operations](service-operations-standard.md); time rules in the
+> [time synchronization standard](time-sync-standard.md); network exposure and
+> applicable Bard web policy in [network access](network-access.md). The
+> GoLab-specific paths and the `labdash` service name are examples, not standards.
+
 ## Purpose
 
 Step-by-step preparation of a Raspberry Pi for a Bard Box deployment.
@@ -73,8 +82,8 @@ chronyc tracking
 ```
 
 The `System time` offset should be well under 1 second. Target accuracy is
-±100 ms or better. See `reading-format.md` for the time synchronization
-requirement.
+±100 ms or better. See the [time synchronization standard](time-sync-standard.md)
+for the time requirements.
 
 ---
 
@@ -286,7 +295,7 @@ Type=simple
 User=golab
 WorkingDirectory=/home/golab/golab-monitor/raspi
 ExecStart=/home/golab/golab-monitor/venv/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
-Restart=on-failure
+Restart=always
 RestartSec=5
 
 [Install]

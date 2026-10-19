@@ -2,6 +2,15 @@
 
 > This document defines the behavior of the main Pi application (commonly implemented as `main.py`).
 
+> **Status (October 19, 2026):** legacy Pi-hub polling runtime. It still governs
+> existing polling deployments (driver validation, status model, time authority
+> and logging gate). New server work follows the
+> [Architecture Map](architecture-map.md) and the
+> [ingestion contract](ingestion-contract.md), where BardBox network nodes push
+> records and Processing, Registry and Health have separate owners. The App ID
+> format is in the [node naming standard](node-naming-standard.md#application-identity).
+> Absolute timestamps are UTC; dashboards may show labelled local time.
+
 ## Goal
 
 Define the standard structure and behavior for the main Raspberry Pi application (`main.py`) in a Bard Box deployment.
@@ -483,6 +492,4 @@ The Pi app must:
 * expose stable APIs
 * support sensor monitor deployments
 
-Return complete, working code when implementing.
-
-Do not return pseudocode.
+When implementing, deliver complete, working code rather than pseudocode.

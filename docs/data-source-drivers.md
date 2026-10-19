@@ -11,8 +11,9 @@ Examples include:
 - a directly attached serial instrument such as a GT-521S particle counter
 - a directly attached SPN1 solar instrument
 - a BardBox microcontroller node aggregating multiple sensors
-- a remote/vendor source such as PurpleAir
-- a remote/vendor source such as QuantAQ
+- a remote/vendor source (historical examples: PurpleAir and QuantAQ, whose
+  collection is now outside BardBox per
+  [bardbox#28](https://github.com/bardphysicslab/bardbox/issues/28))
 
 The Pi/runtime application consumes normalized driver output and must not contain vendor-specific protocol, API, CSV, or transport logic.
 
@@ -82,6 +83,10 @@ Dashboards must present equivalent source states consistently regardless of vend
 - `error` -> `ERROR`
 
 Source badges such as `EXTERNAL`, manufacturer names, or transport labels may be shown separately, but they must not create a separate availability model.
+
+These meanings and labels are standard across BardBox ([UI clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269649488)); the
+[Web UI standard](web-ui-standard.md#standard-status-meanings) maps them to the
+ingestion target and keeps alarm state separate from source availability.
 
 ## Migration Rule
 

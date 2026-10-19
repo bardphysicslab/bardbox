@@ -2,6 +2,15 @@
 
 Bard Box deployments are intended for internal use and are not exposed to the public internet.
 
+October 19, 2026 ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 9): CESH has selected an optional outward-facing,
+read-only partner pull API for intended external consumers such as JustAir
+([Architecture Map](architecture-map.md#project-server-template)). That direction
+does not redefine those consumers as internal users, and it authorizes no
+exposure: the rules below stay in force for every deployment until an authorized
+hosting/access plan exists. Bard's
+[web application and hosting requirements](https://github.com/bardphysicslab/engineering-standards/blob/main/docs/bard-it/README.md)
+apply wherever applicable, in their original conditional wording.
+
 ---
 
 ## Standard Access Model
@@ -16,7 +25,8 @@ Bard Box deployments are intended for internal use and are not exposed to the pu
 ## Why Internal Only
 
 * Sensor data may be sensitive
-* Keeps infrastructure simple — no SSL certificates, authentication layers, or firewall configuration required for initial deployments
+* Keeps infrastructure simple for initial internal deployments; this is a
+  rationale, not an exemption from applicable Bard web and hosting requirements
 * Access control is handled by Bard IT at the network level
 
 ---
@@ -34,9 +44,9 @@ Bard Box deployments are intended for internal use and are not exposed to the pu
 ### Example (`nmcli`) Configuration
 
 ```bash
-sudo nmcli con mod "Wired connection 1" ipv4.addresses "10.60.10.59/24"
-sudo nmcli con mod "Wired connection 1" ipv4.gateway "10.60.10.1"
-sudo nmcli con mod "Wired connection 1" ipv4.dns "10.60.10.1 8.8.8.8"
+sudo nmcli con mod "Wired connection 1" ipv4.addresses "<ip>/24"
+sudo nmcli con mod "Wired connection 1" ipv4.gateway "<gateway>"
+sudo nmcli con mod "Wired connection 1" ipv4.dns "<dns-servers>"
 sudo nmcli con mod "Wired connection 1" ipv4.method manual
 sudo nmcli con up "Wired connection 1"
 ```
