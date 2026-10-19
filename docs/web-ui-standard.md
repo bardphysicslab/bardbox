@@ -211,15 +211,22 @@ Accepted direction ([switch amendment](https://github.com/bardphysicslab/bardbox
 - **Only truthful in-range claims.** The reminder rests on valid, fresh evidence
   for the alarm's *condition channels*. Under per-channel validity
   ([BB-001](DECISIONS.md)), a fault on an unrelated channel does not null or
-  invalidate a healthy in-range condition channel. If a condition channel's
-  evidence is stale, unknown-time, offline or faulted, the card does not claim a
-  current "within range"; it shows the disabled state with the applicable status
-  instead. The precise freshness basis and gating (hold time, hysteresis) stay
+  invalidate a healthy in-range condition channel. If Health cannot establish
+  fresh, valid evidence for the relevant condition (including a stale or unknown
+  freshness basis, an offline node or failed condition channels), the card does
+  not claim it is currently within range; it shows the disabled state with the
+  applicable status instead. Trusted live observations may be fresh by their
+  explicitly labelled observation time under project policy even when
+  measurement time is unknown, while pushed and archived records never use
+  receipt time as a fallback
+  ([measurement time and observation freshness](ingestion-contract.md#measurement-time-and-observation-freshness)). The precise freshness basis and gating (hold time, hysteresis) stay
   open against the existing reading, health and ingestion contracts; this
   section selects no aggregate status policy.
 - **Service alarms are illustrative.** An alarm for a node going offline or
   failing (for example at CESH) would be an Alarm rule consuming Health status;
-  no timeout or detection policy is settled, and no project must include alarms.
+  no timeout or detection policy is settled, and this illustrative example
+  imposes no requirement on CESH or other projects (RKC's existing alarm
+  requirement is unchanged).
 - **Open:** switch scope when an entity has several alarm rules (per entity, as
   in RKC, or per rule); whether escalation restarts or resumes when re-enabled
   during an active condition; whether switch changes are audited with actor and
