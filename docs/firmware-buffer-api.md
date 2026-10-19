@@ -137,7 +137,7 @@ No CESH/RKC migration or hardware operation is authorized by saving this proposa
 Exact API types and scheduling limits remain open for implementation review.
 
 Tracker: [API design](https://github.com/bardphysicslab/bardbox/issues/31); entry point:
-[firmware blueprint](firmware-blueprint.md). The pending
+[firmware blueprint](firmware-blueprint.md). The
 [compact storage proposal](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/compact-record-storage.md)
 (merged October 16 as a draft, not adopted) owns the proposed binary framing,
 recovery scan and ACK-cursor rules; this API links to it and does not define a

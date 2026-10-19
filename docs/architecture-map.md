@@ -379,7 +379,12 @@ Backup runs periodically (for example hourly or daily) without blocking ingestio
 queries or rendering. Follow [service operations](service-operations-standard.md):
 copy rather than destructive sync; lock runs; verify stable versions before
 recording manifests; failed transfer/verification never advances deletion eligibility.
-Retention deletes only explicitly eligible exact versions. Credentials stay local
+Ordinary verified-backup cleanup deletes only explicitly eligible exact versions.
+That rule does not govern the two accepted finite-storage cases described in
+[local history and backup](#local-history-and-backup): the backup-OFF rolling
+window and enabled-backup failure at saturation, whose evictions are logged
+centrally. Tombstone and deduplication metadata stay protected and fail closed
+in every case, and copy/verify invariants are unchanged. Credentials stay local
 and outside repositories/read APIs. Restore acceptance and retention configuration
 remain deployment work. A container packaging choice does not waive process or
 application-watchdog requirements.
@@ -399,8 +404,10 @@ application-watchdog requirements.
   mechanism is still open.
 - **Not a control path:** a deferral is not an ACK and does not control
   catch-up. Backup has no ingestion dependency and never rewrites measurement
-  content. Only the existing, separately authorized retention of verified
-  exact versions may remove local copies.
+  content. Within backup-driven cleanup, only the existing, separately
+  authorized retention of verified exact versions may remove local copies; the
+  accepted backup-OFF rolling window and saturation eviction are separate,
+  logged storage policies.
 
 Current CESH behaviour is described separately from that target:
 - **Source** (pinned in the [evidence](server-data-inventory-evidence.md)): the

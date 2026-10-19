@@ -10,8 +10,14 @@ original device measurement time in the proposed ingestion target.
 - `rtc_holdover`: system time is sane but not currently NTP synchronized.
 - `invalid`: system time is not acceptable for logging or session start.
 
-Applications must expose time status to operators. Logging and formal sessions
-must not start when time is `invalid`.
+Applications must expose time status to operators. In existing Pi
+applications (legacy projection), logging and formal sessions must not start when
+the server's time is `invalid`; that formal-session requirement is preserved.
+In the target recording and ingestion contracts, an unsynchronized or unknown
+device clock does not stop recording or acceptance: records keep an explicit
+unknown measurement time ([BB-001](DECISIONS.md)) and are never given fabricated
+times. An invalid *server* clock still cannot supply trusted receipt time
+([ingestion contract](ingestion-contract.md#envelope-rejection-and-durable-acceptance)).
 
 ## UTC everywhere, labelled local display
 

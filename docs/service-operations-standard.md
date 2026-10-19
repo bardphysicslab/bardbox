@@ -10,7 +10,7 @@ Project-specific sensor, alert, and analysis logic does not belong here.
 | Config synchronization | REQUIRED where `app_config` is used |
 | Process restart and application watchdog | REQUIRED for FastAPI/Uvicorn web services |
 | Read-only Data API | REQUIRED WHEN APPLICABLE |
-| Verified archive backup and retention | REQUIRED WHEN local historical data is retained and pruned |
+| Verified archive backup and retention | REQUIRED WHEN backup is enabled and local historical data is pruned by backup-driven cleanup (current deployments); the accepted backup-OFF rolling window and saturation eviction are separate logged policies (below) |
 | Drive history backup in new reference instances | Included, OFF by default (accepted direction, see below) |
 | Tailscale remote administration | RECOMMENDED for Raspberry Pi deployments |
 | Central MCP/query boundary | REQUIRED architectural boundary |
