@@ -1,3 +1,9 @@
+> **Archived dated record (October 14–16, 2026).** Moved unchanged from
+> `docs/firmware-api-continuation.md` on October 19, 2026; only relative links
+> were adjusted for the new folder. It is historical evidence, not current
+> guidance: its "pending PR #16" statements describe that time (PR #16 and
+> PR #32 merged on October 16). Current entry: [firmware API continuation](../firmware-api-continuation.md).
+
 # Firmware design continuation
 
 October 14, 2026. Authoritative tasks: [firmware API design #31](https://github.com/bardphysicslab/bardbox/issues/31)
@@ -6,14 +12,14 @@ and the consolidation authorized in
 Review: [PR #32](https://github.com/bardphysicslab/bardbox/pull/32). GitHub is
 authoritative; this file is the dated design continuation, not a task ledger.
 
-Entry point: [firmware blueprint](firmware-blueprint.md), whose document map links
+Entry point: [firmware blueprint](../firmware-blueprint.md), whose document map links
 every maintained firmware document. One maintained copy per topic:
 
-- [serial/base API](firmware-base-and-serial-api.md);
-- optional [buffer API](firmware-buffer-api.md);
-- [USB flashing and provisioning](usb-provisioning-standard.md);
+- [serial/base API](../firmware-base-and-serial-api.md);
+- optional [buffer API](../firmware-buffer-api.md);
+- [USB flashing and provisioning](../usb-provisioning-standard.md);
 - source tree, build/runtime split, lifecycle, flash layout and release in the
-  [blueprint](firmware-blueprint.md);
+  [blueprint](../firmware-blueprint.md);
 - compact storage format and OTA lifecycle stay in pending
   [PR #16](https://github.com/bardphysicslab/bardbox/pull/16), linked at head `7b947be`.
 
@@ -136,7 +142,7 @@ Blueprint: `claude/firmware-blueprint` at `69795b588e56b31fdafa64c02e272e6cd4d68
 
 | Source section | Final location | Change |
 | --- | --- | --- |
-| Header, Existing/Proposed labels | [blueprint](firmware-blueprint.md) header | Status, provenance and evidence levels updated |
+| Header, Existing/Proposed labels | [blueprint](../firmware-blueprint.md) header | Status, provenance and evidence levels updated |
 | Related pending proposals | Blueprint §1 document map | Became the entry point; #16 linked at exact head |
 | §1 Source tree | Blueprint §2 | Composition now names the serial module and separate owners |
 | §2 Build-time versus runtime identity | Blueprint §3 | DC1 fields listed from CESH source and marked existing; runtime intervals separated as proposed only (Codex review, #31); firmware version mandatory |
@@ -154,7 +160,7 @@ USB: `codex/usb-provisioning-standard` at `ab83ab376475d7ef8adea57aa720b67726857
 
 | Source section | Final location | Change |
 | --- | --- | --- |
-| One assembly operation, distinct results | [USB doc](usb-provisioning-standard.md) same section | MAC binding cross-reference added |
+| One assembly operation, distinct results | [USB doc](../usb-provisioning-standard.md) same section | MAC binding cross-reference added |
 | Configuration and assembly choices | Same section | Link to proposed device settings |
 | Identity, registry and replacement | Same section | Immutable DC1 marked existing; intended maintenance stated |
 | Write boundaries and OTA compatibility | Same section | otadata wording points to the one open decision; flash table linked |
@@ -200,11 +206,11 @@ references, the PR #16 operator page, and topics assigned elsewhere in #33.
 ## Open decisions
 
 1. **USB startup/OTA reconciliation:** actual host plans are now distinguished
-   in the [USB matrix](usb-provisioning-standard.md#write-boundaries-and-ota-compatibility).
+   in the [USB matrix](../usb-provisioning-standard.md#write-boundaries-and-ota-compatibility).
    Resolve NVS OTA/DC1 state, health confirmation and fallback under the
-   [proposed startup contract](firmware-blueprint.md#boot-validation-and-rollback-compatibility);
+   [proposed startup contract](../firmware-blueprint.md#boot-validation-and-rollback-compatibility);
    verify the exact pinned bootloader and separately scoped physical evidence
-   ([blueprint §5](firmware-blueprint.md#write-plans-initial-install-reinstall-and-ota)).
+   ([blueprint §5](../firmware-blueprint.md#write-plans-initial-install-reinstall-and-ota)).
 2. Exact wire grammar and types, sample metadata placement and compatibility,
    STATUS versus INFO.
 3. Write/maintenance access policy for production devices.
@@ -253,7 +259,7 @@ Remote documentation authoring leaves canonical checkouts and active writers unt
 The existing BardBox checkout remains behind its remote; its owner reconciles it
 before subsequent local work. No new checkout/worktree or competing branch.
 
-Added the [Architecture Map](architecture-map.md) with maintained node/server Mermaid,
+Added the [Architecture Map](../architecture-map.md) with maintained node/server Mermaid,
 the flasher cross-link requested by its owner, source ownership and review evidence
 expectations. Root guidance, README and blueprint point to it. Both drawings
 describe targets: student publication abstraction, serial without a delivery queue,
