@@ -10,6 +10,17 @@ Rules:
 - no spaces
 - no vendor aliases
 - unit is defined by the standard, not embedded in ad hoc names
+- units are metric by default ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 2); every channel states its unit
+  explicitly and displays label it
+
+The particle-count channels below (`c03` … `c100`) keep `count/ft3` for
+compatibility with existing instruments and history. That is an explicit,
+documented exception to the metric default, not an implicit unit; any change
+needs a reviewed migration.
+
+This list is the shared vocabulary; each project declares which channels it uses,
+with units and validators, in its project measurement contract, which the project
+Registry resolves ([configuration ownership](architecture-map.md#configuration-ownership)).
 
 ## Registered Channels
 

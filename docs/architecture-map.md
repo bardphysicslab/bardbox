@@ -1,6 +1,8 @@
 # BardBox Architecture Map
 
 Status: **proposed target design**, recorded October 16, 2026 at Kornelis's request.
+Updated October 19, 2026 with accepted direction
+([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991)).
 This is the single maintained source for all three diagrams below, not a claim
 that their modules are implemented or deployed. Published contracts remain
 authoritative. Review and merge are separate from implementation and deployment.
@@ -31,20 +33,26 @@ three explicit responsibility groups below.
 Student code declares sensors/fields and submits complete measurements through
 one BardBox communications interface. A sensor-level write operation is
 illustrative: exact API names remain undecided. Acquisition, aggregation, record
-publication, serial output and network upload have independent schedules.
+publication, recording, serial output and network upload have independent
+schedules.
+
+October 19, 2026 accepted direction
+([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991),
+items 6–7) is drawn here as target design, not implemented behavior.
 
 ```mermaid
 flowchart TB
     Sensors["Sensor drivers"] --> Acquisition["Student acquisition code<br/>Sample, validate, optionally aggregate"]
     Acquisition --> Publish["BardBox communications interface<br/>Declare fields and publish once"]
-    Publish --> Latest["Latest per-sensor measurement<br/>Identity, timestamp and validity"]
-    Latest --> Serial["Serial adapter<br/>READ / streaming; own schedule<br/>NO delivery queue"]
-    Publish --> Records["Network record publication<br/>Own cadence"]
-    Records --> Queue["Persistent queue<br/>Persist completed records first"]
+    Publish --> Latest["Latest per-sensor measurement<br/>Identity, UTC timestamp and validity"]
+    Latest --> Serial["Serial adapter<br/>READ / streaming; own schedule<br/>never drains or ACKs recording"]
+    Publish --> Records["Record publication<br/>Own cadence"]
+    Records --> Queue["Persistent recording (ON by default, every transport)<br/>Persist completed records first<br/>At saturation: keep oldest unacknowledged anchor,<br/>evict oldest unprotected record"]
     Queue --> Upload["Network push delivery<br/>Own schedule, bounded retry and catch-up"]
     Upload -->|Acknowledged record| Queue
     Upload -->|Push records| Server["Project server"]
     Server -->|Acknowledgements| Upload
+    Queue -.->|"Serial historical recovery / ACK:<br/>open contract"| Serial
     WiFi["Wi-Fi connectivity<br/>Bounded recovery"] -.-> Upload
     Identity["Provisioned identity / configuration"] -.-> Publish
     Identity -.-> Upload
@@ -52,7 +60,7 @@ flowchart TB
     Time -.-> Records
     Time -.-> Serial
     Time -.-> Upload
-    Diagnostics["Diagnostics / local commands"]
+    Diagnostics["Diagnostics / local commands<br/>queue fill, bounded durable loss count"]
     Queue --> Diagnostics
     WiFi --> Diagnostics
     Acquisition --> Diagnostics
@@ -60,13 +68,29 @@ flowchart TB
     Maintenance["Provisioning / optional OTA"] --> Identity
 ```
 
-Serial has no persistent delivery queue. It serves the latest sample with
-identity, time and validity so repeated or old measurements are recognizable.
-Normal output stays quiet until requested or streaming is enabled.
+**Recording (accepted direction).** Persistent recording defaults ON for every
+device running BardBox firmware, including serial-connected nodes. Live serial
+READ/streaming serves the latest sample with identity, time and validity; it
+never drains or acknowledges recorded records. Recovering recorded history over
+serial needs a separate retrieval/acknowledgement contract that does not exist
+yet (dotted arrow). Instruments that do not run BardBox firmware are outside
+this requirement. Normal output stays quiet until requested or streaming is
+enabled.
 
-Network records persist before transmission and remain until acknowledgement.
-A full queue is finite: overflow behavior and lost-record diagnostics require
-an explicit reviewed policy; this drawing does not promise unlimited retention.
+**Finite storage (accepted direction).** Records persist before transmission
+and remain until acknowledgement. At saturation the oldest unacknowledged
+record is kept as an anchor and the oldest *unprotected* record is evicted to
+admit the newest; retained records still deliver oldest-first. Eviction is
+data loss: it is never an acknowledgement, never ordinary upload-failure
+recovery, and its bounded durable count is reported to the server's central
+error log when communication permits (no new loss UI). The anchor marks the
+earliest retained undelivered measurement, not an exact outage time. Token
+safety, power-loss recovery, tiny capacities, compact-chunk representation and
+interaction with an explicitly blocked FIFO head
+([ingestion contract](ingestion-contract.md#rejected-fifo-records-and-operator-disposition))
+remain engineering contract work; existing blocked-head behavior stays the safe
+initial rule. This replaces RejectNew as the preferred monitoring default; CESH's
+existing RejectNew behavior remains its documented current implementation.
 Submission does not imply immediate transmission on all adapters. Bounded
 servicing/backpressure and record-creation errors must remain observable.
 Optional live-preview delivery follows the [published optional contract](web-node-live-preview.md);
@@ -82,11 +106,24 @@ owns registered definitions; writing a UID does not enroll or authenticate it.
 
 ## Project server template
 
-**Packaging direction: Docker Compose template.** Modules describe responsibility,
-not one container each. Include scheduled backup as a separate service; each
+**Packaging direction: Docker Compose template (proposal).** Modules describe
+responsibility, not one container or service each; logical module boundaries are
+not mandatory services. Include scheduled backup as a separate service; each
 deployment configures credentials, destination and schedule. This is not evidence
 that the existing template already packages these components or satisfies the
-published service-recovery requirements.
+published service-recovery requirements, and it does not change the current
+native/systemd production model in [reproducible development](reproducible-development.md).
+
+**Minimum and optional capabilities** (accepted October 19,
+[BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991)
+items 1, 2 and 8–11). The user-facing minimum is a sensor and a way to display
+its measurements. Every instance has the Registry and Processing boundaries; a
+UID-only demo Registry may resolve schemas and units from the declared project
+measurement contract, and Processing may be a no-op. Everything else (alarms,
+phone chain, Drive backup, partner read API, serial interface) is selected per
+project, and selecting a capability is distinct from its default enabled state.
+Selected capabilities keep their identity, validation, security and reliability
+obligations. Alarms can run without the phone chain: RKC needs both, CESH neither.
 
 ```mermaid
 flowchart TB
@@ -104,44 +141,47 @@ flowchart TB
         Normalize --> Ingest["Ingestion: validate observations and record semantics"]
     end
     subgraph StateBoundary["Registry, health and archive: separate state owners"]
-        Registry["Project device registry — validate, persist and apply device configuration"] --> Ingest
+        Registry["Project Registry (required): node definitions, entity association;<br/>resolves schemas/units from the declared project measurement contract"] --> Ingest
         Registry -.-> Communications
-        Ingest -->|Archive records| Archive["Durable archive / deduplication"]
+        Ingest -->|Archive records| Archive["Durable archive / deduplication<br/>local history ON by default; storage allowance;<br/>tombstones survive row eviction"]
         Archive -->|Durable acceptance or known duplicate| Push
         Ingest -->|Accepted readings / previews| Latest["Latest-reading store"]
-        Ingest -->|Contact / validity evidence| Health["Health / freshness"]
+        Ingest -->|Contact / validity evidence| Health["Health / freshness<br/>validity, freshness, contact, archive_blocked"]
         Latest --> Health
     end
-    Archive --> Analysis["Analysis / sensor QA"]
-    Latest --> Analysis
-    Latest --> Alarm["Alarms"]
+    Archive --> Processing["Processing (required, may be no-op): project calculations,<br/>derived results, sensor QA, buffer estimates,<br/>pure unit conversion helpers"]
+    Latest --> Processing
+    Health -->|Last-known buffer occupancy| Processing
+    Latest --> Alarm["Alarms (optional)"]
     Health --> Alarm
-    Alarm --> Escalation["Acknowledgements / escalation"]
+    Processing -->|Selected derived inputs| Alarm
+    Alarm --> Escalation["Acknowledgements / escalation and phone chain<br/>(optional, independent of alarms)"]
     Escalation --> Notify["Notification adapters"]
     subgraph PresentationBoundary["Query, rendering and control: separate interfaces"]
-        Queries["Query interfaces / read API"] --> Render["Rendering: cards / charts / status"]
+        Queries["Query interfaces / read API"] --> Render["Rendering: entity cards / charts / status;<br/>display units and labelled local time"]
         Render -->|Operator requests| Controls["Authorized control API"]
     end
+    Render -.->|"Pure conversion / inverse conversion"| Processing
     Registry --> Queries
     Archive --> Queries
     Latest --> Queries
     Health --> Queries
-    Analysis --> Queries
+    Processing --> Queries
     Alarm --> Queries
     Escalation --> Queries
     Auth -.-> Controls
-    Controls -->|Device configuration edit requests| Registry
-    Controls -->|Project setting edit requests| Settings["Persistent configuration owner — validate, persist and apply"]
+    Controls -->|"Edit requests: owner validates and saves, then saved values are re-read"| Registry
+    Controls -->|Project setting edit requests| Settings["Module-owned configuration: each owner validates, persists and applies"]
     Controls --> Alarm
     Controls --> Escalation
-    Archive -->|Stable files / snapshots| Backup["Scheduled backup: per-node eligibility, deferral and checkpoint; rclone copy and verify"]
+    Archive -->|Stable files / snapshots| Backup["Optional Drive backup (included, OFF by default):<br/>per-node eligibility, deferral and checkpoint; rclone copy and verify"]
     Health -->|Per-node catch-up progress, read only| Backup
     Backup --> Drive["Configured BardBox Drive destination"]
     Backup -->|Backup health| Queries
-    Queries -->|Accepted records and derived values, read only| Export["Optional partner export: mapping, credentials, retries, deadlines, checkpoint"]
-    Export --> Partner["External partner, for example JustAir for CESH; interface undecided"]
-    Export -->|Export status| Queries
-    Settings -.-> Export
+    Queries -->|Accepted records and derived values, read only| PartnerAPI["Optional partner read-only pull API<br/>fields, bounds, keys and hosting deferred"]
+    Partner["External consumer, for example JustAir for CESH"] -->|Read requests| PartnerAPI
+    PartnerAPI -->|Responses| Partner
+    Auth -.-> PartnerAPI
     DiagnosticSources["Server error reports: operational modules and callers of pure modules"]
     DiagnosticSources -.->|Shared logging interface| DiagnosticLog["Central application diagnostic log: collection, output and retention"]
     subgraph Operations["Service operations, outside application modules"]
@@ -160,7 +200,6 @@ flowchart TB
     Timers -.-> Alarm
     Timers -.-> Escalation
     Timers -.-> Backup
-    Timers -.-> Export
 ```
 
 The diagnostic reporting path applies across server modules; the common source
@@ -195,40 +234,167 @@ acceptance; the parallel arrows express responsibilities, not an unsafe write or
 The [proposed ingestion contract](ingestion-contract.md) specifies the normalized
 record/delivery interface, partial channel faults, envelope rejection, cadence
 and Archive conflict/acceptance semantics. It refines these existing owners;
-it does not establish implementation or migrate pilots. Firmware and USB
-flasher maps retain their queue/ACK boundaries and need no arrow changes.
+it does not establish implementation or migrate pilots. The October 19 firmware
+recording and saturation direction changes the node drawing's queue labels, not
+the ACK rule: only durable acceptance or a known duplicate dequeues a record.
 
-Registry owns device names, locations, latitude/longitude, link type and
-per-device configuration. It validates, persists and applies edits through its
-own interface; the control API passes edit requests, not prevalidated settings.
+Registry owns node definitions, their association with monitored entities,
+device names, locations, latitude/longitude, link type and per-device
+configuration. It validates, persists and applies edits through its own
+interface; the control API passes edit requests, not prevalidated settings.
 For example, longitude must be a finite number in [-180, 180] and latitude
 in [-90, 90]. Queries obtain descriptive device metadata from Registry by UID.
-The persistent configuration owner separately validates, persists and applies
-project settings, such as backup policy and project cadence defaults. Invalid
-edits leave stored and active configuration unchanged. Rendering may provide
-early feedback; server owners enforce validation. These edits are not
-sensor-ingestion input.
+Monitored entities (a freezer, Stevenson Roof) have identity independent of
+hardware; their settings and history persist through hardware replacement while
+records keep their original node attribution
+([identity layers](node-naming-standard.md#identity-layers)). For a minimal demo
+the Registry may hold only node UIDs and resolve channel schemas and units from
+the declared project measurement contract; it remains the resolver even then.
+These edits are not sensor-ingestion input.
 
-Latest state preserves measurement time separately from receipt/contact time.
-Health can show a connected node delivering old records without calling those
-measurements fresh. Registry definitions, latest state and historical archive are
-different owners.
+### Location metadata and observed position
 
-The rendering layer reads through query interfaces, not ingestion. Shared cards,
-graphs, tables, identity and health components accept project-specific content.
-Operator requests pass through authorized control interfaces; the browser owns
-neither alarm timing nor safety decisions. Analysis has an explicit input interface
-and must preserve project scientific definitions and source data.
+Installation location and coordinates of fixed nodes (freezer monitors, roof
+sensors, lab air monitors, room displays) are deployment metadata owned by the
+Registry and edited through authorized controls; firmware GPS is usually
+unnecessary for them. Current devices have no GPS: the assembler configures
+latitude and longitude through the Registry ([UI amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270151957)). A mobile, moving or vehicle-mounted node may legitimately
+measure its position with GPS: that position is observation data with time,
+units and validity, carried and validated like any other declared channel, not
+a replacement for Registry metadata, and compatibility with such future
+observations is retained. Rendering labels which one it shows.
 
-Timer utilities provide clocks/deadlines. Alarm and escalation modules own their
-policy and state. Notification providers execute delivery rather than deciding
-alarm policy. Projects select optional capabilities and configure thresholds.
+### Configuration ownership
+
+Accepted October 19 ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991)
+item 5). Each owning module validates, persists and applies its own settings and
+declares who may edit each one and when a change takes effect. New reference
+configuration physically lives in the owning module's subtree, refining the
+earlier single-file allowance; existing pilot configuration is not migrated by
+this decision, and sync/report tooling, preserved deployment values and protected
+secrets must be reconciled before any layout change
+([config/report workflow](config-report-workflow.md)).
+
+| Settings | Owner | Notes |
+| --- | --- | --- |
+| Node definitions, entity association, names, installation location/coordinates, link type, per-device cadence | Registry | Required module |
+| Project measurement contract: channels, units, validators | Declared by the project; resolved by Registry | Metric default; units always explicit |
+| Calculations, derived-result definitions, conversion helpers | Processing | Required module; may be a no-op |
+| Alarm thresholds, delays, allowed ranges, and the alarm enable/disable control's meaning, state, permission and label | Alarm (optional) | Thresholds stay in the alarm's units; display units never change alarm semantics. Target: "alarm disabled" pauses notifications/escalation, not measurement or alarm evaluation; manual re-enable ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043)) ([card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270321987)) |
+| Contacts, order, availability, opt-outs, message templates | Phone chain / escalation (optional, independent of delivery channel) | RKC ownership work: [rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16). Acknowledgements and next action are Escalation-owned operational state (inventory row 18), not editable settings; the Escalation card section may display both |
+| Display selections: which module-declared sections, status, values and controls appear; optional prominent reading and buffer indicator; display units; timezone presentation | Rendering (shared visual controls and authorized edit path) | Modules declare displayable descriptors; full configuration and secrets are never auto-exposed. Field selection and timezone preference persistence remain open |
+| Local history storage allowance and target window | Archive | About two weeks is an adjustable target, not a guarantee |
+| Drive backup enablement, schedule, destination | Backup (optional) | Included, OFF by default |
+| Freshness, stale and offline thresholds | Health | Per source; offline after stale |
+| Partner consumer access | Partner read API (optional) | Key lifecycle and access plan deferred |
+| Remaining project-wide settings | Persistent configuration owner | Until a module owner is named |
+
+Authorized web edits follow one sequence: submit through the authorized control
+API; the owner validates and saves; then the saved configuration is read back and
+rendered, and that refreshed value is the user's check. A failed save keeps the
+prior value and is logged centrally. No extra confirmation step is required for
+ordinary application edits; hardware installation confirmation in the USB
+flasher is unchanged. Rendering depends on configuration owners, never the
+reverse.
+
+### Processing, units and time
+
+Processing is required in every instance and may be a no-op. It owns project
+calculations and derived scientific values (for example CESH confidence) and
+absorbs the former "Analysis / sensor QA" box; it does not take over transport
+normalization, ingestion validation, alarm rules or display formatting. It
+preserves original measurements and returns derived results separately with
+explicit meaning and units. It provides pure conversion and inverse-conversion
+helpers: Rendering chooses display units (several at once if useful) and converts
+edited values back before saving through the owner, so a display change never
+mutates shared observations, configuration or alarm semantics. Processing also
+computes buffer estimates (below); it never calls back into Rendering.
+
+BardBox uses metric units by default; interfaces identify units explicitly and
+displays label them. All absolute times are UTC across firmware, internal
+interfaces, storage and APIs; unknown time stays explicit, and measurement,
+observation and receipt time stay distinct. Monotonic elapsed timing remains
+valid for intervals and deadlines. Rendering may show local time with an explicit
+timezone label; the timezone source (site or user preference) and its
+persistence remain open.
+
+**Buffer estimates** (accepted note,
+[issuecomment-6269868018](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269868018)).
+Processing may estimate, for an offline node, when its finite buffer will fill,
+from the last-known occupancy and capacity, the recording interval/rate and the
+elapsed time, explicitly assuming the node stays powered and acquiring. It may
+estimate when a catch-up backlog clears only when observed net drain supports it,
+accounting for continued acquisition; it gives no estimate when the backlog grows
+or shows no progress. Estimates are omitted when inputs are insufficient. Rendering
+labels them **Estimated** and keeps the last reported actual value distinct.
+
+### Health status and presentation
+
+Status meanings and labels are standard across BardBox
+([UI clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269649488)):
+a disconnected or unreachable node, a sensor fault and a stale measurement are
+different conditions, and alarm state is separate, so healthy communications can
+coexist with an active freezer alarm. Health keeps validity, freshness, contact
+and `archive_blocked` distinct; the existing reading statuses map onto these
+meanings in the [Web UI standard](web-ui-standard.md#standard-status-meanings).
+The full main-status vocabulary, its precedence and how a card combines labels
+remain open; "catching up" is only a supplementary indication beside the buffer
+indicator ([UI amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270151957)). Latest state preserves measurement time separately from
+receipt/contact time, so Health can show a connected node delivering old records
+without calling them fresh. The latest value is the newest valid measurement by
+trustworthy measurement time; older catch-up arrivals go to history and never
+regress it.
+Registry definitions, latest state and historical archive are different owners.
+
+The rendering layer reads through query interfaces, not ingestion. Cards are led
+by the monitored entity or place, with contributing hardware identity and health
+beneath, following the shared rough structure in the
+[Web UI standard](web-ui-standard.md#card-top-area). Availability of a field never
+implies its display. Card sections come from included modules: Identity and
+Health are common, Hardware, Sensor QA and sensor groups optional, and a standard
+Escalation section appears only when escalation is included
+([Web UI standard](web-ui-standard.md#card-sections-from-included-modules)).
+Operator requests pass through authorized control interfaces;
+the browser owns neither alarm timing nor safety decisions.
+
+Timer utilities provide clocks/deadlines (mechanisms); each module keeps its own
+scheduling policy. Alarm and escalation modules own their policy and state and
+are optional and independent of each other. Notification providers execute
+delivery rather than deciding alarm policy. Projects select optional
+capabilities and configure thresholds.
+
+### Local history and backup
+
+Accepted October 19 (BB-003 item 8); target design, not implemented behavior.
+
+- **Local history** is ON by default (a disposable demo may omit it) with a
+  configurable storage allowance and reserve; about two weeks is an adjustable
+  target, not a guarantee.
+- **Drive backup** is included but OFF by default. With backup OFF, local history
+  is an ordinary rolling window: no permanent oldest anchor and no network-failure
+  errors merely because backup is disabled.
+- **Enabled backup failing at saturation:** keep a per-node oldest-unbacked
+  anchor plus the newest data, evicting the oldest unprotected records. This
+  exceptional loss of unbacked data is distinct from ordinary cleanup of exact
+  verified versions.
+- **Discards** are logged to the central error log; no new loss UI.
+- **Tombstones:** acceptance/deduplication tombstones survive row eviction so an
+  exact lost-ACK retry stays ACK-eligible without recreating removed history;
+  exhausted protected metadata or an inconsistent restore still fails closed until
+  reconciled ([ingestion contract](ingestion-contract.md#envelope-rejection-and-durable-acceptance)).
+- Enabled state of backup must not be confused with the foundational restore and
+  retention safeguards below.
 
 Backup runs periodically (for example hourly or daily) without blocking ingestion,
 queries or rendering. Follow [service operations](service-operations-standard.md):
 copy rather than destructive sync; lock runs; verify stable versions before
 recording manifests; failed transfer/verification never advances deletion eligibility.
-Retention deletes only explicitly eligible exact versions. Credentials stay local
+Ordinary verified-backup cleanup deletes only explicitly eligible exact versions.
+That rule does not govern the two accepted finite-storage cases described in
+[local history and backup](#local-history-and-backup): the backup-OFF rolling
+window and enabled-backup failure at saturation, whose evictions are logged
+centrally. Tombstone and deduplication metadata stay protected and fail closed
+in every case, and copy/verify invariants are unchanged. Credentials stay local
 and outside repositories/read APIs. Restore acceptance and retention configuration
 remain deployment work. A container packaging choice does not waive process or
 application-watchdog requirements.
@@ -248,8 +414,10 @@ application-watchdog requirements.
   mechanism is still open.
 - **Not a control path:** a deferral is not an ACK and does not control
   catch-up. Backup has no ingestion dependency and never rewrites measurement
-  content. Only the existing, separately authorized retention of verified
-  exact versions may remove local copies.
+  content. Within backup-driven cleanup, only the existing, separately
+  authorized retention of verified exact versions may remove local copies; the
+  accepted backup-OFF rolling window and saturation eviction are separate,
+  logged storage policies.
 
 Current CESH behaviour is described separately from that target:
 - **Source** (pinned in the [evidence](server-data-inventory-evidence.md)): the
@@ -275,23 +443,30 @@ Limits, kept open as D12:
   before retention.
 - No completion policy is defined here.
 
-**Optional partner export.** Outbound export to an external partner is optional.
-It is distinct from incoming third-party collection (outside BardBox),
-notifications and backup.
-- **Read boundary:** it reads accepted records and derived values through the
-  query and science read interfaces only. It has no ingestion or Archive ACK
-  role and never changes history.
-- **Independence:** export runs on its own schedule with bounded work.
-  Partner failures, slowness and retries never block ingestion, durable
-  acceptance or ACKs.
-- **Ownership:** the export module owns its field mapping, partner credentials,
-  retries, deadlines and checkpoint policy.
-- **Example:** CESH's eventual JustAir export. Partner requirements are tracked
-  in [cesh-air-monitor#35](https://github.com/bardphysicslab/cesh-air-monitor/issues/35).
-- **Undecided (D10):** whether the server pushes to the partner or the
-  partner pulls from a read API; the data subset; checkpoint and replay
-  semantics; and credential issuance. No provider contract or JustAir
-  interface is assumed here.
+**Optional partner read API (direction accepted October 19, BB-003 item 9).**
+External consumers pull data; the server does not push to them. This replaces
+the earlier undecided push-or-pull export. It is distinct from incoming
+third-party collection (outside BardBox), notifications and backup.
+- **Read only:** consumers request readings through the query and Processing
+  read interfaces. No ingestion, settings, Registry/location or hardware
+  mutation, no Archive ACK role, and no change to history.
+- **Pattern:** inspired by PurpleAir's registered-consumer pattern (latest
+  readings and historical time ranges); this is not drop-in PurpleAir
+  compatibility and reinstates no PurpleAir integration.
+- **Security boundary:** reuse the authenticated read-only boundary's posture
+  ([Data API/MCP boundary](data-api-mcp-boundary.md)) without its file-download
+  shape. Consumer authorization is tracked separately from device registry and
+  upload credentials, under the one Authentication/authorization owner.
+- **Independence:** consumer load is bounded so requests never block ingestion,
+  durable acceptance or ACKs.
+- **Example:** CESH's JustAir access, tracked in
+  [cesh-air-monitor#35](https://github.com/bardphysicslab/cesh-air-monitor/issues/35).
+  RKC does not need it.
+- **Deferred (D10):** exact fields and bounds, authentication and key
+  lifecycle, and the hosting/access plan. Existing network restrictions
+  ([network access](network-access.md)) stay in force for any deployment until
+  an authorized access plan exists; that does not redefine external consumers
+  as internal-only. No public exposure or provider contact is authorized.
 
 **Service supervision and application watchdog.** These follow
 [service operations](service-operations-standard.md).
@@ -326,6 +501,10 @@ added here.
 - **Target owner** follows the diagram above and the
   [ingestion contract](ingestion-contract.md).
 - **Gap** entries are review observations, not decisions.
+- **October 19 update:** owners settled by the accepted
+  [BB-003 entry](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991)
+  (Processing, Rendering display settings, phone-chain contacts, partner read
+  API, history/backup policy) are reflected below; other rows are unchanged.
 
 All measurements are one category, sensor data. Credentials are listed by
 purpose and storage location only. Third-party comparison feeds (PurpleAir,
@@ -337,29 +516,30 @@ inventoried here. Science computed from BardBox measurements stays in scope. Mod
 
 | # | Data category | Origin | Target owner | Projects | Current implementation | Gap for review |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Sensor data (all measurements) | Node sensors | Archive (history); Latest (current view) | Both | Current: CESH nodes push aggregates (stored in per-node daily CSV); RKC server polls nodes over TCP (interval CSV log) | Target for both: node-initiated queued push. RKC polling is a required migration, not a permanent design ([required migration](#required-migration-and-limits)). Per-channel faults and unknown time per contract; pruning owner (D3) |
-| 2 | Derived science and QA results | Science module | Science (project-owned); storage undecided (D1) | CESH | Project-owned derived confidence and advisories computed from BardBox measurements, written into archive CSV rows | D1 |
-| 3 | Device identity and bindings (UID, reported/legacy alias, archive device key; factory MAC deferred) | Provisioning; Registry | Registry | Both | UID lists in config files; firmware UID in NVS (CESH) or build (RKC) | Archive device key not implemented |
+| 1 | Sensor data (all measurements) | Node sensors | Archive (history); Latest (current view) | Both | Current: CESH nodes push aggregates (stored in per-node daily CSV); RKC server polls nodes over TCP (interval CSV log) | Target for both: node-initiated queued push. RKC polling is a required migration, not a permanent design ([required migration](#required-migration-and-limits)). Per-channel faults and unknown time per contract; history and saturation policy accepted (BB-003 item 8), enforcement detail D3 |
+| 2 | Derived science and QA results | Processing | Processing (required; project-owned definitions); storage undecided (D1) | CESH | Project-owned derived confidence and advisories computed from BardBox measurements, written into archive CSV rows | D1 |
+| 3 | Device identity and bindings (UID, reported/legacy alias, archive device key, node-to-entity association; factory MAC deferred) | Provisioning; Registry | Registry | Both | UID lists in config files; firmware UID in NVS (CESH) or build (RKC) | Archive device key not implemented |
 | 4 | Record identity, dedup and acceptance (record ID, source digest/profile, tombstones, rejection ledger, ACK outcome) | Node (ID); Communications (digest); Archive | Archive | CESH; RKC after push | CESH: ID-only check against an in-memory set rebuilt from CSVs. RKC: none (polling) | Content-aware durable dedup per contract |
 | 5 | Times (measurement, receipt, observation, contact, acceptance, event) and clock quality | Node clock; server clock | Ingestion validates; Clock supplies server time | Both | CESH: device time with RTC/NTP flag; falls back to receipt time. RKC: server poll time | Receipt-time fallback removed; observation basis labelled |
 | 6 | Firmware and protocol versions | Node | Archive (original record); Communications (supported list) | Both | CESH: in payload. RKC: optional cached INFO | Required original metadata per contract |
-| 7 | Link and delivery diagnostics (RSSI, node queue counts, catch-up, errors, sensor-health counters) | Node | Archive (original record); Health (current delivery) | Both | CESH: payload fields, with `current_*` appended at send time. RKC: RSSI inside data | Split original from delivery diagnostics |
+| 7 | Link and delivery diagnostics (RSSI, node queue counts, catch-up, errors, sensor-health counters) | Node | Archive (original record); Health (current delivery) | Both | CESH: payload fields, with `current_*` appended at send time. RKC: RSSI inside data | Split original from delivery diagnostics; bounded durable firmware loss counts reach the central log (BB-003 item 7) |
 | 8 | Health and freshness projections (contact, stale/offline, `archive_blocked`) | Health | Health | Both | CESH: offline after three expected intervals. RKC: observation state per poll sweep | Backup scope (D4) |
 | 9 | Cadence (reporting, acquisition, retry/catch-up, poll, logging) | Firmware; configuration | Registry (per device); configuration owner (project default) | Both | CESH: reported seconds, last value cached in memory. RKC: configured poll and log intervals | Millisecond precision and precedence per contract |
-| 10 | Channel definitions, units and validity metadata | Project definitions | Registry | Both | Hard-coded per driver or node type | Registry-supplied definitions; archived snapshot (D5) |
-| 11 | Registration and descriptive metadata (name, location, coordinates, owner, notes, enabled, legacy host/port) | Operators | Registry | Both | JSON app config; RKC admin edits written back to config | Backup scope (D4) |
-| 12 | Alarm thresholds and alarm configuration (limits, delays, arm and door flags) | Operators | Alarm module | RKC | Per-node app-config fields, edited by admin and alert endpoints. The RKC CSV log reuses `min_temp_c`/`max_temp_c` for observed interval extremes | Kept distinct from ingestion validity limits; backup scope (D4) |
+| 10 | Channel definitions, units and validity metadata | Declared project measurement contract | Registry resolves (a minimal demo Registry may hold only UIDs) | Both | Hard-coded per driver or node type | Contract format; archived snapshot (D5) |
+| 11 | Registration and descriptive metadata (monitored entities with entity ID, display name and separate location, installation coordinates, owner, notes, enabled, legacy host/port) | Operators | Registry | Both | JSON app config; RKC admin edits written back to config | Backup scope (D4) |
+| 12 | Alarm thresholds and alarm configuration (limits, delays, arm and door flags) | Operators | Alarm module (optional) | RKC | Per-node app-config fields, edited by admin and alert endpoints. The RKC CSV log reuses `min_temp_c`/`max_temp_c` for observed interval extremes | Kept distinct from ingestion validity limits; backup scope (D4) |
 | 13 | Project configuration (titles, timezone, clock and freshness policy, poll/stale/offline, feature flags, retention, backup policy) | Operators | Persistent configuration owner | Both | JSON app config, environment overrides, backup env file | Backup scope (D4) |
-| 14 | Display settings (visible fields, order, labels) | Project | Undecided (D2) | Both | Templates and code | D2 |
+| 14 | Display settings (visible fields, order, labels, optional prominent reading and buffer indicator, display units, timezone presentation) | Project | Rendering (module-owned configuration) | Both | Templates and code | Field selection and timezone preference persistence (D2) |
 | 15 | Users, roles and sessions (operator identity — not device UID) | Operators | Authorization at the control and query boundaries | Both | RKC: one admin login from environment; no user IDs or roles. CESH: no dashboard login; machine bearer token for the historical Data API | Operator user/role model (D6) |
 | 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, device Wi-Fi/OTA secrets, partner export credentials (future) | Deployment; provisioning | Deployment secret storage outside source. Communications authenticates devices and Registry owns identity bindings (per the ingestion contract); issuance and lifecycle are separately owned ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; issuance scheme and credential-to-identity integration contract (D7) |
-| 17 | Contacts and availability (people, phone/email, order, availability, opt-outs) | Operators; inbound SMS | Escalation configuration; explicit owner open ([rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16)) | RKC | App config, updated by the admin page and inbound STOP | D4, D8 |
+| 17 | Contacts and availability (people, phone/email, order, availability, opt-outs) | Operators; inbound SMS | Phone chain / escalation (optional); RKC implementation in [rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16) | RKC | App config, updated by the admin page and inbound STOP | D4 |
 | 18 | Alarm, escalation, acknowledgement and notification state (incidents, acknowledgement windows, processed inbound IDs, incident log, templates) | Alarm module; providers | Alarm and escalation modules | RKC | In-memory alert state; processed-ID JSON file; incident CSV copied by rclone | Restart durability; D4, D6 |
 | 19 | Inbound messages and request logs (SMS replies, sender numbers, unknown-node attempts with remote IP) | External senders | Communications diagnostics; notification adapter | Both | CESH logs rejected-UID attempts. RKC parses SMS replies (webhook and poller) | Retention and privacy (D9) |
 | 20 | Backup and recovery state (manifest, deferrals, lock, restore checkpoints) | Backup | Backup service, with Archive restore reconciliation | Both | CESH: rclone every 30 minutes, manifest, per-node catch-up deferral file, lock, verified local retention deletion; today's active CSV is never copied. RKC: incident-log copy only | No restore drill yet; completion evidence and deferral bounds (D12) |
-| 21 | Partner export configuration and state (field mapping, schedule, credential reference, checkpoint, delivery status and errors) | Operators; Export | Optional partner export module | CESH (future) | None | Interface, data subset, checkpoint and deadline policy (D10) |
+| 21 | Partner read API configuration and state (field mapping, consumer key references, request bounds, access status and errors) | Operators; partner read API | Optional partner read-only pull API | CESH (future) | None | Fields, bounds, authentication/key lifecycle and hosting/access plan (D10) |
 | 22 | Service liveness and restart state (liveness response, watchdog failure count, restart events) | Application process; watchdog; supervisor | Service operations, outside application modules | Both | Both repositories have a one-minute watchdog timer, a loopback `/health` probe script and a failure-count file (CESH [timer](https://github.com/bardphysicslab/cesh-air-monitor/blob/259cba6951332b7ba48e3111c7a0f132c8036891/deploy/cesh-air-watchdog.timer), [script](https://github.com/bardphysicslab/cesh-air-monitor/blob/259cba6951332b7ba48e3111c7a0f132c8036891/scripts/cesh-air-watchdog.sh); RKC [timer](https://github.com/bardphysicslab/rkc-monitor/blob/0c4f9238a7c85f282a69d92f4142c6eea06f184e/deploy/rkc-monitor-watchdog.timer), [script](https://github.com/bardphysicslab/rkc-monitor/blob/0c4f9238a7c85f282a69d92f4142c6eea06f184e/scripts/watchdog.sh)). Full conformance with the standard not audited | Separate from sensor freshness; host recovery (D11) |
 | 23 | Application diagnostic events (component, stage, reason, available time and device/record identity) | Operational modules; application callers of pure modules | Shared diagnostic logging facility (collection, output and retention) | Both (target) | Existing logs are not audited here; no shared logging conformance claimed | Explicit shared reporting per ingestion contract; output, access and retention configuration remain to be specified; duplicate-report ownership/correlation deferred |
+| 24 | Buffer estimates (time until an offline node's buffer fills; catch-up clearing time when net drain supports it) | Processing, from last-known occupancy/capacity (row 7) and recording rate | Processing (derived, transient); Rendering labels them Estimated | Both (target) | None | Inputs and display placement; omitted when inputs are insufficient |
 
 #### Proposed target: module operations by data category
 
@@ -382,7 +562,7 @@ Column 10 covers the authorized control API and the persistent configuration
 owner. For data owned elsewhere it passes edit requests (X) to that owner, which
 validates and stores them.
 
-| # | Ingestion 01 | Registry 02 | Clock/startup 03 | Archive 04 | Communications 05 | Backup 06 | Latest/Health 07 | Query/Render 08 | Controls/config 10 | Science 11 | Alarms 12 | Serial 13 (optional, low) | Export (optional) | Diagnostic logging (shared facility) |
+| # | Ingestion 01 | Registry 02 | Clock/startup 03 | Archive 04 | Communications 05 | Backup 06 | Latest/Health 07 | Query/Render 08 | Controls/config 10 | Processing 11 (required) | Alarms 12 | Serial 13 (optional, low) | Partner read API (optional) | Diagnostic logging (shared facility) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 Sensor data | V T | — | — | S Del ? | T X | X | S | D | — | R | R | C T X | T X | — |
 | 2 Derived science | — | — | — | ? | — | ? | — | D | — | C T | ? | — | ? | — |
@@ -404,9 +584,10 @@ validates and stores them.
 | 18 Alarm/notification state | — | — | — | — | — | X ? | — | D | X | — | C T S X Del | — | — | — |
 | 19 Inbound messages/logs | — | — | — | — | C X | ? | — | ? | — | — | T | — | — | — |
 | 20 Backup/recovery state | — | — | — | R | — | C S Del | R | D | — | — | — | — | — | — |
-| 21 Partner export config/state | — | — | — | — | — | ? | — | D | X | — | — | — | C V S X | — |
+| 21 Partner read API config/state | — | — | — | — | — | ? | — | D | X | — | — | — | C V S X | — |
 | 22 Service liveness/restart | — | — | C X | — | — | — | — | — | — | — | — | — | — | — |
 | 23 Application diagnostic events | C (returned faults only) | C X | C X | C X | C X | C X | C X | C X | C X | C X | C X | C X | C X | C S Del |
+| 24 Buffer estimates | — | — | R | — | — | — | R | D | — | C T | — | — | — | — |
 
 Notes:
 - **Application diagnostic events (23)** are separate from inbound messages/request
@@ -443,11 +624,15 @@ Notes:
   only about what credential-related data, if any, the integration contract
   (D7) places beside the identity bindings Registry already owns.
 - **Serial (13)** is optional and low priority; neither CESH nor RKC needs it.
-- **Partner export** (optional, no roadmap card yet) reads only through query
-  and science read interfaces, never through ingestion or Archive acceptance,
-  and changes no history. It is scheduled and bounded independently, so
-  partner failures and retries cannot block ingestion or durable ACKs. It
-  sends its status (21) to Query for display.
+- **Partner read API** (optional, no roadmap card yet) answers consumer pull
+  requests through query and Processing read interfaces only, never through
+  ingestion or Archive acceptance, and changes no history. Request load is
+  bounded so it cannot block ingestion or durable ACKs. Its status (21) is
+  readable through Query. Row 1's "T X" in this column is field mapping for
+  responses, not a push.
+- **Processing (11)** replaces the former "Science" column: it is required in
+  every instance and may be a no-op. Row 24 estimates are derived values it
+  computes; Rendering only displays them, labelled Estimated.
 - **Service liveness (22):** the application composition (column 03) serves
   `/health` and creates only a transient response; no module stores it. The
   Health module (07) owns sensor and node freshness, not process supervision.
@@ -463,9 +648,15 @@ Notes:
 
 **Decisions needed (not settled here):**
 - **D1** Storage and backup owner for derived science values.
-- **D2** Display-configuration owner (validate and store).
-- **D3** Archive pruning and retention owner. CESH's backup script deletes local
-  readings today; the contract requires acceptance tombstones.
+- **D2** *Owner resolved October 19:* Rendering owns display configuration as
+  module-owned settings (BB-003 items 5 and 10). Still open: exact field
+  selection and placement, and where a site or user timezone preference is
+  stored.
+- **D3** *Policy accepted October 19* (BB-003 item 8: history ON with a storage
+  allowance, backup-OFF rolling window, enabled-backup per-node anchor, tombstones
+  surviving eviction). Still open: which component enforces the allowance and
+  stores tombstones compactly, and power-loss/restore evidence. CESH's backup
+  script deletes local readings today.
 - **D4** Backup scope for registry data, configuration, thresholds, contacts,
   alarm state, health projections and request logs.
 - **D5** Whether Archive keeps a channel-definition snapshot for later
@@ -477,13 +668,14 @@ Notes:
   ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)).
   The existing owners are settled by the ingestion contract: Registry owns
   identity bindings and archive device keys, and Communications authenticates.
-- **D8** Contacts configuration owner
-  ([rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16)).
+- **D8** *Resolved October 19:* the phone chain owns contacts and templates
+  (BB-003 item 5); RKC implementation is
+  [rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16).
 - **D9** Retention and privacy rules for inbound messages and request logs.
-- **D10** Partner export specifics: push or pull interface, data subset
-  (including whether location or derived values are shared), checkpoint and
-  replay semantics, deadlines, and partner credential issuance
-  ([cesh-air-monitor#35](https://github.com/bardphysicslab/cesh-air-monitor/issues/35)).
+- **D10** *Direction resolved October 19:* read-only pull (BB-003 item 9).
+  Still open: exact fields and bounds (including whether location or derived
+  values are shared), authentication and key lifecycle, and the hosting/access
+  plan ([cesh-air-monitor#35](https://github.com/bardphysicslab/cesh-air-monitor/issues/35)).
 - **D11** Whole-host and power-loss recovery (for example hardware watchdog or
   power protection), separate from the application watchdog.
 - **D12** Backup completion evidence and per-node deferral limits:
@@ -564,7 +756,7 @@ flowchart TB
         Commands["Command dispatcher and maintenance interface"]
         Config["Device configuration owner — validate, persist and apply"]
         Runtime["Acquisition, serial output and optional network delivery"]
-        Queue["Persistent delivery queue"]
+        Queue["Persistent recording queue (ON by default)"]
         Adapters <-->|"Install and verify"| Install
         Adapters <-->|"Commands, capabilities, INFO and results"| Commands
         Commands --> Config
@@ -634,6 +826,13 @@ flowchart TB
   a separate unresolved contract.
 - Planned bulk queue export is read-only and non-destructive, not a serial delivery
   queue. Overflow-policy changes remain separate deferred firmware work.
+- October 19 consistency check: the node and server drawings changed (recording
+  ON by default, saturation anchor, required Processing, partner read API). The
+  flasher's abbreviated server context needs no new arrow; its queue label now
+  says recording. Hardware installation confirmation in the flasher is
+  unchanged. Applying the Processing building block (conversion helpers, such as
+  showing 120 s for a 120,000 ms firmware value) to the flasher itself is a
+  deferred idea for Firmware Tools, not a requirement.
 - OTA engineering is a separate application/workflow. It may share bundle validation
   and approval components; it owns assignments, authenticated network delivery,
   health validation and rollback. Neither app requires the other to be running.
@@ -652,9 +851,14 @@ blueprint or the separately proposed server template architecture.
 - Extract reusable capabilities incrementally. CESH's queue is a concrete first
   candidate; preserve queue format/ACK behavior and fault evidence. This is a
   recommendation, not implementation authorization.
+- Adoption order (BB-003 item 11): CESH's real requirements and reusable code
+  first, in a development instance of the shared template, then RKC to prove
+  reuse. Synthetic fixtures support checks; no separate pretend project is
+  required. Required Processing starts as a no-op. Pilots and compatible history
+  are preserved; firmware migration is separately owned.
 - Existing project sources can differ from these targets. The earlier print PDF
   is a discussion snapshot and predates rendering, backup and push-only refinements.
-- Registry synchronization, full-buffer policy, status/schema compatibility,
+- Registry synchronization, saturation-policy engineering detail, status/schema compatibility,
   sensor/channel partial validity, independent consumers, hardware queue survival,
   and flasher/OTA lifecycle acceptance remain explicit review/adoption work.
 - Applicable [Bard web policy and service guidance](https://github.com/bardphysicslab/engineering-standards/blob/main/docs/bard-it/README.md)
@@ -709,6 +913,14 @@ rendering, configurable scheduled backup and this central entry point.
 
 Shared guidance: bardphysicslab/engineering-standards@341b3ba82503eb23b786dfcf71af430cc627e2a5
 BardBox standards: bardphysicslab/bardbox@143d42976fd224e8609ee90744ba490a91df1819
+
+October 19 reconciliation (OCT19-DOCS-1) applied the accepted
+[BB-003 entry](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991),
+its [UI clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269649488)
+and [buffer-estimate note](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269868018)
+to all three drawings and the tables above.
+Shared guidance: bardphysicslab/engineering-standards@2cb958318b5b603b2b250c351425212e10a64fed
+BardBox baseline: bardphysicslab/bardbox@31100b88958299560b672d88030bc8e11585d2dd
 
 Existing earlier records retain their own governing commits. This proposal adds no
 runtime implementation, template code, firmware change, skill change, migration,

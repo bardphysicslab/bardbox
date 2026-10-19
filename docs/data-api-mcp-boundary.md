@@ -77,6 +77,17 @@ MCP-facing historical-data access should remain read-only. In particular:
 
 Credentials and authentication mechanisms belong at the API/MCP transport boundary and should not be embedded in project data or reports.
 
+## Optional partner read API
+
+The October 19 partner direction ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 9) reuses this boundary's security
+posture (authenticated, read-only, bounded, no writes or controls, no exposed
+credentials) for an optional external pull API serving latest readings and time
+ranges through query interfaces. It does not inherit the file-download shape of
+the historical Data API, and it does not create a second security authority:
+authentication stays with the server's single authorization owner. Fields,
+bounds, consumer keys and hosting are deferred
+([Architecture Map](architecture-map.md#project-server-template)).
+
 ## New and existing projects
 
 When a new BardBox project is created, design its historical data and Data API behavior so that it can be exposed through the shared BardBox data-access boundary if needed later. The project does not need an MCP implementation merely because it is a BardBox project.

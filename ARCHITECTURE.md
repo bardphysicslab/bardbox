@@ -18,6 +18,48 @@ Follow the current/proposed labels and published contracts; diagrams do not
 establish runtime conformance. Consumer repositories link here rather than copy
 Mermaid. Check related diagrams whenever an interface changes.
 
+## Accepted platform direction (October 19, 2026)
+
+Maintainer-accepted design direction, recorded as
+[BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991)
+with a [UI clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269649488)
+and a [buffer-estimate note](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269868018).
+It is design status, not implementation: draft or target documents merged to
+`main` are not implemented, adopted or deployed capabilities. The
+[Architecture Map](docs/architecture-map.md) draws it and lists owners.
+
+- **Minimum and capabilities.** A BardBox is minimally a sensor and a way to
+  display its measurements. Every instance has Registry and Processing
+  boundaries (Processing may be a no-op); everything else is an optional
+  capability selected per project, with defaults distinct from inclusion.
+- **Processing, units and time.** Processing owns project calculations, derived
+  results, buffer estimates and pure unit-conversion helpers, preserving
+  original measurements. Metric is the default and units are always explicit.
+  Absolute times are UTC in firmware, interfaces, storage and APIs; Rendering
+  may show labelled local time.
+- **Identity.** Monitored entities and places have identity independent of
+  hardware; Registry owns node definitions and entity association
+  ([identity layers](docs/node-naming-standard.md#identity-layers)).
+- **Configuration.** Owning modules validate, persist and apply their settings;
+  new reference configuration lives in the owning module's subtree. Web edits
+  save through the owner, then re-read and render the saved value.
+- **Recording and storage.** BardBox firmware records persistently by default,
+  including serial nodes; at saturation it keeps the oldest unacknowledged
+  anchor and the newest data. Server history is ON by default; Drive backup is
+  included but OFF by default. Capacity losses go to the central error log.
+- **Partner access.** Optional external access is a read-only pull API; exact
+  fields, keys and hosting are deferred and existing network restrictions stay.
+- **Presentation.** Shared branding, project title and current time on every
+  dashboard; entity-led cards; standard status meanings; field availability
+  never implies display ([Web UI standard](docs/web-ui-standard.md)).
+- **Adoption.** CESH first in a development instance of the shared template,
+  then RKC; pilots are preserved.
+- **Organization.** New module folders and names reflect responsibility; Time
+  supplies mechanisms while modules keep their scheduling policy. Shared
+  checkout and refactoring practice lives in
+  [engineering-standards](https://github.com/bardphysicslab/engineering-standards)
+  ([ENG-003](https://github.com/bardphysicslab/engineering-standards/issues/17#issuecomment-6269649466)).
+
 ## Ownership and project composition
 
 `bardbox` owns shared standards and specifications. `bardbox-project-template`
@@ -97,10 +139,11 @@ firmware/protocol version distinctions and existing command/payload contracts.
 
 ## Default UI templates
 
-The shared template owns device/project identity, health, sensor QA, navigation,
-and consistent styling. A defined readings extension point accepts project data
-and presentation choices. RKC uses compact door-state/temperature readings;
-CESH uses expandable sections per sensor. Projects select/configure a template
+The shared template owns device/project identity, health, navigation and
+consistent styling; project calculations and sensor QA belong to Processing.
+A defined readings extension point accepts project data and presentation
+choices. Cards are led by the monitored entity or place. RKC uses compact
+door-state/temperature readings; CESH uses expandable sections per sensor. Projects select/configure a template
 or extend supported slots/variants instead of copying the whole screen.
 
 Document template inputs, extension points, supported versions, and compatibility.
@@ -123,18 +166,49 @@ components. Check each authoritative implementation before planning an
 extraction. Record gaps separately and improve one bounded capability at a time;
 do not make active project deadlines depend on an unrelated broad migration.
 
+## Starting a new project
+
+Consolidated from the former implementation guide (October 19, 2026) and
+updated to the current architecture. Start from `bardbox-project-template`;
+do not copy this standards repository.
+
+1. Read the [Architecture Map](docs/architecture-map.md) and select the optional
+   capabilities the project needs; the minimum is a sensor and a way to display
+   its measurements, with the Registry and Processing boundaries present.
+2. Declare the project measurement contract: canonical channels from
+   [channel names](docs/channel-names.md), explicit units (metric by default)
+   and validity rules. Add new channels there before using them.
+3. Register each node UID and its monitored entity in the project Registry
+   ([node naming](docs/node-naming-standard.md#identity-layers)); assign an
+   [App ID](docs/node-naming-standard.md#application-identity).
+4. Write BardBox firmware from the [firmware blueprint](docs/firmware-blueprint.md),
+   [device instructions](docs/device-instructions.md) and, for network nodes,
+   the [Web Node protocol](docs/web-node-protocol.md).
+5. Integrate instruments that do not run BardBox firmware through a driver
+   ([Pi driver instructions](docs/pi-driver-instructions.md)); timed devices also
+   follow the [session model](docs/session-model.md).
+6. Reuse existing drivers and shared components before writing new ones.
+
+When something breaks, look first for the contract that was violated (wire
+protocol, delivery, driver interface, reading format or channel naming) and fix
+the contract boundary rather than the symptom.
+
 ## Detailed standards: read those applicable to the task
 
 | Area | Canonical documents |
 | --- | --- |
-| Optional OTA and compact storage | [OTA contract](docs/ota-update-standard.md), [compact storage](docs/compact-record-storage.md); read for relevant work, implementation acceptance remains separate |
-| Device/firmware contracts | [Device instructions](docs/device-instructions.md), [Web Nodes](docs/web-node-protocol.md), [transport recovery](docs/transport-recovery-standard.md), [USB device configuration](docs/usb-device-configuration-standard.md) |
+| Architecture and decisions | [Architecture Map](docs/architecture-map.md) (three drawings, data inventory, configuration ownership), [decision index](docs/DECISIONS.md) |
+| Optional OTA and compact storage | [OTA contract](docs/ota-update-standard.md), [compact storage](docs/compact-record-storage.md); draft contracts merged October 16, not implemented or adopted capabilities; implementation acceptance remains separate |
+| Device/firmware contracts | [Device instructions](docs/device-instructions.md), [Web Nodes](docs/web-node-protocol.md), [optional live previews](docs/web-node-live-preview.md), [transport recovery](docs/transport-recovery-standard.md), [USB device configuration](docs/usb-device-configuration-standard.md) |
 | Firmware design (proposed) | [Firmware blueprint](docs/firmware-blueprint.md), [serial/base API](docs/firmware-base-and-serial-api.md), [buffer API](docs/firmware-buffer-api.md), [USB flashing and provisioning](docs/usb-provisioning-standard.md) |
-| Drivers and readings | [Pi drivers](docs/pi-driver-instructions.md), [reading format](docs/reading-format.md), [channels](docs/channel-names.md) |
+| Server ingestion (proposed) | [Ingestion contract](docs/ingestion-contract.md); current-source evidence in [server data inventory evidence](docs/server-data-inventory-evidence.md) (dated) |
+| Drivers and readings | [Pi drivers](docs/pi-driver-instructions.md), [data source drivers](docs/data-source-drivers.md), [reading format](docs/reading-format.md), [channels](docs/channel-names.md) |
 | Identity and time | [Node naming](docs/node-naming-standard.md), [time synchronization](docs/time-sync-standard.md), [sessions](docs/session-model.md) |
 | Web presentation | [Web UI standard](docs/web-ui-standard.md) |
 | Verification | [Testing guide](docs/testing-guide.md) |
+| Repository structure and development | [Repository layout](docs/repository-layout.md), [reproducible development](docs/reproducible-development.md) |
 | Configuration and operation | [Config/report workflow](docs/config-report-workflow.md), [service operations](docs/service-operations-standard.md), [network access](docs/network-access.md) |
+| Legacy Pi-hub runtime (labelled per section) | [Pi runtime instructions](docs/pi-runtime-instructions.md), [Pi setup](docs/pi-setup.md); see each file's status note |
 | Historical-data access | [Data API/MCP boundary](docs/data-api-mcp-boundary.md) |
 | Promotion | [Promotion governance](docs/promotion-governance.md) |
 

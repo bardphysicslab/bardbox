@@ -63,6 +63,23 @@ be `null`. The previous successful timestamp may be shown separately as
 The Pi/backend is responsible for freshness detection. Firmware and devices
 report readings and protocol errors; they do not decide stale vs unavailable.
 
+These status meanings are standard across BardBox ([UI clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269649488)): `error` is a sensor
+or data fault from a responding source, `node_unavailable` a disconnected or
+unreachable node, and `stale` an old measurement. Alarm state is never a reading
+status. The ingestion target keeps validity (per-channel faults), freshness and
+contact with their owners rather than in one aggregate value; labels and the
+mapping are in the [Web UI standard](web-ui-standard.md#standard-status-meanings).
+No new status code is introduced.
+
+## Units and time
+
+BardBox uses metric units by default ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 2). Units are declared in the
+channel definition, never encoded into values, and displays always show them;
+conversions happen at documented boundaries (Processing helpers, rendered by
+Rendering). All absolute timestamps in readings are UTC ISO 8601 with an explicit
+`Z` or offset; dashboards may show local time only with an explicit timezone
+label.
+
 ## Data Rules
 
 `data` contains only canonical channel names from `channel-names.md`.

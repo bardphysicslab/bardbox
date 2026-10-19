@@ -21,8 +21,9 @@ validation and command dispatch. Projects register data providers; they do not
 copy the parser or build response strings in main.cpp.
 
 Every base includes serial communication and durable local device settings.
-Sensors, Wi-Fi connection, network delivery, buffering and OTA updater are
-separately configured capabilities. USB is a transport for the serial contract;
+Persistent recording defaults ON for BardBox firmware, including serial-only
+nodes ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 6). Sensors, Wi-Fi connection, network delivery and OTA updater
+are separately configured capabilities. USB is a transport for the serial contract;
 serial command handling is separate from the bootloader's flashing transport.
 The minimal test image can report no attached sensors without fabricated data.
 
@@ -200,7 +201,10 @@ maintenance access policy is unresolved and must be defined before deployment.
 ## Buffer and consumer integration
 
 See the companion [buffer API proposal](firmware-buffer-api.md). Latest snapshots
-for serial READ and durable delivery records are separate. RKC intends to retain
+for serial READ and durable recorded records are separate: READ and streaming
+never drain or acknowledge recording. Recovering recorded history over serial
+needs its own retrieval/acknowledgement contract, which is open; BUFFER remains
+status, not retrieval. Absolute timestamps are UTC; unknown time stays explicit. RKC intends to retain
 individual readings through outages; CESH retains completed aggregate records.
 Each project chooses its record content; aggregation is not buffer behavior.
 Changing a CESH reporting interval must define partial-window handling. Queued

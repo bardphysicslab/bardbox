@@ -1,5 +1,14 @@
 # Bard Box — Raspberry Pi Setup Guide
 
+> **Status (October 19, 2026):** legacy Raspberry Pi preparation guide from the
+> Pi-hub era. Sections 1–6 (OS, SSH, updates, chrony, RTC, timezone) remain useful
+> practice. Where it differs from current standards, these govern: process
+> restart (`Restart=always`) and the application watchdog in
+> [service operations](service-operations-standard.md); time rules in the
+> [time synchronization standard](time-sync-standard.md); network exposure and
+> applicable Bard web policy in [network access](network-access.md). The
+> GoLab-specific paths and the `labdash` service name are examples, not standards.
+
 ## Purpose
 
 Step-by-step preparation of a Raspberry Pi for a Bard Box deployment.
@@ -73,8 +82,8 @@ chronyc tracking
 ```
 
 The `System time` offset should be well under 1 second. Target accuracy is
-±100 ms or better. See `reading-format.md` for the time synchronization
-requirement.
+±100 ms or better. See the [time synchronization standard](time-sync-standard.md)
+for the time requirements.
 
 ---
 
@@ -285,13 +294,20 @@ After=network.target time-sync.target
 Type=simple
 User=golab
 WorkingDirectory=/home/golab/golab-monitor/raspi
-ExecStart=/home/golab/golab-monitor/venv/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 8000
-Restart=on-failure
+ExecStart=/home/golab/golab-monitor/venv/bin/python3 -m uvicorn main:app --host 127.0.0.1 --port 8000
+Restart=always
 RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 ```
+
+The application binds to loopback only. Viewers reach it through a local HTTPS
+reverse proxy configured per the canonical access rules in
+[network access](network-access.md#optional-authenticated-campus-dashboards)
+and the applicable
+[Bard web and hosting requirements](https://github.com/bardphysicslab/engineering-standards/blob/main/docs/bard-it/README.md);
+do not expose the backend port directly. This guide does not cover proxy setup.
 
 Enable and start:
 
@@ -350,7 +366,8 @@ Before handing off the deployment, verify each item:
 - [ ] Bard VPN access confirmed
 - [ ] Virtual environment is created and packages installed
 - [ ] Application starts without errors (`systemctl status labdash`)
-- [ ] Dashboard is accessible at `http://<pi-ip>:8000`
+- [ ] Dashboard is reachable through the configured HTTPS proxy, and the backend
+      port answers only on loopback
 - [ ] All connected devices appear in the dashboard
 - [ ] Serial devices visible under `/dev/serial/by-id/`
 - [ ] Logs show no repeated errors (`journalctl -u labdash -n 50`)

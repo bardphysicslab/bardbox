@@ -1,13 +1,15 @@
 # Optional BardBox firmware buffer API
 
-Status: design proposal, October 14, 2026. No shared library, build, adoption,
+Status: design proposal, October 14, 2026; merged with PR #32 on October 16 as a
+proposal. October 19 accepted direction ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) items 6–7) changes the default and
+the preferred full-buffer policy below; neither is implemented. No shared library, build, adoption,
 hardware acceptance or deployment is claimed. Existing required behavior is in
 [Web Node Protocol](web-node-protocol.md); serial integration is in the
 [firmware/serial proposal](firmware-base-and-serial-api.md).
 
 ## Responsibility
 
-One optional maintained module owns durable records, FIFO order, recovery,
+One maintained module owns durable records, FIFO order, recovery,
 capacity accounting and removal after delivery acknowledgement. Acquisition,
 aggregation, time synchronization, serialization policy, networking and server
 archival storage remain separate. Use CESH's existing implementation as evidence
@@ -16,7 +18,12 @@ and an extraction candidate, not parser/storage code copied into each main.cpp.
 RKC supplies individual temperature/door readings so averages do not hide
 excursions. CESH supplies completed aggregate records. Reporting less frequently
 does not inherently require averaging; aggregation remains CESH's chosen policy.
-Projects without delivery storage need not include this module.
+Recording defaults ON for every device running BardBox firmware, including
+serial-connected nodes, so this module is part of the default base; a project
+may only omit it deliberately. Vendor instruments not running BardBox firmware
+are outside this requirement. Boards with little or no spare flash (for example
+current RKC firmware, which has no queue) need a capacity and wear assessment
+before adopting it; the default does not by itself make every board capable.
 
 ## Proposed C++ interface
 
@@ -56,8 +63,8 @@ Save durably before first normal delivery; peek a durable record; send via the
 separate delivery module; acknowledge only on the configured successful server
 response; verify durable removal before proceeding. Failed/ambiguous delivery
 keeps the record. Failed cursor commit also keeps it eligible for retry. Only
-accepted archival delivery acknowledges a record; an optional live-preview path
-(pending [PR #15](https://github.com/bardphysicslab/bardbox/pull/15)) never removes history.
+accepted archival delivery acknowledges a record; the optional
+[live-preview path](web-node-live-preview.md) never removes history.
 
 Tokens include queue generation and stable record ID. Stale/mismatched tokens
 cannot delete a different head, including after clear/reinitialization. A repeated
@@ -76,11 +83,18 @@ are reported/quarantined, never treated as valid. Preserve cursor before deletin
 consumed chunks. Failed mount never formats existing data. Recovery scanning
 has bounded service behavior and reports when the queue is not yet ready.
 
-RejectNew is the initial conservative full-buffer option, matching CESH. It
-preserves backlog and reports rejected new records. DropOldest is a possible
-explicit project policy, not silently implemented or approved here; it requires
-durable loss accounting and must not invalidate an in-flight delivery token.
-Project owners must decide what RKC should retain on saturation. Physical space
+**Preferred saturation policy (accepted direction):** keep the oldest
+unacknowledged record as an anchor and evict the oldest *unprotected* record to
+admit the newest; retained records still deliver oldest-first. Eviction is loss:
+never an acknowledgement, never ordinary upload-failure recovery. Keep a bounded
+durable loss count (the `status()` loss counters) and report it to the server's
+central error log when communication permits; no new loss UI. Eviction must not
+invalidate an in-flight delivery token. Token safety, power-loss recovery, tiny
+capacities and an explicitly blocked FIFO head still need engineering detail;
+the existing blocked-head behavior remains the safe initial rule and no
+automatic skip is authorized. RejectNew, CESH's current implementation, is no
+longer the preferred monitoring default but remains documented existing
+behavior until migrated. Physical space
 and logical record limits are independent; quarantine and failed deletion consume
 space. Capacity changes cannot silently truncate a queue. No fixed retention-day
 promise without record size/cadence and real filesystem measurements.
@@ -123,7 +137,8 @@ No CESH/RKC migration or hardware operation is authorized by saving this proposa
 Exact API types and scheduling limits remain open for implementation review.
 
 Tracker: [API design](https://github.com/bardphysicslab/bardbox/issues/31); entry point:
-[firmware blueprint](firmware-blueprint.md). The pending
+[firmware blueprint](firmware-blueprint.md). The
 [compact storage proposal](https://github.com/bardphysicslab/bardbox/blob/7b947be081d1d1fb646849c15e9491fbdce1297b/docs/compact-record-storage.md)
-(PR #16 head `7b947be`, not adopted) owns the proposed binary framing, recovery
-scan and ACK-cursor rules; this API links to it and does not define a competing format.
+(merged October 16 as a draft, not adopted) owns the proposed binary framing,
+recovery scan and ACK-cursor rules; this API links to it and does not define a
+competing format. Current copy: [compact record storage](compact-record-storage.md).

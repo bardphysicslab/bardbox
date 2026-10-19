@@ -26,10 +26,13 @@ Registry owns identity bindings, stable archive device keys, configured link typ
 latitude/longitude, registered channel definitions, required versus optional
 channels, validators and per-device cadence configuration. Link type comes from
 Registry, not an adapter name or untrusted payload, and determines the Wi-Fi RSSI
-requirement. Ingestion reads one consistent snapshot. Archive owns durable
-storage, conflict detection and
-deduplication. Latest state, health, science, alarms and query/rendering consume
-accepted records through their respective interfaces. Display configuration is
+requirement. Channel definitions come from the project's declared measurement
+contract, which Registry resolves; a minimal demo Registry may hold only UIDs and
+still resolves schemas and units this way ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 1). Ingestion reads one
+consistent snapshot. Archive owns durable storage, conflict detection and
+deduplication. Latest state, health, Processing (project calculations and
+derived results), alarms and query/rendering consume accepted records through
+their respective interfaces. Display configuration is
 separate from registration; incoming fields never add card rows.
 
 User-entered settings enter through the authorized control API, not measurement
@@ -39,7 +42,12 @@ persistent configuration owner validates, persists and applies project settings,
 including project cadence defaults and backup policy. Reject invalid edits before
 changing stored or active values. Rendering may provide early feedback but cannot
 replace server validation. Query/rendering joins server-managed descriptive
-metadata to readings by UID; a renamed freezer keeps its device identity.
+metadata to readings by UID; a renamed freezer keeps its device identity. The
+monitored entity (the freezer or place) has its own identity, separate from the
+node: entity settings and history persist through hardware replacement while
+records keep their original node attribution
+([identity layers](node-naming-standard.md#identity-layers)); entity IDs and
+effective-time binding remain open.
 
 Ingestion has no persistent state or external writes. Rejected input cannot
 update validated latest measurements or scientific/alarm inputs. Communications
@@ -340,9 +348,15 @@ Identity authentication/binding and supported decoding still apply before lookup
 Archive deduplication state must outlive every possible retry, including records
 on offline nodes and explicit legacy paths. Pruning measurement rows must retain
 acceptance tombstones containing device key, record ID, source digest/profile and
-acceptance result. No time-based expiry is safe while retries are unbounded.
+acceptance result. This includes rows evicted under the accepted local-history
+policy (history allowance, backup-OFF rolling window, enabled-backup saturation
+anchor; [BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991) item 8): an exact lost-ACK retry stays ACK-eligible without
+recreating the removed measurement. Each eviction is logged centrally. No time-based expiry is safe while retries are unbounded.
 Retire a namespace only after explicit reconciliation that makes further retries
-impossible. Capacity exhaustion is visible and fails closed without advancing ACK.
+impossible. Measurement rows may be evicted under the configured storage
+allowance (logged centrally), but tombstones and deduplication metadata count
+inside that allowance and are never evicted to make room: exhaustion of that
+protected metadata is visible and fails closed without advancing ACK.
 Backup/restore must reconcile archive commits, deduplication state and identity-key
 bindings as one consistent checkpoint/journal recovery. Mismatched or missing state
 blocks new archival acceptance with 503 until reconciled; never silently rebuild

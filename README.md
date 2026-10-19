@@ -69,8 +69,12 @@ broad refactor or deployment.
   own documented delivery, retry, queue, and communication-diagnostic state
 - Standard device commands: `INFO`, `HEADER`, `READ`
 - Optional device commands: `START`, `STOP`, `PING`
-- RKC Monitor is the current visual reference for BardBox dashboards
 - CESH Air and RKC jointly define the BardBox web UI reference
+- Metric units by default with explicit units; absolute times are UTC, and
+  dashboards may show labelled local time
+- October 19 accepted platform direction: see
+  [ARCHITECTURE.md](ARCHITECTURE.md#accepted-platform-direction-october-19-2026)
+  (design status, not implementation)
 - FastAPI/Uvicorn services require process restart and application watchdog layers
 - Historical Data APIs are read-only and enabled only for clean readings roots
 - Firmware development uses VS Code + PlatformIO
@@ -94,27 +98,28 @@ the [firmware blueprint](docs/firmware-blueprint.md); its document map links the
 maintained [serial/base proposal](docs/firmware-base-and-serial-api.md),
 [optional buffer proposal](docs/firmware-buffer-api.md),
 [USB flashing and provisioning proposal](docs/usb-provisioning-standard.md),
-the pending storage/OTA review and the
+the merged [compact storage](docs/compact-record-storage.md) and
+[OTA](docs/ota-update-standard.md) draft contracts and the
 [continuation](docs/firmware-api-continuation.md). Then verify
 [the owning GitHub issue](https://github.com/bardphysicslab/bardbox/issues/31).
-These are pending design contracts, not implemented or adopted APIs. Update
+These are design contracts, not implemented or adopted APIs; merging a draft
+to `main` does not adopt it. Update
 these drafts rather than recreating them; settle relevant open decisions before
 implementation. Published device/Web Node contracts remain authoritative.
 
 ## Key Docs
 
+- [Architecture Map](docs/architecture-map.md) and [decision index](docs/DECISIONS.md)
 - [Firmware blueprint and document map (proposed)](docs/firmware-blueprint.md)
 - [USB flashing and provisioning (proposed)](docs/usb-provisioning-standard.md)
-
 - [Repository layout and configuration filenames](docs/repository-layout.md)
-
+- [Reproducible development](docs/reproducible-development.md)
 - [Ingestion contract (proposed)](docs/ingestion-contract.md)
 - [Reading format](docs/reading-format.md)
 - [Node naming standard](docs/node-naming-standard.md)
 - [Device instructions](docs/device-instructions.md)
-- [Web Node protocol](docs/web-node-protocol.md)
-- [Pi driver instructions](docs/pi-driver-instructions.md)
-- [Monitor/UI instructions](docs/monitor-instructions.md)
+- [Web Node protocol](docs/web-node-protocol.md) and [optional live previews](docs/web-node-live-preview.md)
+- [Pi driver instructions](docs/pi-driver-instructions.md) and [data source drivers](docs/data-source-drivers.md)
 - [Channel names](docs/channel-names.md)
 - [Time sync standard](docs/time-sync-standard.md)
 - [Testing guide](docs/testing-guide.md)
@@ -150,7 +155,7 @@ and `bardbox-project-template`. See the governance document for the full rule.
 | GoLab Monitor | Physics | Air quality monitoring in GoLab | Active |
 | RKC Monitor | Physics | Freezer monitoring and alerts | Active |
 | Solar Monitor | Physics | Solar/environment monitoring | Active |
-| CESH Air Monitor | CESH | Local simulated air monitor demo | Demo |
+| CESH Air Monitor | CESH | Rooftop air-quality monitoring with pushing network nodes | Pilot |
 
 ## Maintained By
 

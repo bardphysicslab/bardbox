@@ -1,69 +1,20 @@
-# BardBox UID Registry
+# BardBox UID Registry (redirect)
 
-Every BardBox device must have a unique immutable identifier.
+Retired as a separate guide on October 19, 2026
+([bardbox#31 decision entry](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991)).
+Its former "authoritative Google Sheets" link was an unfilled placeholder, so no
+shared spreadsheet is authoritative.
 
-## UID Format
+- **UID format, immutability, no reuse of retired UIDs, labelling, legacy IDs and
+  status values:** [Node naming standard](node-naming-standard.md).
+- **Who owns node definitions and entity association:** the project Registry in the
+  [Architecture Map](architecture-map.md#project-server-template).
+- **Shared allocation, enrollment and authentication:** deferred registry work in
+  [firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)
+  and [bardbox#10](https://github.com/bardphysicslab/bardbox/issues/10).
 
-New UIDs use:
-
-```text
-bb-<site>-<type>-<instance>
-```
-
-Examples:
-
-- `bb-gol-air-001`
-- `bb-rkc-frz-014`
-- `bb-sol-sol-001`
-
-Rules:
-
-- Prefix is always `bb`.
-- Site code is exactly 3 lowercase letters.
-- Type code is exactly 3 lowercase letters.
-- Instance is exactly 3 digits with leading zeros.
-- Use hyphens only.
-- UID must not change after deployment.
-
-See `node-naming-standard.md` for site and type code examples.
-
-## Legacy IDs
-
-Legacy IDs like `bb-0001`, `bb-0002`, and `bb-0003` remain supported for
-existing deployments, but are deprecated. Do not assign legacy-format IDs to new
-devices.
-
-## Source of Truth
-
-The authoritative UID registry is maintained in Google Sheets:
-
-**[INSERT UID REGISTRY LINK HERE]**
-
-Always check the registry before assigning a new UID, and do not reuse retired
-UIDs.
-
-## Where the UID Lives
-
-Programmable devices store the UID in firmware:
-
-```cpp
-#define DEVICE_UID "bb-gol-air-001"
-```
-
-Non-programmable instruments should have their UID assigned in Raspberry Pi
-driver configuration.
-
-Physically label devices with their UID whenever possible.
-
-## Example Entries
-
-| UID | Description | Project | Status |
-| --- | --- | --- | --- |
-| `bb-gol-air-001` | Air monitor node | GoLab Monitor | Active |
-| `bb-rkc-frz-001` | Freezer monitor node | RKC Monitor | Active |
-
-Status values:
-
-- **Active**: currently deployed and in use.
-- **Retired**: no longer in use, UID remains reserved.
-- **Reserved**: assigned but not yet deployed.
+Where the UID lives today: programmable nodes provisioned over USB keep it in
+their device configuration record
+([USB device configuration](usb-device-configuration-standard.md#2-device-configuration-records));
+older builds compile it in. Non-programmable instruments receive their UID in
+server driver configuration.
