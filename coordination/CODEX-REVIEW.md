@@ -11,10 +11,10 @@ scope**. This review does not authorize merge, deployment or implementation.
 | [BardBox PR 50](https://github.com/bardphysicslab/bardbox/pull/50) | `ed4b93ad577bc946280b619670b22a5d8613dbef` | `31100b88958299560b672d88030bc8e11585d2dd` |
 | [Engineering standards PR 18](https://github.com/bardphysicslab/engineering-standards/pull/18) | `0fb5062b7665009b4e30318d573977d839a0946b` | `2cb958318b5b603b2b250c351425212e10a64fed` |
 
-The following commit adds only this reviewer-authored record; its exact published
-head is recorded on both PRs and the owning issues. The implementation review
+Review-record commits contain only reviewer-authored evidence; their exact
+published heads are recorded on the PR and owning issue. The initial review
 covers the heads above, including the final card-contract amendment and its
-state-versus-configuration correction.
+state-versus-configuration correction. Later amendments are reviewed below.
 
 ## Scope and conclusions
 
@@ -69,3 +69,24 @@ Shared guidance: bardphysicslab/engineering-standards@2cb958318b5b603b2b250c3514
 
 Next owner/action: maintainer reviews the two PRs and decides merge. Existing
 feature checkouts remain available; no cleanup or host synchronization occurs.
+
+## Active-alarm outline amendment review
+
+Reviewed implementation: `2bd65624b98989378936063ade5727a7baba3e71`, based on
+the previously published `d555edc294f2d13ef8f06aa6447f8a37e5770b91`. Accepted
+[owning-issue amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270510607).
+Result: **no blocking findings** in the four-file documentation amendment.
+
+- Active Alarm state alone triggers a slow red card-outline pulse with persistent
+  textual ALARM indication; reduced motion uses a static red outline and text.
+- Connection, freshness and AQI/category colors are separate and cannot trigger
+  that pulse. No AQI method or threshold is standardized.
+- The Web UI rule, decision index, disposition A20 and handoff agree. No runtime,
+  pilot, mockup, escalation or merge change. Engineering PR 18 is unchanged.
+- Independently inspected the exact diff and read back the accepted issue entry.
+  All 66 BardBox Markdown files pass conventional relative-link, heading-anchor
+  and balanced-fence checks at this implementation head; whitespace checks pass.
+  No new diagram change; the earlier Mermaid-rendering limitation remains.
+
+This review-record update changes evidence only. The final published head is
+recorded on PR 50 and issue 31; merge remains the maintainer's decision.
