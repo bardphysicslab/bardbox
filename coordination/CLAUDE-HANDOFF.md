@@ -6,7 +6,8 @@
   [critique dispositions](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271384280),
   composition [owner supplement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271666389) (first named Application),
   [naming refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271757925) (module renamed Composition, folder `composition/`),
-  [science-location clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271713054).
+  [science-location clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271713054),
+  [configuration-tracking correction](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271790738).
 - **Shared guidance:** bardphysicslab/engineering-standards@aa8454649fc2e8bb5ad50a5829f8d0cbda736442
 - **BardBox standards:** bardphysicslab/bardbox@41fb97e7b0d7b80738ba44cb3942c795ecb3eaca
 - **Branch:** `codex/annotated-application-layout` from that baseline in the
@@ -27,7 +28,11 @@
   deploy; the named nesting deviation; existing-project and adoption neutrality;
   open engineering detail. Illustrative code files sit in every module. The tree
   is explicitly the server application's layout; firmware keeps its own, and
-  calculation location (for example AQI) stays project design.
+  calculation location (for example AQI) stays project design. Configuration is
+  classified by content: non-secret settings, including Composition's module
+  selection, may be tracked; credentials, private deployment values and runtime
+  state are not; the override mechanism, file names and reload lifecycle are open.
+  The central-log text follows BB-002 (pure modules return faults; callers log).
 - Pointers: README, ARCHITECTURE, Architecture Map (Composition owner row and
   physical-folder pointer), config/report workflow, service operations, Pi
   runtime; DECISIONS BB-004.

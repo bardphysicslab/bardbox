@@ -183,8 +183,8 @@ map D1) through the normal design and review path. Queries and clock reads still
 read live data and time; "no owned saved state" is not a claim that they are
 mathematically pure. Latest readings and Health keep state only when a
 project needs it to survive a restart. Communications keeps none in the
-reference layout. A module's `config/` may hold only a tracked example while the
-module is disabled.
+reference layout. A disabled module's `config/` may hold only tracked defaults or
+an example.
 
 ### Including, enabling and empty folders
 
@@ -226,28 +226,38 @@ module is disabled.
 
 ## Configuration files
 
-- Each module's `config/` holds a **tracked example** with safe defaults and no
-  secrets, next to an **ignored live file** with the deployment's values. Never
-  replace a live file with the example, and never commit real values.
+- **Classify configuration by content, not by whether it holds real instance
+  values** ([configuration-tracking correction](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271790738)). Non-secret settings may be tracked in Git, including an
+  instance's actual choices; for example, Composition's module selection should
+  be tracked for history and reproducibility. Credentials, genuinely private
+  deployment configuration and runtime state are never tracked.
+- Where a module needs both, its `config/` keeps the tracked non-secret settings
+  (or safe examples and defaults) separate from **private overrides** that stay
+  out of Git. The override mechanism, file names, formats and schemas are open;
+  this guide does not choose them. Never replace private values with an example,
+  and never commit secrets.
 - Each owning module validates, persists and applies its own settings
   ([configuration ownership](architecture-map.md#configuration-ownership)).
 - **Existing projects** use one `app_config.json` (for example
   `software/app/config/app_config.json`, or `raspi/config/` in older ones) and the
   single-file `scripts/sync_app_config.py`
   ([config/report workflow](config-report-workflow.md)). That remains their
-  current, supported tooling. Synchronizing many module files is open work; this
-  guide does not change existing deployments.
+  current, supported tooling. Their live file holds secrets and stays ignored and
+  protected; nothing here migrates it. Synchronizing many module files is open
+  work; this guide does not change existing deployments.
 
 ## Saved state that must survive updates
 
-Module `config/` and `data/` locations are **logical**. Private configuration and
-module data are ignored by Git and must survive code updates, redeploys, image
-rebuilds and moving the application to another server.
+Module `config/` and `data/` locations are **logical**. Private configuration
+(credentials and genuinely private deployment values) and module runtime data are
+kept out of Git and must survive code updates, redeploys, image rebuilds and
+moving the application to another server. Tracked non-secret settings travel
+with the repository revision.
 
 - **Keep state on persistent storage.** A deployment keeps each module's live
   configuration and data on storage that is not replaced when the code is
-  updated (a persistent mount or equivalent), while tracked defaults and examples
-  still come from the release. The exact mechanism is open and nothing here
+  updated (a persistent mount or equivalent), while tracked non-secret settings,
+  defaults and examples still come from the release. The exact mechanism is open and nothing here
   implements it or claims that current deployments are protected.
 - **Avoid commands that destroy ignored files** in a deployed tree, such as
   `git clean -fdx`, `git reset --hard` followed by clean-up, `rsync --delete`
@@ -279,9 +289,11 @@ rebuilds and moving the application to another server.
 (written `app/diagnostics/data/errors.log` relative to `software/`). There is no
 second application log root.
 
-- Each module handles and reports its own failures through the shared logging
-  interface; Diagnostics collects, redacts, writes and rotates the file. The
-  rotation schedule and retention are not chosen here.
+- Following [BB-002](DECISIONS.md), operational modules report the failures they detect through
+  the shared logging interface. Pure modules such as Ingestion perform no log
+  writes: they return structured faults, and their calling module logs them.
+  Diagnostics owns collection, redaction, writing and rotation. The rotation
+  schedule and retention are not chosen here.
 - It is **not** Archive's acceptance or rejection bookkeeping, not the record of
   inbound requests or messages that may contain personal data (their retention is
   open, map D9), and not the operating system's service output (for example the
