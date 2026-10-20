@@ -42,23 +42,34 @@ are additive and follow an explicit version/compatibility rule. The base INFO
 proposes unprovisioned state. Current provisioning uses the existing node UID
 including its instance.
 
-Hardware MAC metadata (accepted direction, [BB-006](DECISIONS.md),
-[FW-MAC-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289751206), October 20, 2026; this replaces the earlier blanket
-deferral of MAC reporting): the shared implementation, not student code, obtains
-and supplies the hardware MAC as metadata on both serial and Wi-Fi/network
-delivery. It supplements the node UID. It is not authentication, authorization
-or Registry binding; Registry binding, including factory-base-MAC lookup,
-remains separate future design. Still open:
-- which hardware interface supplies it;
-- its representation;
-- behavior on hardware without an applicable MAC;
-- exact field and message placement on each interface, including whether it
-  appears in every reading;
-- schema/protocol version and backward compatibility.
+Device metadata in every record (accepted direction, [BB-006](DECISIONS.md),
+[FW-MAC-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289751206), [FW-METADATA-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289777348),
+October 20, 2026; this replaces the earlier blanket deferral of MAC reporting):
+every measurement record on both serial and Wi-Fi/network delivery carries the
+complete agreed non-secret device metadata, including UID, hardware MAC,
+firmware and protocol versions, and time and validity fields as applicable. The
+shared implementation supplies it; student code does not construct it. It never
+includes credentials, tokens, passwords or private configuration, and absent
+hardware identity, time or validity is never fabricated. UID and hardware MAC
+are distinct. Neither alone is authentication, authorization or Registry
+binding; Registry binding, including factory-base-MAC lookup, remains separate
+future design.
 
-Until a compatible contract is designed, adopted and tested, the existing
-INFO/HEADER/READ forms and the published network grammar stay unchanged, and no
-fallback identity is invented.
+Still open (design work):
+
+- the exact bounded field set, representation and applicability, including
+  explicit unavailable values;
+- which hardware interface supplies the MAC, and its representation;
+- versioned, backward-compatible placement on each interface, with host support.
+
+Current versus target: today serial identity is in INFO and DAT follows
+HEADER's reading schema, so UID and the complete metadata are not yet in every
+serial reading. Existing network records carry UID, which is not the complete
+target metadata. The existing INFO/HEADER/READ forms, payloads and deployed
+parsers stay unchanged until a compatible versioned contract is designed,
+adopted and tested. Any future omission or compression needs measured
+size/throughput evidence and an explicit reviewed contract revision; no
+transport silently drops metadata or substitutes a handshake.
 
 INFO must work before registration. For the generic sensorless example,
 uid=unassigned and sensors=none are explicit proposed sentinel values (not valid
