@@ -68,6 +68,11 @@ mobile widths. Do not hide critical status behind navigation.
 - Missing values render as `—`. Labels precede values; units are visually muted
   and never fused into field names. Timestamps explicitly identify UTC or local
   time and unavailable timestamps render as `—`.
+- A recorded no-fresh-reading result ([BB-010](DECISIONS.md)) renders as `—`
+  for the current value. The dash is display only: the underlying measurement
+  stays null/missing and is never stored as a dash or a numeric value. Zero or
+  the last good value is never shown as current; the last good value and its
+  time may appear only as labelled stale context.
 - Never display stale readings as current. Show unavailable and error states
   prominently, and show the last successful time (`last_seen`) separately when
   useful.

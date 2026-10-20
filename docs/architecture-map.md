@@ -32,9 +32,10 @@ three explicit responsibility groups below.
 
 Student code declares sensors/fields and submits complete measurements through
 one BardBox communications interface. A sensor-level write operation is
-illustrative: exact API names remain undecided. Acquisition, aggregation, record
-publication, recording, serial output and network upload have independent
-schedules.
+illustrative: exact API names remain undecided. Acquisition, record creation at
+the [recording interval](firmware-base-and-serial-api.md#recording-interval-and-missing-readings), serial output and network upload have independent
+schedules, except that an application may couple its averaging window to record
+creation (CESH does). Acquisition and network delivery stay independent of both.
 
 October 19, 2026 accepted direction
 ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991),
@@ -44,9 +45,12 @@ items 6–7) is drawn here as target design, not implemented behavior.
 flowchart TB
     Sensors["Sensor drivers"] --> Acquisition["Student acquisition code<br/>Sample, validate, optionally aggregate"]
     Acquisition --> Publish["BardBox communications interface<br/>Declare fields and publish once"]
-    Publish --> Latest["Latest per-sensor measurement<br/>Identity, UTC timestamp and validity"]
-    Latest --> Serial["Serial adapter<br/>READ / streaming; own schedule<br/>never drains or ACKs recording"]
-    Publish --> Records["Record publication<br/>Own cadence"]
+    Publish -->|"raw publications"| Latest["Latest per-sensor cache (raw readings)<br/>original sample identity, time and validity"]
+    Acquisition -.->|"averaging projects: raw provider<br/>binding explicit and open"| Latest
+    Latest -->|"live read only"| Serial["Serial adapter<br/>normal READ, live read, existing streaming;<br/>own schedule; never drains or ACKs recording"]
+    Publish --> Records["Record creation at the recording interval<br/>application average, or latest reading<br/>with original time; explicit no-fresh-reading"]
+    Latest -->|"raw: latest at recording boundary"| Records
+    Records -->|"normal READ: latest completed record"| Serial
     Records --> Queue["Persistent recording (ON by default, every transport)<br/>Persist completed records first<br/>At saturation: keep oldest unacknowledged anchor,<br/>evict oldest unprotected record"]
     Queue --> Upload["Network push delivery<br/>Own schedule, bounded retry and catch-up"]
     Upload -->|Acknowledged record| Queue
@@ -69,9 +73,11 @@ flowchart TB
 ```
 
 **Recording (accepted direction).** Persistent recording defaults ON for every
-device running BardBox firmware, including serial-connected nodes. Live serial
-READ/streaming serves the latest sample with identity, time and validity; it
-never drains or acknowledges recorded records. Recovering recorded history over
+device running BardBox firmware, including serial-connected nodes. Normal serial
+`READ` serves the latest completed record and a live read the latest cached
+readings, each with its original identity, time and validity
+([normal READ and live read](firmware-base-and-serial-api.md#normal-read-and-live-read)); existing
+streaming is unchanged. None of these drains or acknowledges recorded records. Recovering recorded history over
 serial needs a separate retrieval/acknowledgement contract that does not exist
 yet (dotted arrow). Instruments that do not run BardBox firmware are outside
 this requirement. Normal output stays quiet until requested or streaming is
