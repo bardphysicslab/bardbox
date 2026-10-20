@@ -62,13 +62,13 @@ not modify a snapshot midway through serialization.
 ### Normal READ and live read
 
 Accepted target ([CESH#59](https://github.com/bardphysicslab/cesh-air-monitor/issues/59#issuecomment-6295361501), October 20, 2026); not implemented or
-hardware-verified. Normal `READ` and a live read are two independent one-shot
+hardware-verified. Normal `READ` and `READ_LIVE` are two independent one-shot
 request/reply operations:
 
 | Operation | Returns |
 | --- | --- |
 | Normal `READ` | The latest completed published record. For CESH this is the latest completed averaged record |
-| Live read | The latest cached individual sensor readings |
+| `READ_LIVE` | The latest cached individual sensor readings |
 
 - Neither starts a continuous stream, needs a STOP/restart cycle, forces
   acquisition or waits for the next averaging window.
@@ -89,7 +89,8 @@ request/reply operations:
   [#36](https://github.com/bardphysicslab/bardbox-project-template/issues/36).
 - Averaged acquisition, the archival queue and ACK semantics are unchanged.
 
-Still open: the exact live-read command spelling and framing, and their
+The single-token spelling `READ_LIVE` is [accepted](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6297449136).
+Still open: response framing and fields, and their
 compatibility with existing `HEADER`/`DAT` parsers; continuous live streaming
 and its grammar. Current firmware does not implement this split yet (for CESH,
 see its [firmware README](https://github.com/bardphysicslab/cesh-air-monitor/blob/main/software/firmware/README.md)).
@@ -191,7 +192,7 @@ unsolicited serial output.
   single ESP32-S3 service task, its priority, stack, locks and admission slots
   are unaccepted candidates. The service clock is not measurement time, and a
   failed `begin()` cannot promise Serial without a designed owner;
-- any new or versioned live-read grammar and wire fields, and any scheduling
+- `READ_LIVE` response framing and wire fields, and any scheduling
   approval. Existing published commands, NVS keys and configuration macros stay
   as they are (BB-009).
 
@@ -253,7 +254,7 @@ superseded and remains in Git history.
 | INFO | Existing required identity/build/sensor data; extend safe discovery fields explicitly |
 | HEADER | Existing required ordered reading schema |
 | READ | Existing required latest snapshot or clear error; accepted target: latest completed published record ([normal READ and live read](#normal-read-and-live-read)) |
-| Live read | Accepted target: one-shot latest cached individual readings; exact command spelling and framing open |
+| READ_LIVE | Accepted target: one-shot latest cached individual readings; response framing and fields open; not implemented |
 | START / STOP | Existing optional streaming; stop does not stop acquisition/network delivery |
 | UPLOAD | Existing optional request for bounded delivery attempt; not guaranteed acceptance |
 | PAYLOAD | Existing optional payload preview, excluding secrets; does not acknowledge delivery |
