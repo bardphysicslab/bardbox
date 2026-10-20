@@ -263,10 +263,13 @@ translated record as follows:
   `metadata_faults.device_invalid_channels` `{code: "invalid"}` and ignored.
 - `extended.device_error`: an unscoped device error, a non-empty string of at
   most 200 characters. It is retained as `extended.device_error` diagnostics and
-  channels are still validated. If, with an unscoped device error, no registered
-  channel yields a valid value, the envelope is rejected as `malformed_message`
-  at path `data`. Any other value is recorded as `metadata_faults.device_error`
-  `{code: "invalid"}` and not carried.
+  channels are still validated. Decoded values that are null or invalid stay
+  channel faults, even when every registered channel has one; that is not a
+  malformed envelope. Only when, with an unscoped device error, the translated
+  `data` object contains no decoded value at all (it is empty) is the envelope
+  rejected as `malformed_message` at path `data`. A `data` value that is not an
+  object is malformed regardless. Any other `device_error` value is recorded as
+  `metadata_faults.device_error` `{code: "invalid"}` and not carried.
 - `extended.clock_unsynced`: the device's explicit clock indication with the
   CESH meaning described under measurement time. `true` is an explicit
   unsynchronized indication (`time_fault` `clock_unsynced`, `clock_quality`
