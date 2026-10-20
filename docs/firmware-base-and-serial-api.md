@@ -39,10 +39,26 @@ The existing forms remain OK INFO uid=... fw=... sensors=..., HDR,v1,...,
 and DAT,... or ERR SENSOR_FAIL. Existing PING can return PONG. Project extensions
 must not replace uid, fw or sensors, break framing, or expose secrets. New fields
 are additive and follow an explicit version/compatibility rule. The base INFO
-proposes unprovisioned state. Earlier mandatory physical-MAC reporting/binding
-is deferred: current provisioning uses the existing node UID including its
-instance, with no MAC or registry integration. Factory-base-MAC lookup remains
-future registry design, separate from authentication.
+proposes unprovisioned state. Current provisioning uses the existing node UID
+including its instance.
+
+Hardware MAC metadata (accepted direction, [BB-006](DECISIONS.md),
+[FW-MAC-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289751206), October 20, 2026; this replaces the earlier blanket
+deferral of MAC reporting): the shared implementation, not student code, obtains
+and supplies the hardware MAC as metadata on both serial and Wi-Fi/network
+delivery. It supplements the node UID. It is not authentication, authorization
+or Registry binding; Registry binding, including factory-base-MAC lookup,
+remains separate future design. Still open:
+- which hardware interface supplies it;
+- its representation;
+- behavior on hardware without an applicable MAC;
+- exact field and message placement on each interface, including whether it
+  appears in every reading;
+- schema/protocol version and backward compatibility.
+
+Until a compatible contract is designed, adopted and tested, the existing
+INFO/HEADER/READ forms and the published network grammar stay unchanged, and no
+fallback identity is invented.
 
 INFO must work before registration. For the generic sensorless example,
 uid=unassigned and sensors=none are explicit proposed sentinel values (not valid
