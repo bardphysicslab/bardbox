@@ -59,7 +59,7 @@ flowchart TB
         Publish["publish(record): the one hand-off<br/>returns per-channel results +<br/>accepted / backpressure / rejected<br/>(never a sent or stored promise)"]
         Checks["Generic checks (shared)<br/>finite, type, required, bounds"]
         Metadata["Every-record metadata<br/>UID, MAC, firmware / protocol,<br/>time / validity; never fabricated"]
-        Route["Internal routing by configuration<br/>serial always; Wi-Fi by default;<br/>recording always on"]
+        Route["Internal routing by configuration<br/>serial always; Wi-Fi by default;<br/>recording ON by default"]
         Latest["Latest snapshot (serial)"]
         Settings["getSetting: active<br/>reporting interval"]
         Service["poll(nowMs), wired by template<br/>internal service only"]
@@ -77,7 +77,7 @@ flowchart TB
     Network["BardBoxNetwork owner (target)<br/>Wi-Fi connect, bounded retry,<br/>oldest-first delivery, ACK"]
     Server["Project server"]
     Latest --> Serial
-    Route -->|"recording (always on)"| Buffer
+    Route -->|"recording (ON by default)"| Buffer
     Buffer -->|"oldest durable record"| Network
     Network -->|"push records"| Server
     Server -->|"acknowledgements"| Network

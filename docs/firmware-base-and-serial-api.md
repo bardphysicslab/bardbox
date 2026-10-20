@@ -215,12 +215,16 @@ per completed window with `setAveraging`, and sizes its window from
 `getSetting`.)
 
 **1. Startup: `begin(options)`.** Arduino-style: capabilities are chosen once.
-The default is Serial, Wi-Fi/network delivery and persistent recording. The
-published base Serial interface is always present, and recording is always on;
-neither has an off option. The only recommended option is a future serial-only
+The accepted defaults are Serial, Wi-Fi/network delivery and persistent
+recording on. The published base Serial interface is always present. Proposed
+MVP profile (a recommendation, not a new platform rule): the simple profile
+offers no recording-off option, and its only option is a future serial-only
 mode that turns Wi-Fi off (for example `begin({.wifi = false})`; syntax not
-adopted). Wi-Fi without Buffer durability is not offered, nor is any arbitrary
-combination. Credentials and identity come from provisioned settings, never
+adopted). Wi-Fi without Buffer durability is not offered. Recording stays
+default ON as already accepted; a deliberate, assessed omission under the
+[Buffer proposal](firmware-buffer-api.md) (for example a board without capacity)
+remains possible, and any other disabled combination still needs contract
+design. Credentials and identity come from provisioned settings, never
 from `begin` flags. The existing `begin(transport, settingsStore)` row
 describes the internal wiring the template and shared core supply (USB
 CDC/UART transport and settings store); it is not a second student call.
