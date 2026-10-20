@@ -71,6 +71,16 @@ network delivery have their own owners. The facade wires their interfaces
 without importing a project's main.cpp. USB CDC/UART remain injected Arduino
 transports. Projects do not write serial response strings.
 
+Accepted direction ([BB-005](DECISIONS.md), [FACADE-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289589216),
+October 20, 2026): the student uses only this one beginner-facing entry and
+supplies named, typed readings with declared units. BardBox coordinates the
+enabled Serial, Wi-Fi/network delivery and Buffer owners internally; the student
+makes no separate Wi-Fi, uploader or Buffer service calls. Those owners stay
+separate, sensor acquisition stays independent, and serial responsiveness stays
+bounded, so network work must not monopolize serial service. How that internal
+progress is scheduled, and the exact method names and signatures, remain
+proposed; the facade is not implemented.
+
 ### Registration and startup
 
 Register descriptors before begin. Registration returns explicit errors for
@@ -97,7 +107,7 @@ Sensorless startup is valid and cannot manufacture a zero-valued measurement.
 
 | Proposed method | Meaning |
 | --- | --- |
-| poll(nowMs) | Bounded input/output and operation progress; no sensor acquisition or network request |
+| poll(nowMs) | The one beginner service entry: bounded serial input/output and operation progress, through which enabled internal owners (network delivery, Buffer) also make bounded progress, so the student makes no separate transport calls. It performs no sensor acquisition, and network work never blocks serial responsiveness |
 | isStreaming() | Inspect START/STOP state; normally unnecessary for project code |
 | newSample(acquiredAtMs) | Create a typed candidate snapshot at acquisition time |
 | sample.set(field, value) | Supply a declared value; reject wrong types/unknown fields |
