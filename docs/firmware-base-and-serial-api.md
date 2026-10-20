@@ -216,7 +216,8 @@ per completed window with `setAveraging`, and sizes its window from
 
 **1. Startup: `begin(options)`.** Arduino-style: capabilities are chosen once.
 A beginner calls `begin()` with no arguments: no baud argument and no required
-flags. The existing BardBox serial default governs, unchanged: template
+flags. The existing BardBox serial default governs, unchanged and configurable
+in the Serial section of [`include/config.h`](#operational-settings), not as an argument: template
 [`main.cpp`](https://github.com/bardphysicslab/bardbox-project-template/blob/75bf01b4024233ab7cbf919963500a151b1501e6/software/firmware/src/main.cpp#L57) line 57 calls `Serial.begin(115200)`, and
 [`platformio.ini`](https://github.com/bardphysicslab/bardbox-project-template/blob/75bf01b4024233ab7cbf919963500a151b1501e6/software/firmware/platformio.ini) sets `monitor_speed = 115200`. Starting a
 configured Wi-Fi connection without blocking, and continuing offline, is a
@@ -321,6 +322,31 @@ CESH choices, not generic BardBox requirements. No live, same-run interval
 change or partial-window policy is defined here; the reference activates at the
 next boot, and partial-window handling for interval changes remains open (see
 [Buffer and consumer integration](#buffer-and-consumer-integration)).
+
+**Simple configuration layout** (proposed, October 20, 2026; user intent: one
+obvious place that is easy to find and edit, without a settings framework,
+extra typed public APIs or many files). Build-time defaults live in one
+tracked `include/config.example.h`, copied to an ignored `include/config.h`
+([repository layout](repository-layout.md#firmware-configuration)). The
+template's [`include/README.md`](https://github.com/bardphysicslab/bardbox-project-template/blob/75bf01b4024233ab7cbf919963500a151b1501e6/software/firmware/include/README.md#configuration-headers)
+points there. It has labelled sections with units:
+
+| Section | Example contents | Read and validated by |
+| --- | --- | --- |
+| Serial | Baud rate, default `115200` (bit/s) | `BardBoxSerial` |
+| Network | Wi-Fi on by default; retry timing (ms). No default SSID, password or endpoint | `BardBoxNetwork` |
+| Buffer | Recording on by default; capacity limits with stated units | `BardBoxBuffer` |
+
+Each module reads and validates its own section; there is no central policy
+module. The serial baud is set here, not as a `begin()` argument.
+`platformio.ini` keeps board, framework, dependencies and monitor settings; its
+`monitor_speed` only sets the computer's serial monitor and must match the
+firmware baud, but it does not set `Serial.begin`. Private values (SSID,
+password, endpoint, credentials) go only in the ignored `config.h` or runtime
+provisioning, separate from public policy. The example never carries default
+secrets. Accepted so far: Serial default 115200, both transports on and
+recording on by default; every other default, unit and field name remains
+design. The template uses no configuration today, so no header is created.
 
 Temporary debug overrides disappear on restart; persistent changes require
 explicit saving. Read-back distinguishes saved/effective values and pending
