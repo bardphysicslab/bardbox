@@ -21,6 +21,19 @@ The operation is `validate(record, delivery, registry_snapshot)`. It returns
 An accepted result has an empty `errors` array. Channel faults are inside the
 accepted record, not envelope errors. No validation result is a durable ACK.
 
+**Identity on rejection (additive clarification, October 20, 2026).** The
+result also carries `identity`, present for accepted and rejected results, so a
+caller can attribute a rejection even when `record` is null. It has three fields:
+`reported_uid` (the claimed record `uid` when it is a non-empty string of at
+most 128 characters, otherwise null), `canonical_uid` (the registered UID it
+resolved to through the Registry snapshot, otherwise null) and
+`authenticated_uid` (the trusted `delivery.authenticated_uid` when present and
+valid, otherwise null). Missing or malformed identity stays null; nothing is
+inferred or invented (no MAC address, no guessed UID). A reported UID is not
+authentication, `identity` carries no credentials or payload, and `errors` keep
+their `{code, path}` form. `record`, `delivery` and `errors` keep their meaning;
+consumers read results by field name.
+
 Registry owns identity bindings, stable archive device keys, configured link type
 (`wifi` or the explicitly registered non-Wi-Fi link), device names, locations,
 latitude/longitude, registered channel definitions, required versus optional
