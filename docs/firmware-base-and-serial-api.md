@@ -58,6 +58,34 @@ CSV. The module checks count/type/bounds before writing a response. Rejected or
 unavailable readings do not become a valid DAT line. Concurrent acquisition must
 not modify a snapshot midway through serialization.
 
+### Normal READ and live read
+
+Accepted target ([CESH#59](https://github.com/bardphysicslab/cesh-air-monitor/issues/59#issuecomment-6295361501), October 20, 2026); not implemented or
+hardware-verified. Normal `READ` and a live read are two independent one-shot
+request/reply operations:
+
+| Operation | Returns |
+| --- | --- |
+| Normal `READ` | The latest completed published record. For CESH this is the latest completed averaged record |
+| Live read | The latest cached individual sensor readings |
+
+- Neither starts a continuous stream, needs a STOP/restart cycle, forces
+  acquisition or waits for the next averaging window.
+- A host debugging program may alternate the two, using a bounded response
+  timeout. Waiting synchronously for a serial reply can block the host caller;
+  that is distinct from waiting for acquisition.
+- Repeated replies keep the original measurement or sample identity and time.
+  Unavailable data is explicit, never fabricated or served as current.
+- A project that publishes raw records, such as the template simulator, has no
+  averaging: its normal `READ` returns its latest published raw record, and
+  BardBox never invents averages.
+- Averaged acquisition, the archival queue and ACK semantics are unchanged.
+
+Still open: the exact live-read command spelling and framing, and their
+compatibility with existing `HEADER`/`DAT` parsers; continuous live streaming
+and its grammar. Current firmware does not implement this split yet (for CESH,
+see its [firmware README](https://github.com/bardphysicslab/cesh-air-monitor/blob/main/software/firmware/README.md)).
+
 ## Proposed beginner-facing application API
 
 Updated October 14, 2026. This replaces the earlier four-argument
@@ -177,7 +205,8 @@ choices; polling serial faster does not create measurements. No loop-wide delay.
 | PING | Existing optional PONG connectivity check; retain |
 | INFO | Existing required identity/build/sensor data; extend safe discovery fields explicitly |
 | HEADER | Existing required ordered reading schema |
-| READ | Existing required latest snapshot or clear error; clarify repetition metadata |
+| READ | Existing required latest snapshot or clear error; accepted target: latest completed published record ([normal READ and live read](#normal-read-and-live-read)) |
+| Live read | Accepted target: one-shot latest cached individual readings; exact command spelling and framing open |
 | START / STOP | Existing optional streaming; stop does not stop acquisition/network delivery |
 | UPLOAD | Existing optional request for bounded delivery attempt; not guaranteed acceptance |
 | PAYLOAD | Existing optional payload preview, excluding secrets; does not acknowledge delivery |

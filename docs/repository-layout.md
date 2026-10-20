@@ -364,8 +364,16 @@ empty folder or README as proof that drawings exist or an assembly is validated.
 
 ## Firmware configuration
 
-Use tracked `src/config.example.h` for safe placeholder configuration and ignored
-`src/config.h` for the local deployment values. Configuration includes pins,
+Use tracked `include/config.example.h` for safe placeholder configuration and
+ignored `include/config.h` for the local deployment values (placement accepted
+October 20, 2026, [record](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6290453404), replacing `src/`). The template's
+`software/firmware/include/config.example.h` is merged ([template #40](https://github.com/bardphysicslab/bardbox-project-template/pull/40))
+with labelled Serial, Network and Buffer sections; its simulator does not include
+it yet. Existing projects that keep these headers in `src/`, such as CESH, are
+not migrated by this rule; moving them is a separate migration using the checks
+below. The example header is not compiled automatically: C++ uses a header only
+through an explicit `#include`, and a `**/config.h` ignore covers either
+location. Configuration includes pins,
 sampling choices and identity as well as credentials; `secrets.h` is therefore
 not the preferred filename. Existing private `secrets.h` must be locally renamed,
 not overwritten with example defaults. Keep both private names ignored during
