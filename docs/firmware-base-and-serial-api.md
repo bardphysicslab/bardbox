@@ -76,9 +76,16 @@ request/reply operations:
   that is distinct from waiting for acquisition.
 - Repeated replies keep the original measurement or sample identity and time.
   Unavailable data is explicit, never fabricated or served as current.
-- A project that publishes raw records, such as the template simulator, has no
-  averaging: its normal `READ` returns its latest published raw record, and
-  BardBox never invents averages.
+- Live cached readings stay distinguishable from the completed record: their
+  sample identity and time are separate from the completed record's identity
+  and averaging window, with a per-sensor age where sensors are acquired
+  independently. The exact wire fields are still pending.
+- For a project that publishes raw records, normal `READ` returns its latest
+  published raw record; BardBox never invents averages. The current template
+  simulator is not yet that implementation: it generates fixed example values
+  when `READ` arrives and has no cached acquisition or published-record owner,
+  so it needs a bounded cache and record semantics, adapted under template
+  [#36](https://github.com/bardphysicslab/bardbox-project-template/issues/36).
 - Averaged acquisition, the archival queue and ACK semantics are unchanged.
 
 Still open: the exact live-read command spelling and framing, and their
