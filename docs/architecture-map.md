@@ -762,6 +762,13 @@ flowchart TB
     end
     Operator --> UI
     API --> Composition
+    subgraph DevTool["Development flasher — local page, candidate, not physically tested"]
+        DevFlash["Flash firmware — local build files, same Set up core"]
+        DevSettings["Update settings — config/1: UID and Wi-Fi, mutable, next start"]
+    end
+    Operator --> DevTool
+    DevFlash --> Workflows
+    DevSettings --> Adapters
     subgraph Device["Device firmware — externally observable interfaces"]
         Install["Installation contract — target, partitions and boot selection"]
         Commands["Command dispatcher and maintenance interface"]
@@ -820,13 +827,17 @@ flowchart TB
 | USB host configuration | Currently supplies telemetry URL and public trusted CA. These are not sensor properties or per-device registration credentials. Release-owned form defaults do not silently come from host defaults. |
 | Browser presentation and workflows | One Board settings form prefills from the approved release. Save selects/reads a board, validates the whole plan and offers one review. Confirmation covers that connected target only. Workflows enforce sequencing and stop after failed or uncertain steps, reporting partial results; multiple writes are not claimed atomic. |
 | Firmware installation interface | Target/layout compatibility, boot selection and startup confirmation are separate from internal sensor/application structure. Valid matching-layout updates preserve configuration and queued data. Recovery has separate explicit data-loss confirmation. |
-| Firmware configuration/maintenance | Firmware validates commands, owns persistence and reports capabilities/limits. Initial identity/server records remain immutable through this workflow; supported Wi-Fi and interval changes use separate mutable settings. Interval changes require restart. INFO remains a raw diagnostic reply. |
+| Firmware configuration/maintenance | Firmware validates commands, owns persistence and reports capabilities/limits. In the approved assembly workflow (CESH, DC1/DB1), initial identity/server records remain immutable; supported Wi-Fi and interval changes use separate mutable settings. Interval changes require restart. Template firmware instead offers the candidate `config/1` settings (UID, Wi-Fi SSID/password), mutable and applied at the next start, with stored records keeping their original UID ([serial/base API](firmware-base-and-serial-api.md#implemented-candidate-subset-config1-template-october-20-2026)). INFO remains a raw diagnostic reply. |
+| Development flasher (Firmware Tools `tools/dev-flasher`) | A local loopback page for development builds, separate from approved assembly: local-file Flash through the same Set up core (slot inspection, inactive-slot update, switch, install/recovery with read-back) without bundle approval, and Update settings over `config/1` bound to the reviewed board. A candidate, host-tested only; not physically tested ([firmware-tools#50](https://github.com/bardphysicslab/firmware-tools/issues/50)). |
 | Network node and project server | The node communicates directly with its destination after setup. The flasher is not a readings relay. A preview does not dequeue a record; queued records remain until durable server acceptance or known duplicate. Server history ordering and rendering belong to the server. |
 
 ### Current limits and proposed evolution
 
 - Today: one current approved CESH TEST bundle, Wi-Fi-oriented provisioning,
   manually entered established identifiers, and no release selector in assembly.
+- Development (October 20, candidate, not physically tested): the separate
+  development flasher installs local template builds and edits the template's
+  mutable UID and Wi-Fi over `config/1`; it does not change assembly.
 - Proposed: release-declared transports and conditional settings, allowing a
   serial-only node without mandatory Wi-Fi/endpoint/CA fields. Firmware internals
   and student-facing publish API may evolve without changing USB clients when

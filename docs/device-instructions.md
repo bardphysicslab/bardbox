@@ -44,7 +44,10 @@ The site and type codes are exactly 3 lowercase letters, and the instance is
 exactly 3 digits. See `node-naming-standard.md`.
 
 Human-readable names and installation locations belong in server Registry
-configuration. UIDs are immutable once deployed; the monitored entity's identity
+configuration. UIDs are immutable once deployed (DC1/DB1 provisioning); template
+firmware with the `config/1` settings capability allows an explicit UID change at
+the next start without relabelling stored records
+([serial/base API](firmware-base-and-serial-api.md#id-changes-and-registry-ownership)). The monitored entity's identity
 is separate from the node's ([identity layers](node-naming-standard.md#identity-layers)).
 All absolute device timestamps are UTC.
 

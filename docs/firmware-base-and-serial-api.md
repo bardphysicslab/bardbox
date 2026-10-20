@@ -475,6 +475,22 @@ Each field declares immediate application, optional-module reinitialization or
 restart-required activation. Saving Wi-Fi is not proof of connection; saving an
 OTA URL/key is not proof of commissioned OTA. These outcomes are reported separately.
 
+### Implemented candidate subset: `config/1` (template, October 20, 2026)
+
+The reference template implements a first subset for UID, Wi-Fi SSID and Wi-Fi
+password only ([template PR #47](https://github.com/bardphysicslab/bardbox-project-template/pull/47);
+accepted scope: [repeatable serial settings](https://github.com/bardphysicslab/firmware-tools/issues/50#issuecomment-6303975922),
+[two actions](https://github.com/bardphysicslab/firmware-tools/issues/50#issuecomment-6303999176), [visible fields](https://github.com/bardphysicslab/firmware-tools/issues/50#issuecomment-6304076785)). The commands are
+`CONFIG_SCHEMA`, `CONFIG_GET`, `CONFIG_BEGIN <revision>`, `CONFIG_SET <field> <hex>`,
+`CONFIG_COMMIT` and `CONFIG_ABORT`. Values are hex-encoded, and the password is set-only.
+Saved values override compiled defaults at the next start and survive an ordinary
+reflash. A failed save keeps the previous record, and a lost reply is resolved by
+reading the revision back. Exact grammar: the template's
+`software/firmware/lib/BardBoxSerial/README.md`. It is a **candidate**: no
+transaction IDs, no CONFIG_STATUS, no temporary scope and no other fields yet. The
+family above remains the proposal for the rest. Firmware without it answers as for an
+unknown command, so tools must discover it with `CONFIG_SCHEMA`.
+
 ## ID changes and registry ownership
 
 For future registry/identity-maintenance design, B-Flash/API/registry would own
@@ -486,7 +502,10 @@ current DC1 provisioning preserves its immutable-record rule. Ordinary reflash
 retains configuration. Registry outage blocks the host assignment/change action,
 not local INFO/debug or a structurally valid serial settings operation.
 
-This proposed requirement would change existing device-instructions.md's immutable-deployed-ID
+Accepted for template firmware ([firmware-tools#50](https://github.com/bardphysicslab/firmware-tools/issues/50#issuecomment-6303975922)): the UID is a
+repeatable `config/1` setting, and stored records keep the UID they were recorded
+with. The DC1/DB1 records below and the devices that use them keep their immutable
+rule. This proposed requirement would change existing device-instructions.md's immutable-deployed-ID
 rule. Amend that rule explicitly as a proposal alongside the implementation:
 ordinary operation preserves UID; an explicit coordinated maintenance action can
 change it, retaining historical attribution. Never silently rewrite historical data.
