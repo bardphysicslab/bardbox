@@ -15,7 +15,7 @@ authoritative. Review and merge are separate from implementation and deployment.
 | Project server template | [Server drawing below](#project-server-template) | Target design |
 | USB flasher implementation and external boundaries | [USB flasher drawing below](#usb-flasher) | Current implementation map with proposed extensions labelled |
 | Firmware lifecycle, layouts and documentation map | [Firmware blueprint](firmware-blueprint.md) | Proposal |
-| Student serial/base interface | [Serial/base API](firmware-base-and-serial-api.md) | Proposal; exact names and compatibility unresolved |
+| Student serial/base interface | [Serial/base API](firmware-base-and-serial-api.md) | Beginner API direction accepted (BB-005); exact signatures and compatibility unresolved |
 | Persistent delivery queue | [Buffer API](firmware-buffer-api.md) | Proposal |
 | USB provisioning contract | [USB flashing and provisioning](usb-provisioning-standard.md) | Proposal |
 | OTA lifecycle | [OTA lifecycle contract](ota-update-standard.md) | Optional contract; implementation and physical acceptance tracked separately |
@@ -30,9 +30,10 @@ three explicit responsibility groups below.
 
 ## Node firmware template
 
-Student code declares sensors/fields and submits complete measurements through
-one BardBox communications interface. A sensor-level write operation is
-illustrative: exact API names remain undecided. Acquisition, record creation at
+Student code registers sensors and measurements and hands over already-acquired
+values with `sensor.publish(...)` through one `BardBoxInterface`
+([BB-005](DECISIONS.md), [beginner API](firmware-base-and-serial-api.md#beginner-facing-application-api));
+exact signatures remain proposed. Acquisition, record creation at
 the [recording interval](firmware-base-and-serial-api.md#recording-interval-and-missing-readings), serial output and network upload have independent
 schedules, except that an application may couple its averaging window to record
 creation (CESH does). Acquisition and network delivery stay independent of both.
@@ -43,8 +44,8 @@ items 6–7) is drawn here as target design, not implemented behavior.
 
 ```mermaid
 flowchart TB
-    Sensors["Sensor drivers"] --> Acquisition["Student acquisition code<br/>Sample, validate, optionally aggregate"]
-    Acquisition --> Publish["BardBox communications interface<br/>Declare fields and publish once"]
+    Sensors["Sensor drivers"] --> Acquisition["Student code<br/>read sensors, optionally average"]
+    Acquisition --> Publish["BardBoxInterface<br/>sensor.publish(values) in declared order;<br/>shared checks and metadata"]
     Publish -->|"raw publications"| Latest["Latest per-sensor cache (raw readings)<br/>original sample identity, time and validity"]
     Acquisition -.->|"averaging projects: raw provider<br/>binding explicit and open"| Latest
     Latest -->|"live read only"| Serial["Serial adapter<br/>normal READ, live read, existing streaming;<br/>own schedule; never drains or ACKs recording"]

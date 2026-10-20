@@ -36,7 +36,7 @@ work. Published standards are authoritative; proposals are pending design contra
 | Device commands and response forms | [Device instructions](device-instructions.md) | Published standard |
 | Network delivery, ACK, buffer diagnostics | [Web Node protocol](web-node-protocol.md) | Published standard (`web-node-v0.2`) |
 | Source tree, build/runtime split, lifecycle, flash layout, release | This blueprint | Proposal |
-| Base firmware, serial module, settings, beginner API | [Serial/base API](firmware-base-and-serial-api.md) | Proposal |
+| Base firmware, serial module, settings, beginner API | [Serial/base API](firmware-base-and-serial-api.md) | Beginner API direction accepted (BB-005); details proposed |
 | Optional durable delivery queue | [Buffer API](firmware-buffer-api.md) | Proposal |
 | USB flash, provisioning and boot verification | [USB flashing and provisioning](usb-provisioning-standard.md) | Proposal |
 | Compact record storage format | [Compact record storage](compact-record-storage.md) | Draft contract merged October 16 (PR #16); not implemented or adopted |
@@ -77,8 +77,9 @@ checks, and a firmware-version CI job builds every environment.
 
 **Proposed separation.** A target, not a refactor requirement:
 
-- **Composition.** `main.cpp` only wires components; command parsing and dispatch
-  belong to the shared serial module ([serial/base API](firmware-base-and-serial-api.md)).
+- **Composition.** `main.cpp` is the student's start file: sensor setup, reads and
+  `BardBoxInterface` calls ([beginner API](firmware-base-and-serial-api.md#beginner-facing-application-api));
+  command parsing and dispatch belong to the shared serial module.
 - **Reusable capabilities.** Serial module, settings store, provisioning transfer,
   acquisition schedule, record queue, OTA state/verification/writer and sensor
   health. Each has an explicit interface, is host-testable and has no project
@@ -108,7 +109,7 @@ such as blocked unprovisioned INFO and immutable records remain current at
 | --- | --- | --- |
 | Board, flash size, partition layout, pins | Build | `platformio.ini` environment and partition CSV |
 | Included sensor drivers, pins and supported hardware | Build | A firmware image can select among included drivers at runtime; provisioning cannot add a driver absent from the image. CESH PR #50 includes both environmental-sensor families; particle selection remains project configuration. |
-| Firmware version | Build | Mandatory build metadata; placeholders rejected ([serial/base API](firmware-base-and-serial-api.md#registration-and-startup)) |
+| Firmware version | Build | Mandatory build metadata; placeholders rejected ([serial/base API](firmware-base-and-serial-api.md#beginner-facing-application-api)) |
 | UID, display name, Wi-Fi and telemetry; optional OTA trust/image identity | Per device, at runtime | **Existing (CESH `34ff50a`):** immutable DB1 basic or DC1 including OTA inputs, written via `PROVISION_*` into NVS, mutually exclusive. Separate supported mutable settings do not replace these records. [USB configuration records](usb-device-configuration-standard.md#2-device-configuration-records). General revisioned identity/settings maintenance remains proposed. |
 | Reporting interval | Firmware default at build; supported override per device | **Existing (CESH 0.11.0 at `34ff50a`):** `REPORT_INTERVAL_STATUS/SET/CLEAR`; override stored separately from immutable DB1/DC1 and active at next boot. Reporting/aggregation cadence is not sensor polling or catch-up. See the [USB standard](usb-device-configuration-standard.md#3-device-settings-over-usb). |
 | Acquisition/streaming intervals and retry, buffer and time policy | Project build/runtime policy | General typed operational settings remain proposed; do not infer that the implemented reporting override makes every interval mutable. |
