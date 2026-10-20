@@ -130,10 +130,10 @@ unsafe fields. Descriptors are stable after successful begin.
 | Proposed method | Meaning |
 | --- | --- |
 | setFirmwareVersion(version) | Required build metadata; the template rejects missing/placeholder versions at build time |
-| bardbox.addSensor(name) | Declare a sensor; returns a typed `BardBoxSensor` handle that owns its measurements. It does not initialize hardware |
-| sensor.addMeasurement(name, unit) | Declare an ordered measurement of that sensor; the type argument is omitted, so it is FLOAT |
-| sensor.addMeasurement(name, unit, INTEGER) | Declare an ordered exact integer measurement, for counts |
-| sensor.addMeasurement(name, unit, BOOLEAN) | Declare an ordered Boolean measurement (how a unitless Boolean is written is syntax design) |
+| bardbox.addSensor(name) | Create and register a sensor in one step through the interface, with an explicit runtime name; returns its typed `BardBoxSensor` handle, which owns its measurements. There is no separate `addSensor(existingObject)`. It does not initialize hardware |
+| sensor.addMeasurement(name, unit) | Declare an ordered measurement of that sensor; the optional type is omitted, so it is FLOAT |
+| sensor.addMeasurement(name, unit, MeasurementType::Integer) | Declare an ordered integer measurement, for counts or a project's chosen integer representation |
+| sensor.addMeasurement(name, unit, MeasurementType::Boolean) | Declare an ordered Boolean measurement (how a unitless Boolean is written is syntax design) |
 | addInfoField(name, provider) | Register a bounded typed public status provider |
 | addCapability(module) | Attach an optional capability's descriptors and handlers |
 | begin(options) | Student startup: validate the complete registration, load settings and enable the chosen capabilities once; return initialization result. Default Serial + Wi-Fi + recording; see [student contract](#proposed-student-contract-draft-for-review) |
@@ -143,16 +143,26 @@ Measurement types ([FW-MEASUREMENT-1](https://github.com/bardphysicslab/bardbox/
 replaces the October 14 proposed `addFloatField`/`addIntegerField`/`addBooleanField`
 names. The type is declared at registration, never inferred from a reading.
 Omitting the type argument selects FLOAT; "leave empty" means omit it, never an
-empty string or runtime guessing. INTEGER is for counts and other exact
-integers; BOOLEAN is distinct. Double is not adopted as a further required
+empty string or runtime guessing. Integer is for counts and other exact
+integers; Boolean is distinct. Double is not adopted as a further required
 type. Passing an ordinary integer value to a FLOAT measurement is the one
 documented numeric conversion; large integers may lose precision in floating
 point (for example, a 32-bit float holds integers exactly only up to 2^24), so
-it promises no exactness, and exact counts use INTEGER. Any other mismatch is
+it promises no exactness, and exact counts use Integer. Any other mismatch is
 an `invalid_type` channel outcome, with no other coercion. Finiteness, declared
 bounds, coded per-channel nulls and faults, and record metadata are unchanged:
 nothing becomes zero or is clamped. Exact supported widths, syntax and the
 representability/error policy remain contract design.
+
+The optional type is written with a type constant, illustrated as
+`MeasurementType::Integer` or `MeasurementType::Boolean`
+([FW-SENSOR-2](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291413717); spelling proposed). A bare C++ `int` is a type keyword,
+not a value argument. A measurement declared Integer, such as humidity a
+project chooses to report in whole percent, must receive an integer value: a
+fractional value is never silently truncated. The application converts
+explicitly with its own rounding rule; otherwise the channel gets an explicit
+invalid type or representation outcome under the final contract. There is no
+default coercion.
 
 Sensors ([FW-SENSOR-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291273464), October 20, 2026): measurements belong to sensor
 instances, not to one flat set of prefixed names. There is still exactly one
@@ -160,7 +170,11 @@ device object, `BardBoxInterface bardbox`, which starts and coordinates Serial,
 Wi-Fi and the Buffer once, owns the device UID and receives the one `publish`.
 A sensor handle creates no transport, queue, device UID or authentication
 identity, and there is no nested facade or second `begin` (for example no
-`cesh.begin()`). Registering a sensor or calling `bardbox.begin()` does not
+`cesh.begin()`). A sensor is created and registered once, through the interface
+([FW-SENSOR-2](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291413717)); its runtime name is given explicitly, never taken from a
+C++ variable name, and there is no automatic global self-registration or hidden
+ordering. Exact factory versus owner-constructor and lifetime syntax remain
+proposed. Registering a sensor or calling `bardbox.begin()` does not
 initialize hardware: driver initialization, readiness, calibration, read errors
 and bounded recovery stay explicit in the driver and application. Separate
 sensors may each declare the same measurement name (for example `pm25` on
@@ -223,7 +237,7 @@ The student sees three concepts: **startup**, **one hand-off** and the
 
 ```cpp
 BardBoxInterface bardbox;                  // the one device
-BardBoxSensor environment, pmsA, pmsB;     // sensor handles
+BardBoxSensor environment, pmsA, pmsB;     // handles, filled by addSensor below
 
 void setup() {
   environment = bardbox.addSensor("environment");
@@ -255,6 +269,18 @@ void loop() {
 illustrative. The single record spanning all three sensors is illustrative
 only; per-sensor grouping is open. An averaging project publishes once per
 completed window with `setAveraging`, and sizes its window from `getSetting`.)
+
+If a project chooses integer humidity instead, it declares the type and rounds
+explicitly (illustrative):
+
+```cpp
+environment.addMeasurement("rh_pct", "%", MeasurementType::Integer);
+// ...
+record.set(environment, "rh_pct", lround(bme280.readHumidity()));  // project's rounding rule
+```
+
+Passing the unrounded fractional value to that channel would be an explicit
+invalid outcome, not a truncated value.
 
 **1. Startup: `begin(options)`.** Arduino-style: capabilities are chosen once.
 A beginner calls `begin()` with no arguments: no baud argument and no required
