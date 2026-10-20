@@ -251,6 +251,30 @@ channels. An unscoped device error is retained as diagnostics and each channel
 is still validated; if no values can be decoded, reject the malformed envelope.
 Scientific alarm thresholds are not ingestion validity limits.
 
+**Translated-input conventions for device indications (additive clarification,
+October 20, 2026).** Adapters express explicit device indications in the
+translated record as follows:
+
+- `extended.device_invalid_channels`: an array of channel names the device
+  explicitly marked invalid in this record (its declared scope). Each registered
+  named channel becomes null with `device_reported_invalid`; every other channel
+  is validated independently. Unregistered names are ignored. A value that is not
+  an array of non-empty strings is recorded as
+  `metadata_faults.device_invalid_channels` `{code: "invalid"}` and ignored.
+- `extended.device_error`: an unscoped device error, a non-empty string of at
+  most 200 characters. It is retained as `extended.device_error` diagnostics and
+  channels are still validated. If, with an unscoped device error, no registered
+  channel yields a valid value, the envelope is rejected as `malformed_message`
+  at path `data`. Any other value is recorded as `metadata_faults.device_error`
+  `{code: "invalid"}` and not carried.
+- `extended.clock_unsynced`: the device's explicit clock indication with the
+  CESH meaning described under measurement time. `true` is an explicit
+  unsynchronized indication (`time_fault` `clock_unsynced`, `clock_quality`
+  `reported_unsynced`). `false` means no explicit indication, not certified
+  accuracy. Null or absence means unknown. The value is preserved unchanged in
+  the accepted record; any other value is recorded as
+  `metadata_faults.clock_unsynced` `{code: "invalid"}`.
+
 For example, valid door state and non-finite temperature produce:
 
 ```json
