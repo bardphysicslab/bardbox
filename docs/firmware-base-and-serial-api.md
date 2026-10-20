@@ -244,6 +244,17 @@ needs its own retrieval/acknowledgement contract, which is open; BUFFER remains
 status, not retrieval. Absolute timestamps are UTC; unknown time stays explicit. RKC intends to retain
 individual readings through outages; CESH retains completed aggregate records.
 Each project chooses its record content; aggregation is not buffer behavior.
+Averaging ownership (accepted, [FW-RECORD-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289832277), October 20, 2026): any
+averaging is done by the firmware application/project sensor logic, which
+produces the completed reported record. The shared firmware buffers and
+transports that record without choosing or performing averaging, and server
+Ingestion validates a data point the same way whether it is raw or averaged. The
+record keeps semantic metadata describing the averaging window and method so the
+science stays interpretable; its exact fields, representation, applicability and
+schema are later contract design, and none are defined here. Not settled by this:
+how latest-snapshot publication relates to durable completed-record handoff,
+admission versus successful durable append and its pending/error results, and
+queueing policy (RKC's no-queue versus CESH's queue).
 Changing a CESH reporting interval must define partial-window handling. Queued
 records preserve acquisition identity/schema/settings meaning after configuration
 changes. Time synchronization/RTC policy is a separate module; serial accepts
