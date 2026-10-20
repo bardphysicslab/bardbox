@@ -18,6 +18,9 @@ and an extraction candidate, not parser/storage code copied into each main.cpp.
 RKC supplies individual temperature/door readings so averages do not hide
 excursions. CESH supplies completed aggregate records. Reporting less frequently
 does not inherently require averaging; aggregation remains CESH's chosen policy.
+Records are admitted at the recording interval, not on every latest-cache update,
+and a no-fresh-reading result is still recorded explicitly
+([recording interval and missing readings](firmware-base-and-serial-api.md#recording-interval-and-missing-readings)).
 Recording defaults ON for every device running BardBox firmware, including
 serial-connected nodes, so this module is part of the default base; a project
 may only omit it deliberately. Vendor instruments not running BardBox firmware

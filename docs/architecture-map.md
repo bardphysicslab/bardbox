@@ -32,9 +32,10 @@ three explicit responsibility groups below.
 
 Student code declares sensors/fields and submits complete measurements through
 one BardBox communications interface. A sensor-level write operation is
-illustrative: exact API names remain undecided. Acquisition, aggregation, record
-publication, recording, serial output and network upload have independent
-schedules.
+illustrative: exact API names remain undecided. Acquisition, record creation at
+the [recording interval](firmware-base-and-serial-api.md#recording-interval-and-missing-readings), serial output and network upload have independent
+schedules, except that an application may couple its averaging window to record
+creation (CESH does). Acquisition and network delivery stay independent of both.
 
 October 19, 2026 accepted direction
 ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991),
@@ -46,7 +47,8 @@ flowchart TB
     Acquisition --> Publish["BardBox communications interface<br/>Declare fields and publish once"]
     Publish --> Latest["Latest per-sensor measurement<br/>Identity, UTC timestamp and validity"]
     Latest --> Serial["Serial adapter<br/>READ / streaming; own schedule<br/>never drains or ACKs recording"]
-    Publish --> Records["Record publication<br/>Own cadence"]
+    Publish --> Records["Record creation at the recording interval<br/>application average, or latest reading<br/>with original time; explicit no-fresh-reading"]
+    Latest -->|"raw: latest at recording boundary"| Records
     Records --> Queue["Persistent recording (ON by default, every transport)<br/>Persist completed records first<br/>At saturation: keep oldest unacknowledged anchor,<br/>evict oldest unprotected record"]
     Queue --> Upload["Network push delivery<br/>Own schedule, bounded retry and catch-up"]
     Upload -->|Acknowledged record| Queue

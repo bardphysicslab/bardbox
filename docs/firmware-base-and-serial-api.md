@@ -253,6 +253,107 @@ adapt supported interfaces incrementally. RKC uses latest cached readings but la
 device historical storage. Both currently have embedded parsers/legacy response
 forms, requiring characterization and host compatibility before migration.
 
+### Recording interval and missing readings
+
+Accepted target ([BB-009](DECISIONS.md), [BB-010](DECISIONS.md);
+[recording interval](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6296975652), [missing reading](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6296995202), October 20, 2026); not
+implemented. Adoption is tracked in template [#36](https://github.com/bardphysicslab/bardbox-project-template/issues/36) and CESH [#59](https://github.com/bardphysicslab/cesh-air-monitor/issues/59).
+
+**Recording interval** is the human-facing name for how often a completed
+measurement record is created and admitted to persistent buffering. It is
+separate from sensor acquisition cadence and from network delivery or catch-up
+timing.
+
+- **Raw readings:** the latest-reading cache is refreshed at the sensor's own
+  acquisition cadence (for example every 5 s). At each recording boundary (for
+  example every 100 s), the latest available reading is recorded with its
+  original acquisition time. Cache updates between boundaries are not
+  historical records: they are not averaged, not all enqueued, and not durable.
+- **Application averages:** the application supplies the completed average with
+  its actual window metadata. CESH keeps its existing coupling of averaging
+  window and record creation.
+- Outages do not stop recording; catch-up delivery runs independently and can
+  be faster.
+- Existing names stay compatible: CESH's `REPORT_INTERVAL_S` macro,
+  `REPORT_INTERVAL_*` serial commands and `report_s` NVS key, and the
+  [ingestion contract's reporting-cadence fields](ingestion-contract.md#reporting-cadence),
+  are not silently renamed. Labels and documentation change first.
+
+**No fresh reading at a boundary.** For each affected measurement, the record
+carries an explicit no-fresh-reading result: a missing or fault status with no
+numeric value. The last good measurement is never reused as new, and nothing is
+zero-filled or made to look fresh. Healthy channels in the same record continue
+normally. Displays show the current value as `—`
+([Web UI standard](web-ui-standard.md#cards-status-and-information-grouping)) and may show the last
+good value and time only as labelled stale context. Freshness limits are set
+per sensor or application; there is no universal timeout.
+
+#### Proposed boundary and cache scheduling (for review, not accepted)
+
+These are ownership and timing proposals. They are not accepted wire, schema or
+runtime behavior, and they add no public transaction API. An averaging
+application may couple its averaging window to record creation (CESH does);
+acquisition and network delivery stay independent of record creation either way.
+
+**Raw-reading recorder** (channels recorded from the latest cache):
+
+1. *Boundaries.* One recorder owns recording boundaries on a monotonic clock,
+   scheduling each as the previous boundary plus the interval, so drift does not
+   accumulate. If it falls more than one interval behind, it records once,
+   skips the missed boundaries and counts the skip in diagnostics; it never
+   bursts catch-up records.
+2. *Cache entries.* Each channel's entry holds its value, original sample ID,
+   original acquisition time (monotonic, plus UTC when valid) and the freshness
+   limit declared by its sensor or application. Sensor code updates its entry
+   under a short lock that only copies fixed-size values: no I/O, no allocation.
+3. *Snapshot.* At a boundary the recorder takes the same short lock, copies all
+   entries into a snapshot it owns, releases the lock and builds the record
+   outside it. It never waits for an in-flight sensor read.
+4. *Ordering.* An update that completes before the recorder takes the lock is in
+   this record; one that completes after belongs to the next boundary.
+5. *Freshness.* A channel is fresh when the boundary time minus its acquisition
+   time is within its declared limit. Otherwise, or if it was never sampled, it
+   gets an explicit no-fresh-reading result. The limit should be required at
+   registration rather than given a guessed default (open).
+6. *Same sample twice.* If a channel still holds the sample already recorded at
+   the previous boundary and it is still fresh, the record repeats it with the
+   **same original sample ID and time**, so it is recognizable as a repeat and
+   never as a new measurement. The alternative, a no-fresh-reading result for
+   any repeat, is open for review.
+
+**Application-average producer** (CESH and other averaging projects):
+
+7. The producer owns window close and hands over each completed record once,
+   with its original window start and end metadata. The generic raw recorder does
+   not run for averaged channels, so it can neither pick up a previous average
+   nor record a false no-fresh-reading while the producer is closing a window.
+8. CESH reuses its existing boundary ([`acquisitionTask`](https://github.com/bardphysicslab/cesh-air-monitor/blob/3d80e3fbde8211424b6ec1e7a90ab77b13d9b691/software/firmware/esp32-air-node/src/main.cpp#L2017-L2041)): under
+   `sensorMutex`, `aggregate.due` → `completeWindow` → `aggregate.reset` →
+   `latestCompletedPayload`, then one `appendReadingToBuffer` outside the lock.
+   There is no second automatic averager and no queue of all raw samples.
+
+**Admission and normal `READ`:**
+
+9. Normal `READ`'s latest completed record updates when the record is created,
+   before admission, and the admission outcome (accepted, backpressure,
+   rejected, storage failure) is reported separately in diagnostics. A storage
+   failure therefore never hides the latest completed measurement from serial,
+   and it is never presented as stored. This matches CESH's current order (it
+   sets `latestCompletedPayload` before appending and counts a failed append in
+   `windowsDropped`); CESH's existing failure semantics are not changed.
+
+**Live read:**
+
+10. Publishing averages alone does not provide an individual live cache. Live
+    read needs an explicit binding to a raw diagnostic provider for those
+    sensors; that binding is a material gate.
+
+Gates this proposal does not close: acceptance of the scheduling above; the
+firmware wire representation of a no-fresh-reading result and of repeated
+samples; when an average is handed over relative to a raw boundary in mixed
+projects; duplicate-record handling and admission outcomes in the storage
+contract; and the raw diagnostic provider binding for live read.
+
 
 ## Runtime settings and new wire commands
 

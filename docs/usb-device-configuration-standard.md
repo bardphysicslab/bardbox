@@ -103,8 +103,11 @@ and must not hard-code firmware values.
 
 ### Reporting interval
 
-The reporting interval is the aggregation window and upload cadence, as seen on the
-dashboard. It is not sensor polling and not queue catch-up. The firmware owns its default
+The reporting interval (human-facing label: **recording interval**,
+[BB-009](DECISIONS.md)) is how often a completed record is created and admitted to
+persistent buffering; for CESH it is the aggregation window, as seen on the
+dashboard. It is not sensor polling, network upload timing or queue catch-up. The
+`REPORT_INTERVAL_*` command names below are unchanged. The firmware owns its default
 and supported range. An override is a mutable setting, separate from the immutable records,
 and applies at the next start.
 

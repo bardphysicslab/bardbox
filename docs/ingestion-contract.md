@@ -231,6 +231,11 @@ never contain NaN or infinity. For registered channels:
 | Registry validity check fails | null | `validation_failed` |
 | Explicit device invalid indication for that channel | null | `device_reported_invalid` |
 
+A device's explicit no-fresh-reading result for a channel at a recording
+boundary ([BB-010](DECISIONS.md)) is stored as null with its reason, never as a
+numeric or last good value. Whether its wire form maps to `unavailable`,
+`device_reported_invalid` or a new documented code is still open.
+
 `not_reported` is an availability annotation, not a fault that forces aggregate
 `error`. Other listed channel codes do force `error`. A documented device fault
 applies only to its declared channel scope; it cannot clear independent healthy
@@ -446,6 +451,8 @@ Configuration owner validates all configured values before activation; invalid
 configuration cannot silently fall through. Effective cadence and its source are
 stored with first acceptance and are not recomputed on replay. Reporting means
 completed-record cadence; acquisition and upload retry/catch-up are independent.
+Its human-facing label is **recording interval** ([BB-009](DECISIONS.md)); the
+field names in this section are unchanged.
 If configuration changes while a record is queued but before its first acceptance,
 the effective cadence uses that new configuration. Preserve the record-reported
 cadence separately; the configured effective value is not a claim about historical
