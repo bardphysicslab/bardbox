@@ -130,10 +130,10 @@ unsafe fields. Descriptors are stable after successful begin.
 | Proposed method | Meaning |
 | --- | --- |
 | setFirmwareVersion(version) | Required build metadata; the template rejects missing/placeholder versions at build time |
-| addSensor(name) | Declare a project sensor; initialization/health are separate |
-| addMeasurement(name, unit) | Declare an ordered measurement; the type argument is omitted, so it is FLOAT |
-| addMeasurement(name, unit, INTEGER) | Declare an ordered exact integer measurement, for counts |
-| addMeasurement(name, unit, BOOLEAN) | Declare an ordered Boolean measurement (how a unitless Boolean is written is syntax design) |
+| bardbox.addSensor(name) | Declare a sensor; returns a typed `BardBoxSensor` handle that owns its measurements. It does not initialize hardware |
+| sensor.addMeasurement(name, unit) | Declare an ordered measurement of that sensor; the type argument is omitted, so it is FLOAT |
+| sensor.addMeasurement(name, unit, INTEGER) | Declare an ordered exact integer measurement, for counts |
+| sensor.addMeasurement(name, unit, BOOLEAN) | Declare an ordered Boolean measurement (how a unitless Boolean is written is syntax design) |
 | addInfoField(name, provider) | Register a bounded typed public status provider |
 | addCapability(module) | Attach an optional capability's descriptors and handlers |
 | begin(options) | Student startup: validate the complete registration, load settings and enable the chosen capabilities once; return initialization result. Default Serial + Wi-Fi + recording; see [student contract](#proposed-student-contract-draft-for-review) |
@@ -154,6 +154,21 @@ bounds, coded per-channel nulls and faults, and record metadata are unchanged:
 nothing becomes zero or is clamped. Exact supported widths, syntax and the
 representability/error policy remain contract design.
 
+Sensors ([FW-SENSOR-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291273464), October 20, 2026): measurements belong to sensor
+instances, not to one flat set of prefixed names. There is still exactly one
+device object, `BardBoxInterface bardbox`, which starts and coordinates Serial,
+Wi-Fi and the Buffer once, owns the device UID and receives the one `publish`.
+A sensor handle creates no transport, queue, device UID or authentication
+identity, and there is no nested facade or second `begin` (for example no
+`cesh.begin()`). Registering a sensor or calling `bardbox.begin()` does not
+initialize hardware: driver initialization, readiness, calibration, read errors
+and bounded recovery stay explicit in the driver and application. Separate
+sensors may each declare the same measurement name (for example `pm25` on
+PMS-A and PMS-B). `BardBoxSensor` is recommended over `BBSensor`; the class
+spelling, constructor, attachment and lifetime remain proposed. The serial and
+network naming of sensor-scoped measurements, and whether one record spans all
+sensors or records are grouped per sensor (with its atomicity), remain open.
+
 Firmware/protocol versions are distinct immutable build metadata. The shared
 module supplies adopted protocol version, physical hardware identity and required
 safe fields; device UID comes from settings, not an unexplained global.
@@ -164,8 +179,8 @@ Sensorless startup is valid and cannot manufacture a zero-valued measurement.
 | Proposed method | Meaning |
 | --- | --- |
 | newRecord() | Create a typed candidate record for the declared fields; BardBox stamps time and validity, and metadata |
-| record.set(field, value) | Supply a declared value |
-| record.setFailed(field, code) | Mark one channel failed with a sensor-specific code |
+| record.set(sensor, field, value) | Supply a declared value of that sensor |
+| record.setFailed(sensor, field, code) | Mark one channel failed with a sensor-specific code |
 | record.setAveraging(windowMs, method) | Optional window and method metadata for an application-averaged record ([FW-RECORD-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289832277)) |
 | publish(record) | **The one student hand-off** (name `publish` accepted; signature proposed): validate, add metadata, update the serial latest snapshot and route to enabled recording and network delivery; return an honest result (below) |
 | setSensorFailure(code) | No record could be formed; older data is not served as current valid data |
@@ -207,28 +222,39 @@ The student sees three concepts: **startup**, **one hand-off** and the
 **effective interval**. There are no transport calls, tickets or status loops.
 
 ```cpp
-BardBoxInterface bardbox;
+BardBoxInterface bardbox;                  // the one device
+BardBoxSensor environment, pmsA, pmsB;     // sensor handles
 
 void setup() {
-  bardbox.addMeasurement("temp_c", "degC");    // type omitted: FLOAT
-  bardbox.addMeasurement("rh_pct", "%");
-  bardbox.begin();                      // default: Serial + Wi-Fi + recording
+  environment = bardbox.addSensor("environment");
+  environment.addMeasurement("temp_c", "degC");  // type omitted: FLOAT
+  environment.addMeasurement("rh_pct", "%");
+  pmsA = bardbox.addSensor("pms_a");
+  pmsA.addMeasurement("pm25", "ug/m3");          // same name, separate sensors
+  pmsB = bardbox.addSensor("pms_b");
+  pmsB.addMeasurement("pm25", "ug/m3");
+  bme280.begin(); pmsPortA.begin(9600); pmsPortB.begin(9600);  // driver init: explicit
+  bardbox.begin();                         // BardBox only: Serial + Wi-Fi + recording
 }
 
 void loop() {
-  bardbox.poll(millis());               // template line: BardBox internal service
+  bardbox.poll(millis());                  // template line: BardBox internal service
   if (!acquisition.due(millis())) return;
   auto record = bardbox.newRecord();
-  record.set("temp_c", readTemperatureC());
-  record.set("rh_pct", readHumidityPct());
-  const auto result = bardbox.publish(record);    // the one hand-off
+  record.set(environment, "temp_c", bme280.readTemperature());
+  record.set(environment, "rh_pct", bme280.readHumidity());
+  record.set(pmsA, "pm25", readPm25(pmsPortA));
+  record.set(pmsB, "pm25", readPm25(pmsPortB));
+  const auto result = bardbox.publish(record);  // the one hand-off
   if (!result.accepted()) reportProblem(result);  // project choice
 }
 ```
 
-(Proposed symbols; not a verified build. An averaging project publishes once
-per completed window with `setAveraging`, and sizes its window from
-`getSetting`.)
+(Proposed symbols; not a verified build. `bme280`, `pmsPortA/B` and
+`readPm25` stand for the project's actual drivers; their initialization is
+illustrative. The single record spanning all three sensors is illustrative
+only; per-sensor grouping is open. An averaging project publishes once per
+completed window with `setAveraging`, and sizes its window from `getSetting`.)
 
 **1. Startup: `begin(options)`.** Arduino-style: capabilities are chosen once.
 A beginner calls `begin()` with no arguments: no baud argument and no required
