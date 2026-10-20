@@ -33,7 +33,7 @@ The minimal test image can report no attached sensors without fabricated data.
 | --- | --- | --- |
 | INFO | OK INFO framing; uid from settings; fw from build metadata; registered sensor list; safe provisioning/capability state | Supported sensor names and optional typed status fields |
 | HEADER | HDR framing, schema version, ordered column names | One stable reading schema with types and documented units |
-| READ | DAT framing matching HEADER, or explicit ERR result | A bounded current reading snapshot and its validity result |
+| READ | DAT framing matching HEADER, or explicit ERR result | Published values via `sensor.publish`; see [normal READ and live read](#normal-read-and-live-read) |
 
 The existing forms remain OK INFO uid=... fw=... sensors=..., HDR,v1,...,
 and DAT,... or ERR SENSOR_FAIL. Existing PING can return PONG. Project extensions
@@ -93,61 +93,113 @@ compatibility with existing `HEADER`/`DAT` parsers; continuous live streaming
 and its grammar. Current firmware does not implement this split yet (for CESH,
 see its [firmware README](https://github.com/bardphysicslab/cesh-air-monitor/blob/main/software/firmware/README.md)).
 
-## Proposed beginner-facing application API
+## Beginner-facing application API
 
-Updated October 14, 2026. This replaces the earlier four-argument
-BardBoxSerial/provider sketch in this proposal. Names below are proposed,
-not existing C++ symbols or a compiling implementation.
+Accepted direction ([BB-005](DECISIONS.md), October 20, 2026), recorded in
+[FACADE-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289589216), [FW-SIMPLE-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6290658288), [FW-MEASUREMENT-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291173701),
+[FW-SENSOR-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291273464), [FW-SENSOR-2](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291413717), [FW-SENSOR-PUBLISH-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291563410)
+([acceptance](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291568725)) and [FW-SERVICE-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291462264) ([acceptance](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291470459)). Nothing here is
+a compiling library or implemented behavior. Exact C++ signatures, types,
+callbacks and the sensor handle's type and lifetime remain proposed unless
+stated as accepted below.
 
-`BardBoxDevice device;` creates one beginner-facing facade. It runs when
-called, not automatically in a background task. The underlying serial module
-owns framing/parsing; settings, acquisition scheduling, time, storage and
-network delivery have their own owners. The facade wires their interfaces
-without importing a project's main.cpp. USB CDC/UART remain injected Arduino
-transports. Projects do not write serial response strings.
+**Accepted student-facing shape:**
 
-### Registration and startup
+- One device object, `BardBoxInterface bardbox;`, owns Serial, Wi-Fi/network
+  delivery, the Buffer, the device UID and internal service. Student code makes
+  no transport, storage or service calls.
+- `bardbox.addSensor(name)` creates and registers a sensor once, with an
+  explicit runtime name, and returns a logical sensor handle. A sensor is a
+  scope only: no transport, queue, UID or authentication identity. Registering
+  a sensor does not initialize hardware.
+- `sensor.addMeasurement(name, unit, optionalType)` declares that sensor's
+  measurements in order. Omitting the type means FLOAT; explicit types use
+  constants illustrated as `MeasurementType::Integer` and
+  `MeasurementType::Boolean` (spelling proposed). An integer passed to a FLOAT
+  measurement is the one documented conversion and may lose precision for
+  large values; an Integer channel never silently truncates fractional input.
+  Separate sensors may reuse a measurement name.
+- `bardbox.begin()` takes no arguments and starts BardBox, including internal
+  service that continues while student code waits, for example in
+  `delay(500)`. There is no student `poll`, `millis()` feeding, record builder,
+  ticket or manual queue retry.
+- `sensor.publish(value1, value2, ...)` hands over values the application has
+  already acquired, in declared measurement order.
 
-Register descriptors before begin. Registration returns explicit errors for
-duplicate/reserved names, invalid units/types/bounds, oversized schemas and
-unsafe fields. Descriptors are stable after successful begin.
+**Illustrative BME280** (not a verified build; `ProjectBme280Driver` and
+`bmeDriver` are placeholders for the project's actual driver):
 
-| Proposed method | Meaning |
-| --- | --- |
-| setFirmwareVersion(version) | Required build metadata; the template rejects missing/placeholder versions at build time |
-| addSensor(name) | Declare a project sensor; initialization/health are separate |
-| addFloatField(name, unit) | Declare an ordered floating-point measurement |
-| addIntegerField(name, unit) | Declare an ordered integer measurement |
-| addBooleanField(name) | Declare an ordered boolean measurement |
-| addInfoField(name, provider) | Register a bounded typed public status provider |
-| addCapability(module) | Attach an optional capability's descriptors and handlers |
-| begin(transport, settingsStore) | Validate the complete registration and load settings; return initialization result |
+```cpp
+BardBoxInterface bardbox;          // the one device
+BardBoxSensor bme280;              // handle type and lifetime: design open
+ProjectBme280Driver bmeDriver;     // placeholder for the project's real driver
+
+void setup() {
+  bme280 = bardbox.addSensor("bme280");
+  bme280.addMeasurement("humidity", "%");        // FLOAT (type omitted)
+  bme280.addMeasurement("temperature", "degC");
+  bme280.addMeasurement("pressure", "Pa");
+  bmeDriver.begin();                // hardware init stays explicit project code
+  bardbox.begin();                  // no arguments; starts internal service
+}
+
+void loop() {
+  float humidity = bmeDriver.readHumidity();      // acquired by the application
+  float temperature = bmeDriver.readTemperature();
+  float pressure = bmeDriver.readPressure();
+  bme280.publish(humidity, temperature, pressure); // declared order
+  delay(500);                       // BardBox service continues (target)
+}
+```
+
+An explicit type would read
+`bme280.addMeasurement("pressure", "Pa", MeasurementType::Integer);`
+(spelling proposed); that channel then needs an integer the application derived
+from a valid reading.
+
+**Checks on publish.** BardBox checks the value count, declared type (with the
+integer-to-FLOAT conversion), finiteness and declared bounds per channel. A bad
+channel becomes an explicit null with a reason, never zero or a clamped value,
+and healthy independent channels are kept. Swapping two values of the same type
+cannot be detected, so declaration order must be clear.
+
+**What publish does not mean.** Publishing updates the sensor's latest-reading
+cache. It does not make every cache update a completed or durable record:
+records are created at the [recording interval](#recording-interval-and-missing-readings)
+(BB-009), and normal `READ` returns the latest completed record
+([normal READ and live read](#normal-read-and-live-read)), so it does not
+necessarily change on every publish. Publishing is not a network upload or
+unsolicited serial output.
+
+**Still proposed, not accepted from the facade proposal branch:**
+
+- exact signatures, result types, callbacks, the sensor handle's type and
+  lifetime, and the failure-reporting form;
+- at record creation, whether records are grouped per sensor or as one coherent
+  full-node record, and the matching average hand-off; how original measurement
+  time and average windows attach; cache scheduling; and the raw diagnostic
+  provider for averaging projects. This does not reopen BB-009: raw publishes
+  update the latest cache, and records are created at the recording interval;
+- the internal service mechanism. Independent service is accepted, but a
+  single ESP32-S3 service task, its priority, stack, locks and admission slots
+  are unaccepted candidates. The service clock is not measurement time, and a
+  failed `begin()` cannot promise Serial without a designed owner;
+- any new or versioned live-read grammar and wire fields, and any scheduling
+  approval. Existing published commands, NVS keys and configuration macros stay
+  as they are (BB-009).
 
 Firmware/protocol versions are distinct immutable build metadata. The shared
-module supplies adopted protocol version, physical hardware identity and required
-safe fields; device UID comes from settings, not an unexplained global.
+module supplies the adopted protocol version, physical hardware identity and
+required safe fields; device UID comes from settings, not an unexplained global.
 Sensorless startup is valid and cannot manufacture a zero-valued measurement.
+Serial framing and parsing stay inside BardBox; projects do not write serial
+response strings.
 
-### Loop service and samples
-
-| Proposed method | Meaning |
-| --- | --- |
-| poll(nowMs) | Bounded input/output and operation progress; no sensor acquisition or network request |
-| isStreaming() | Inspect START/STOP state; normally unnecessary for project code |
-| newSample(acquiredAtMs) | Create a typed candidate snapshot at acquisition time |
-| sample.set(field, value) | Supply a declared value; reject wrong types/unknown fields |
-| sample.setTime(stamp) | Attach optional UTC/validity from the separate time module |
-| publishSample(sample) | Validate all required fields/rules, copy coherently and assign sample identity; return result |
-| setReadingNotReady() | Explicit no-usable-sample state; also initial state |
-| setSensorFailure(code) | Mark acquisition failed; older data is not silently served as current valid data |
-
-READ returns the latest accepted valid snapshot immediately. Repeated reads
-keep the same identity. Sample identity includes reboot distinction; sequence
-alone is insufficient. Age and acquisition-time metadata must be specified
-without silently changing existing HEADER/DAT compatibility. Publish is a
-snapshot update, not automatic network upload or unsolicited serial output.
-Late acquisition is distinct from a failed sensor: the application/driver owns
-freshness policy and must be able to inspect sample age.
+Advanced registration, still proposed: `setFirmwareVersion(version)` (required
+build metadata; the template rejects missing or placeholder versions at build
+time), `addInfoField(name, provider)` and `addCapability(module)`. The
+internal wiring `begin(transport, settingsStore)` is supplied by the template and
+shared core, not a second student call.
 
 ### Operational settings
 
@@ -172,38 +224,17 @@ details. Saved Wi-Fi settings, connected Wi-Fi and accepted uploads are separate
 outcomes. Unsupported fields fail, rather than pretending all config.h defines
 are mutable.
 
-### Separate acquisition scheduler
+### Acquisition timing
 
-`AcquisitionSchedule acquisition;` supplies begin(intervalMs),
-setInterval(intervalMs) and due(nowMs). A true due result consumes one scheduled
-attempt; wraparound and changes are handled without a catch-up storm. This
-replaces the earlier device.acquisitionDue suggestion. Sensor conversion
-readiness and recovery remain sensor-driver responsibilities. The template
-connects interval-change notifications to the scheduler.
-
-Illustrative loop (proposed symbols; not a verified build):
-
-```cpp
-void loop() {
-  const uint32_t now = millis();
-  device.poll(now);
-  if (!sensorInitialized || !acquisition.due(now)) return;
-  const uint32_t acquiredAt = millis();
-  const auto reading = readBme280(); // template-provided sensor adapter
-  if (!reading.valid) { device.setSensorFailure("BME_READ_FAILED"); return; }
-  auto sample = device.newSample(acquiredAt);
-  sample.set("temp_c", reading.temperature);
-  sample.set("rh_pct", reading.humidity);
-  sample.set("press_pa", reading.pressure);
-  if (!device.publishSample(sample).ok())
-    device.setSensorFailure("SAMPLE_REJECTED");
-}
-```
-
-The working BME280 template must supply initialization, board I2C pins/address,
-complete schema registration, validated settings, recovery and every referenced
-object. Normal-mode sensor reads and forced conversion are different acquisition
-choices; polling serial faster does not create measurements. No loop-wide delay.
+Acquisition timing belongs to the application. A beginner can read sensors and
+call `delay()`, because BardBox service does not depend on the loop (target,
+BB-005). A non-blocking helper such as the earlier proposed
+`AcquisitionSchedule` (`begin`, `setInterval`, `due`) remains an optional
+proposal, not a requirement. Sensor conversion readiness and recovery remain
+driver responsibilities; normal-mode reads and forced conversion are different
+acquisition choices, and polling serial faster does not create measurements.
+The October 14 illustrative loop (`poll`, `newSample`, `publishSample`) is
+superseded and remains in Git history.
 
 ### Serial command map
 

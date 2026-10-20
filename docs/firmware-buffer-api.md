@@ -37,7 +37,7 @@ delivery consumer. Calls run when invoked; no automatic background thread.
 | --- | --- |
 | begin(storage, options) | Open/recover existing storage; no automatic format; explicit startup/recovery status |
 | append(record) | Admit an immutable bounded record for durable saving; return operation ticket or explicit rejection |
-| poll(nowMs) | Progress storage operations in bounded steps; document hardware blocking limits |
+| poll(nowMs) | Internal: BardBox service progresses storage operations in bounded steps (never called by student code); document hardware blocking limits |
 | operationStatus(ticket) | Pending, durably completed or failed, with structured error; covers append, acknowledge and clear |
 | peekOldest() | Copy oldest durably saved record with its generation/record token; does not remove or hold a lock during network work |
 | acknowledge(token) | Request durable removal of exactly that head after protocol acceptance; return ticket/result |
