@@ -210,6 +210,29 @@ the Feather ESP32-S3 (8 MiB). They are not universal BardBox constants; other
 boards declare their own. On 2026-10-12 the generated table in candidate
 `d3c1c76b4364` matched the CSV exactly.
 
+### Stacked storage overview
+
+One column shows the physical order from low to high flash addresses. Row heights
+are schematic, not proportional. This is the same 8 MiB recipe detailed below;
+reserved space is not a claim of used bytes or enabled functionality.
+
+| 8 MiB flash — low address at top |
+| --- |
+| **Bootloader region — 32 KiB reserved** · starts the firmware |
+| **Partition table — 4 KiB** · describes this memory layout |
+| **NVS — 20 KiB** · persistent configuration and module state |
+| **OTA boot metadata — 8 KiB** · selects and validates a firmware slot |
+| **Firmware slot A — 2 MiB** |
+| **Firmware slot B — 2 MiB** · inactive-slot USB/OTA updates |
+| **LittleFS — 3.875 MiB** · measurement buffer and local storage |
+| **Coredump region — 64 KiB** · reserved crash diagnostics |
+
+The two firmware slots exchange running/update roles. Ordinary updates must
+preserve configuration and queued measurements; reserving both slots alone does
+not commission OTA or prove rollback works.
+
+### Detailed partition table
+
 | Region | Offset | Size | Purpose | Written by USB install? |
 | --- | --- | --- | --- | --- |
 | bootloader | 0x000000 | up to 0x8000 (image 15104 B, write 0x4000) | Start and select firmware | yes |
