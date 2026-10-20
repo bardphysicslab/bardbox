@@ -113,9 +113,9 @@ Actual tree on [`codex/firmware-starter-scaffold`](https://github.com/bardphysic
 bardbox-project-template/software/firmware/
   README.md                 existing; layout map added
   platformio.ini            existing; unchanged
-  src/README.md             start file, config convention, current vs target
+  src/README.md             start file, current vs target
   src/main.cpp              existing simulator; unchanged; the start file
-  include/README.md         folder purpose; the two existing helpers
+  include/README.md         folder purpose, config headers, two existing helpers
   include/BardBoxSensorHealth.h, BardBoxTransportRecovery.h   existing; unchanged
   lib/BardBoxInterface/README.md facade contract overview (no code)
   lib/BardBoxSerial/README.md    serial owner contract overview (no code)
@@ -125,9 +125,12 @@ bardbox-project-template/software/firmware/
 ```
 
 Configuration follows the [repository layout](repository-layout.md#firmware-configuration)
-convention: tracked `src/config.example.h` and ignored `src/config.h`, added
-only when a variant needs per-device build values; the simulator needs neither,
-so neither exists. Accepted: colocation and this starting layout. The facade library
+rule: tracked `include/config.example.h` and ignored `include/config.h` (accepted
+placement, replacing `src/`), added only when a variant needs per-device build
+values; the simulator needs neither, so neither exists, and the template's
+existing `**/config.h` ignore already covers `include/`. Build pins and other
+compiled choices stay separate from supported operational fields (UID, Wi-Fi,
+provisioning), which are intended as runtime settings. Accepted: colocation and this starting layout. The facade library
 and class name `BardBoxInterface` is accepted (replacing the `BardBoxDevice`
 candidate). Still proposed: the other library names, per-library layout, every API, result and durability
 choice, test wiring and any versioning. Each library gets `include/`, `src/` or
