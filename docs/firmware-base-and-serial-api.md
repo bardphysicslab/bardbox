@@ -279,16 +279,23 @@ illustrative. The single record spanning all three sensors is illustrative
 only; per-sensor grouping is open. An averaging project publishes once per
 completed window with `setAveraging`, and sizes its window from `getSetting`.)
 
-If a project chooses integer humidity instead, it declares the type and rounds
-explicitly (illustrative):
+If a project chooses integer humidity instead, it declares the type and
+supplies an integer only from a valid reading (illustrative):
 
 ```cpp
 environment.addMeasurement("rh_pct", "%", MeasurementType::Integer);
 // ...
-record.set(environment, "rh_pct", lround(bme280.readHumidity()));  // project's rounding rule
+const auto rh = readHumidityWholePercent();  // project/driver code: valid flag, integer value, fault code
+if (rh.valid) record.set(environment, "rh_pct", rh.value);
+else          record.setFailed(environment, "rh_pct", rh.code);
 ```
 
-Passing the unrounded fractional value to that channel would be an explicit
+`readHumidityWholePercent` stands for the project's own driver code, not a
+BardBox helper. It applies the project's chosen rounding rule only after the
+driver reports a valid, finite reading; a failed or non-finite reading is never
+rounded into a number and instead marks the channel failed. Shared generic
+checks still apply to the integer supplied, and nothing invalid becomes zero.
+Passing an unrounded fractional value to that channel would be an explicit
 invalid outcome, not a truncated value.
 
 **1. Startup: `begin(options)`.** Arduino-style: capabilities are chosen once.
