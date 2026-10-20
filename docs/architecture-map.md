@@ -30,9 +30,10 @@ three explicit responsibility groups below.
 
 ## Node firmware template
 
-Student code supplies named, typed readings through one beginner-facing facade
-([BB-005](DECISIONS.md)). The facade encloses and coordinates separate Serial,
-network delivery and Buffer owners; the student makes no transport calls.
+Student code hands one completed data point (raw or application-averaged) to
+one beginner-facing facade ([BB-005](DECISIONS.md), FW-SIMPLE-1). The facade
+routes it internally by configuration to separate Serial, network delivery and
+Buffer owners; the student makes no transport calls.
 Acquisition, application averaging, record submission, serial output and
 network upload have independent schedules. Method names follow the
 [student contract draft](firmware-base-and-serial-api.md#proposed-student-contract-draft-for-review)
@@ -48,43 +49,48 @@ READMEs contain no code.
 ```mermaid
 flowchart TB
     subgraph App["Student code (src/main.cpp)"]
-        Sensors["Sensor adapters / drivers<br/>reads, readiness,<br/>sensor-specific faults"]
         Acquisition["Acquisition schedule<br/>independent of transports"]
-        Averaging["Averaging (application-owned)<br/>completed record with<br/>window / method metadata"]
+        Sensors["Sensor reads<br/>readiness, sensor-specific faults"]
+        Averaging["Optional averaging (application-owned)<br/>completed record, window / method"]
         Acquisition --> Sensors
+        Sensors --> Averaging
     end
     subgraph Facade["BardBoxInterface facade (target): one student entry"]
-        Checks["Generic checks (shared)<br/>finite, type, required, bounds<br/>per-channel outcomes"]
+        Publish["publish(record): the one hand-off<br/>returns per-channel results +<br/>accepted / backpressure / rejected<br/>(never a sent or stored promise)"]
+        Checks["Generic checks (shared)<br/>finite, type, required, bounds"]
         Metadata["Every-record metadata<br/>UID, MAC, firmware / protocol,<br/>time / validity; never fabricated"]
-        Latest["Latest snapshot<br/>publishSample"]
-        Completed["Completed-record handoff<br/>submitRecord, ticket status"]
-        Poll["poll(nowMs)<br/>bounded progress of owners"]
-        Checks --> Latest
-        Checks --> Completed
-        Metadata --> Latest
-        Metadata --> Completed
+        Route["Internal routing by configuration<br/>serial always; Wi-Fi by default;<br/>recording always on"]
+        Latest["Latest snapshot (serial)"]
+        Settings["getSetting: active<br/>reporting interval"]
+        Service["poll(nowMs), wired by template<br/>internal service only"]
+        Begin["begin(options), once<br/>default Serial + Wi-Fi + recording;<br/>future: Wi-Fi off (serial-only)"]
+        Begin -.-> Route
+        Publish --> Checks --> Route
+        Metadata --> Route
+        Route --> Latest
     end
-    Sensors -->|"sample"| Checks
-    Latest -->|"checked PublishResult:<br/>valid channels only"| Averaging
-    Averaging -->|"completed record"| Checks
-    Serial["BardBoxSerial owner (target)<br/>INFO / HEADER / READ / streaming<br/>bounded; never drains or ACKs"]
-    Buffer["BardBoxBuffer owner (target)<br/>persistent recording ON by default<br/>pending / durable /<br/>uncertain / failed;<br/>keep anchor, evict oldest unprotected"]
+    Sensors -->|"raw completed record"| Publish
+    Averaging -->|"averaged completed record"| Publish
+    Settings -.-> Averaging
+    Serial["BardBoxSerial owner (target)<br/>READ on request; opt-in streaming;<br/>no unsolicited DAT; never ACKs"]
+    Buffer["BardBoxBuffer owner (target)<br/>pending / durable / uncertain / failed;<br/>keep anchor, evict oldest unprotected"]
     Network["BardBoxNetwork owner (target)<br/>Wi-Fi connect, bounded retry,<br/>oldest-first delivery, ACK"]
     Server["Project server"]
     Latest --> Serial
-    Completed --> Buffer
+    Route -->|"recording (always on)"| Buffer
     Buffer -->|"oldest durable record"| Network
     Network -->|"push records"| Server
     Server -->|"acknowledgements"| Network
     Network -->|"acknowledge"| Buffer
     Buffer -.->|"serial historical recovery / ACK:<br/>open contract"| Serial
-    Poll -.-> Serial
-    Poll -.-> Network
-    Poll -.-> Buffer
+    Service -.-> Serial
+    Service -.-> Network
+    Service -.-> Buffer
     Identity["Provisioned identity / configuration"] -.-> Metadata
+    Identity -.-> Route
     Time["Clock / time module"] -.-> Metadata
     Time -.-> Acquisition
-    Diagnostics["Diagnostics<br/>queue fill, bounded durable loss count"]
+    Diagnostics["Optional status() diagnostics<br/>queue fill, Wi-Fi / storage failures,<br/>bounded durable loss count"]
     Buffer --> Diagnostics
     Network --> Diagnostics
     Diagnostics --> Serial
