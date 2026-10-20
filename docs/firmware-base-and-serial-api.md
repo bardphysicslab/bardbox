@@ -138,6 +138,8 @@ Not a verified build; `ProjectBme280Driver` and `bmeDriver` are placeholders for
 the project's actual driver.
 
 ```cpp
+#define FIRMWARE_VERSION ""        // Student: enter your application firmware version here.
+
 BardBoxInterface bardbox;          // the one device
 BardBoxSensor bme280;              // handle type and lifetime: design open
 ProjectBme280Driver bmeDriver;     // placeholder for the project's real driver
@@ -203,20 +205,46 @@ Sensorless startup is valid and cannot manufacture a zero-valued measurement.
 Serial framing and parsing stay inside BardBox; projects do not write serial
 response strings.
 
-Advanced registration, still proposed: `setFirmwareVersion(version)` (required
-build metadata; the template rejects missing or placeholder versions at build
-time), `addInfoField(name, provider)` and `addCapability(module)`. The
-internal wiring `begin(transport, settingsStore)` is supplied by the template and
-shared core, not a second student call.
+Application build metadata is declared visibly at the top of `main.cpp`: the
+starter leaves `FIRMWARE_VERSION` empty with a comment for the student to fill it
+in ([accepted clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6297603792)).
+The target build rejects missing or placeholder firmware versions. BardBox reports
+the supplied version automatically; students do not call `setFirmwareVersion`.
+For now, firmware version is the only required metadata blank in the student
+main file. Sensor declarations, measurement names/units and driver initialization
+also live in main as application code. UID, Wi-Fi, endpoints and adjustable
+intervals belong in configuration/provisioning; pins belong in build configuration.
+The shared core supplies the protocol version and hardware MAC (target, not yet
+implemented). The target build error should say: "Please set FIRMWARE_VERSION in
+main.cpp." Older incoming data with no reported version is labelled Unknown,
+never an invented zero version. This example is still a proposal, not an
+implementation of that build check.
+
+Advanced registration, still proposed: `addInfoField(name, provider)` and
+`addCapability(module)`. The internal wiring `begin(transport, settingsStore)`
+is supplied by the template and shared core, not a second student call.
 
 ### Operational settings
 
-| Proposed method | Meaning |
+Students configure values in the documented configuration/provisioning location;
+they do not register settings or secrets in their main loop. An application may
+optionally read an effective public setting, for example the active recording
+interval when its averaging math needs it.
+
+| Optional student operation (exact signature proposed) | Meaning |
 | --- | --- |
-| addSetting(spec) | Typed field, default, units, bounds, temporary/persistent support and activation rule |
-| addSecretSetting(spec, consumer) | Set-only secret connected to its owning module; public access shows presence only |
-| getSetting(name) | Validated effective public value |
-| onSettingsChanged(handler) | Bounded notification for application/module activation |
+| getSetting(name) | Read the validated effective public value, with documented units; never a password or token |
+
+**Internal module configuration proposals — not required student calls:**
+
+| Proposed internal method | Meaning |
+| --- | --- |
+| addSetting(spec) | The owning BardBox module defines a typed option, default, units, bounds, persistence support and activation rule |
+| addSecretSetting(spec, consumer) | The owning module defines a protected credential input; public access reports presence only |
+| onSettingsChanged(handler) | Internal notification to the owning module when an effective setting changes |
+
+These internal methods are unimplemented design candidates, not additions to
+the beginner setup/read/publish workflow.
 
 Runtime settings include UID/name, endpoint, SSID/password, per-device upload
 credential, acquisition/streaming/reporting intervals and supported retry,
