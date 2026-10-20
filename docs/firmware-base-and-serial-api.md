@@ -210,9 +210,15 @@ starter leaves `FIRMWARE_VERSION` empty with a comment for the student to fill i
 in ([accepted clarification](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6297603792)).
 The target build rejects missing or placeholder firmware versions. BardBox reports
 the supplied version automatically; students do not call `setFirmwareVersion`.
-Other required application-owned values should likewise be clearly marked where
-they belong, rather than supplied as invented working defaults. This example is
-still a proposal, not an implementation of that build check.
+For now, firmware version is the only required metadata blank in the student
+main file. Sensor declarations, measurement names/units and driver initialization
+also live in main as application code. UID, Wi-Fi, endpoints and adjustable
+intervals belong in configuration/provisioning; pins belong in build configuration.
+The shared core supplies the protocol version and hardware MAC (target, not yet
+implemented). The target build error should say: "Please set FIRMWARE_VERSION in
+main.cpp." Older incoming data with no reported version is labelled Unknown,
+never an invented zero version. This example is still a proposal, not an
+implementation of that build check.
 
 Advanced registration, still proposed: `addInfoField(name, provider)` and
 `addCapability(module)`. The internal wiring `begin(transport, settingsStore)`
@@ -220,12 +226,25 @@ is supplied by the template and shared core, not a second student call.
 
 ### Operational settings
 
-| Proposed method | Meaning |
+Students configure values in the documented configuration/provisioning location;
+they do not register settings or secrets in their main loop. An application may
+optionally read an effective public setting, for example the active recording
+interval when its averaging math needs it.
+
+| Optional student operation (exact signature proposed) | Meaning |
 | --- | --- |
-| addSetting(spec) | Typed field, default, units, bounds, temporary/persistent support and activation rule |
-| addSecretSetting(spec, consumer) | Set-only secret connected to its owning module; public access shows presence only |
-| getSetting(name) | Validated effective public value |
-| onSettingsChanged(handler) | Bounded notification for application/module activation |
+| getSetting(name) | Read the validated effective public value, with documented units; never a password or token |
+
+**Internal module configuration proposals — not required student calls:**
+
+| Proposed internal method | Meaning |
+| --- | --- |
+| addSetting(spec) | The owning BardBox module defines a typed option, default, units, bounds, persistence support and activation rule |
+| addSecretSetting(spec, consumer) | The owning module defines a protected credential input; public access reports presence only |
+| onSettingsChanged(handler) | Internal notification to the owning module when an effective setting changes |
+
+These internal methods are unimplemented design candidates, not additions to
+the beginner setup/read/publish workflow.
 
 Runtime settings include UID/name, endpoint, SSID/password, per-device upload
 credential, acquisition/streaming/reporting intervals and supported retry,
