@@ -152,7 +152,7 @@ Sensorless startup is valid and cannot manufacture a zero-valued measurement.
 | record.set(field, value) | Supply a declared value |
 | record.setFailed(field, code) | Mark one channel failed with a sensor-specific code |
 | record.setAveraging(windowMs, method) | Optional window and method metadata for an application-averaged record ([FW-RECORD-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289832277)) |
-| publish(record) | **The one student hand-off** (name proposed): validate, add metadata, update the serial latest snapshot and route to enabled recording and network delivery; return an honest result (below) |
+| publish(record) | **The one student hand-off** (name `publish` accepted; signature proposed): validate, add metadata, update the serial latest snapshot and route to enabled recording and network delivery; return an honest result (below) |
 | setSensorFailure(code) | No record could be formed; older data is not served as current valid data |
 | getSetting(name) | Effective settings, including the active reporting interval (see [Operational settings](#operational-settings)) |
 | status() | Optional diagnostics (queue fill, storage and network failures, loss counts); never required in a loop |
@@ -215,7 +215,12 @@ per completed window with `setAveraging`, and sizes its window from
 `getSetting`.)
 
 **1. Startup: `begin(options)`.** Arduino-style: capabilities are chosen once.
-The accepted defaults are Serial, Wi-Fi/network delivery and persistent
+A beginner calls `begin()` with no arguments: no baud argument and no required
+flags. The existing BardBox serial default governs, unchanged: template
+[`main.cpp`](https://github.com/bardphysicslab/bardbox-project-template/blob/75bf01b4024233ab7cbf919963500a151b1501e6/software/firmware/src/main.cpp#L57) line 57 calls `Serial.begin(115200)`, and
+[`platformio.ini`](https://github.com/bardphysicslab/bardbox-project-template/blob/75bf01b4024233ab7cbf919963500a151b1501e6/software/firmware/platformio.ini) sets `monitor_speed = 115200`. Starting a
+configured Wi-Fi connection without blocking, and continuing offline, is a
+proposed startup detail, not an accepted implementation. The accepted defaults are Serial, Wi-Fi/network delivery and persistent
 recording on. The published base Serial interface is always present. Proposed
 MVP profile (a recommendation, not a new platform rule): the simple profile
 offers no recording-off option, and its only option is a future serial-only
@@ -229,8 +234,10 @@ from `begin` flags. The existing `begin(transport, settingsStore)` row
 describes the internal wiring the template and shared core supply (USB
 CDC/UART transport and settings store); it is not a second student call.
 
-**2. One hand-off: `publish(record)`** (`send` is an alternative name). It
-returns `PublishResult`:
+**2. One hand-off: `publish(record)`.** The name `publish` is accepted from the
+user's conversation; the exact signature and result types stay proposed. Every
+path (raw or averaged; serial, Wi-Fi and recording) uses this one completed-record
+hand-off. It returns `PublishResult`:
 
 | Part | Values | Meaning |
 | --- | --- | --- |
