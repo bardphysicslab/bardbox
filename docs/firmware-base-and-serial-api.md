@@ -502,7 +502,7 @@ current DC1 provisioning preserves its immutable-record rule. Ordinary reflash
 retains configuration. Registry outage blocks the host assignment/change action,
 not local INFO/debug or a structurally valid serial settings operation.
 
-Accepted for template firmware ([firmware-tools#50]({D}6303975922)): the UID is a
+Accepted for template firmware ([firmware-tools#50](https://github.com/bardphysicslab/firmware-tools/issues/50#issuecomment-6303975922)): the UID is a
 repeatable `config/1` setting, and stored records keep the UID they were recorded
 with. The DC1/DB1 records below and the devices that use them keep their immutable
 rule. This proposed requirement would change existing device-instructions.md's immutable-deployed-ID
