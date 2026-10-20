@@ -48,7 +48,7 @@ flowchart TB
     Acquisition --> Publish["BardBoxInterface<br/>sensor.publish(values) in declared order;<br/>shared checks and metadata"]
     Publish -->|"raw publications"| Latest["Latest per-sensor cache (raw readings)<br/>original sample identity, time and validity"]
     Acquisition -.->|"averaging projects: raw provider<br/>binding explicit and open"| Latest
-    Latest -->|"live read only"| Serial["Serial adapter<br/>normal READ, live read, existing streaming;<br/>own schedule; never drains or ACKs recording"]
+    Latest -->|"READ_LIVE only"| Serial["Serial adapter<br/>normal READ, READ_LIVE, existing streaming;<br/>own schedule; never drains or ACKs recording"]
     Publish --> Records["Record creation at the recording interval<br/>application average, or latest reading<br/>with original time; explicit no-fresh-reading"]
     Latest -->|"raw: latest at recording boundary"| Records
     Records -->|"normal READ: latest completed record"| Serial
@@ -75,7 +75,7 @@ flowchart TB
 
 **Recording (accepted direction).** Persistent recording defaults ON for every
 device running BardBox firmware, including serial-connected nodes. Normal serial
-`READ` serves the latest completed record and a live read the latest cached
+`READ` serves the latest completed record and `READ_LIVE` the latest cached
 readings, each with its original identity, time and validity
 ([normal READ and live read](firmware-base-and-serial-api.md#normal-read-and-live-read)); existing
 streaming is unchanged. None of these drains or acknowledges recorded records. Recovering recorded history over
