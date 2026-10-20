@@ -136,7 +136,7 @@ Sensorless startup is valid and cannot manufacture a zero-valued measurement.
 
 | Proposed method | Meaning |
 | --- | --- |
-| poll(nowMs) | The one beginner service entry: bounded serial input/output and operation progress, through which enabled internal owners (network delivery, Buffer) also make bounded progress, so the student makes no separate transport calls. It performs no sensor acquisition, and network work never blocks serial responsiveness |
+| poll(nowMs) | The one beginner service entry: bounded progress of the internal Serial, network delivery and Buffer owners, so the student makes no separate transport calls. It does not read sensors, set acquisition cadence or choose the averaging/reporting interval. "Poll" here means servicing those internal owners, not sensor polling; no rename is adopted. Keeping network work from blocking serial responsiveness is a target whose scheduling bound is unproven (see the network boundary below) |
 | isStreaming() | Inspect START/STOP state; normally unnecessary for project code |
 | newSample(acquiredAtMs) | Create a typed candidate snapshot at acquisition time |
 | sample.set(field, value) | Supply a declared value; reject wrong types/unknown fields |
@@ -247,7 +247,8 @@ Buffer servicing calls.
 **Internal owners and the network boundary.** Serial (`BardBoxSerial`), network
 delivery (`BardBoxNetwork`) and Buffer (`BardBoxBuffer`) stay separate owners
 behind the facade. `poll(nowMs)` is meant to give each owner one limited step,
-serving serial first. Ordering alone cannot bound serial latency if a single
+serving serial first; it never acquires or reads sensors, sets acquisition
+cadence or chooses the reporting interval. Ordering alone cannot bound serial latency if a single
 network or storage step blocks (CESH's synchronous HTTP calls currently precede
 serial service). Bounded serial therefore needs every adapter step to have a
 deadline or a fixed work limit, a per-poll time budget, or a separate task; that
@@ -326,6 +327,40 @@ buffer and time settings. Build pins, included drivers, flash layout and build
 version remain build choices. A credential authenticates an assigned UID only
 when the server enforces that binding; a UID alone grants no upload permission.
 No generic public plaintext secret getter or secret echo in errors/logs.
+
+**Reporting interval for application averaging** (proposed,
+[FW-INTERVAL-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6290622655), October 20, 2026; the exact key and result representation
+remain proposal work). Application averaging reads the active reporting interval
+through the existing `getSetting(name)`; there is no separate getter. The
+setting declares explicit units. Proposed: the value given to application code
+is in milliseconds, so it compares directly with `nowMs`; a setting declared in
+seconds states its conversion. `getSetting` returns the effective (active)
+value for this run. After a successful `begin` it is initialized and stays
+stable for the run; before that, or after a failed `begin`, the result is an
+explicit not-ready error, never zero or an unstated default. A saved override,
+the active value and a pending activation are distinct: settings read-back
+reports the saved value and any pending activation, and `getSetting` never
+returns a saved value that has not been activated.
+
+The interval is the completed aggregation window and reporting cadence. It is
+not the sensor acquisition cadence (`AcquisitionSchedule`) and not queue
+catch-up. Reference evidence, CESH `3913ca9`:
+
+- [`CeshReportInterval.h`](https://github.com/bardphysicslab/cesh-air-monitor/blob/3913ca9f6837c252f1e73494bf7466c1f66eb765/software/firmware/esp32-air-node/src/CeshReportInterval.h): `activeReportInterval`
+  chooses a stored, supported override, otherwise the build default
+  `REPORT_INTERVAL_S`.
+- [`main.cpp`](https://github.com/bardphysicslab/cesh-air-monitor/blob/3913ca9f6837c252f1e73494bf7466c1f66eb765/software/firmware/esp32-air-node/src/main.cpp#L3125-L3129) startup multiplies those seconds by
+  1000 into `SAMPLE_INTERVAL_MS`, which drives `aggregate.due(now,
+  SAMPLE_INTERVAL_MS)` (line 2024).
+- `REPORT_INTERVAL_STATUS` reports `default_s`, `active_s`, `override_s`,
+  `min_s`, `max_s` and `activation=next_boot`; `REPORT_INTERVAL_SET`/`CLEAR`
+  store or remove an override that takes effect at the next boot.
+
+CESH's 15–300 s supported range and its 120 s default (`config.shared.h`) are
+CESH choices, not generic BardBox requirements. No live, same-run interval
+change or partial-window policy is defined here; the reference activates at the
+next boot, and partial-window handling for interval changes remains open (see
+[Buffer and consumer integration](#buffer-and-consumer-integration)).
 
 Temporary debug overrides disappear on restart; persistent changes require
 explicit saving. Read-back distinguishes saved/effective values and pending
