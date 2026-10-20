@@ -1,8 +1,9 @@
 # Minimal BardBox firmware: base and serial module API
 
-Status: design proposal, updated 2026-10-14. This specifies the generic implementation
-requested by Kornelis; the C++ API below is not an existing library. No claim of
-build, hardware validation, adopted protocol extension or deployment is made.
+Status: the student-facing direction is accepted ([BB-005](DECISIONS.md), reconciled
+October 20, 2026); implementation details remain proposals. Nothing here is
+implemented: the C++ API below is not an existing library, and no build, hardware
+validation, adopted protocol extension or deployment is claimed.
 Canonical existing wire commands come from [Device instructions](device-instructions.md).
 This proposal extends them; it does not silently substitute a project's protocol.
 Tracker: [Serial and buffer API design](https://github.com/bardphysicslab/bardbox/issues/31); dependency: [USB work](https://github.com/bardphysicslab/firmware-tools/issues/5).
@@ -93,6 +94,10 @@ compatibility with existing `HEADER`/`DAT` parsers; continuous live streaming
 and its grammar. Current firmware does not implement this split yet (for CESH,
 see its [firmware README](https://github.com/bardphysicslab/cesh-air-monitor/blob/main/software/firmware/README.md)).
 
+<a name="proposed-beginner-facing-application-api"></a>
+<a name="registration-and-startup"></a>
+<a name="loop-service-and-samples"></a>
+
 ## Beginner-facing application API
 
 Accepted direction ([BB-005](DECISIONS.md), October 20, 2026), recorded in
@@ -126,8 +131,10 @@ stated as accepted below.
 - `sensor.publish(value1, value2, ...)` hands over values the application has
   already acquired, in declared measurement order.
 
-**Illustrative BME280** (not a verified build; `ProjectBme280Driver` and
-`bmeDriver` are placeholders for the project's actual driver):
+### Illustrative BME280 example
+
+Not a verified build; `ProjectBme280Driver` and `bmeDriver` are placeholders for
+the project's actual driver.
 
 ```cpp
 BardBoxInterface bardbox;          // the one device
@@ -223,6 +230,8 @@ activation. Expiration/reset and override precedence are unresolved grammar
 details. Saved Wi-Fi settings, connected Wi-Fi and accepted uploads are separate
 outcomes. Unsupported fields fail, rather than pretending all config.h defines
 are mutable.
+
+<a name="separate-acquisition-scheduler"></a>
 
 ### Acquisition timing
 
