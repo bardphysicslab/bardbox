@@ -297,24 +297,34 @@ acquisition and network delivery stay independent of record creation either way.
 
 **Raw-reading recorder** (channels recorded from the latest cache):
 
-1. *Boundaries.* One recorder owns recording boundaries on a monotonic clock,
-   scheduling each as the previous boundary plus the interval, so drift does not
-   accumulate. If it falls more than one interval behind, it records once,
+1. *Boundaries.* One recorder owns recording boundaries on a monotonic clock.
+   Each boundary has a **scheduled due time** (the previous due time plus the
+   interval, so drift does not accumulate) and, once taken, an **actual capture
+   time** (step 3). If it falls more than one interval behind, it records once,
    skips the missed boundaries and counts the skip in diagnostics; it never
    bursts catch-up records.
 2. *Cache entries.* Each channel's entry holds its value, original sample ID,
    original acquisition time (monotonic, plus UTC when valid) and the freshness
    limit declared by its sensor or application. Sensor code updates its entry
    under a short lock that only copies fixed-size values: no I/O, no allocation.
-3. *Snapshot.* At a boundary the recorder takes the same short lock, copies all
-   entries into a snapshot it owns, releases the lock and builds the record
-   outside it. It never waits for an in-flight sensor read.
-4. *Ordering.* An update that completes before the recorder takes the lock is in
-   this record; one that completes after belongs to the next boundary.
-5. *Freshness.* A channel is fresh when the boundary time minus its acquisition
-   time is within its declared limit. Otherwise, or if it was never sampled, it
-   gets an explicit no-fresh-reading result. The limit should be required at
-   registration rather than given a guessed default (open).
+3. *Snapshot.* At or after the due time the recorder takes the same short
+   lock, reads the monotonic clock as the **capture time** while holding it,
+   copies all entries into a snapshot it owns, releases the lock and builds the
+   record outside it. It never waits for an in-flight sensor read.
+4. *Cutoff and ordering.* The cutoff is the capture time, not the due time. An
+   update written before the recorder takes the lock is in this record, even if
+   it was acquired after the scheduled due time; one written after belongs to
+   the next boundary. Because every included entry was written before the
+   capture on the same monotonic clock, its age is never negative and no
+   future-time arithmetic arises. The due time and the capture lag (capture
+   time minus due time) are kept only as diagnostics.
+5. *Freshness.* A channel is fresh when its age, the capture time minus its
+   monotonic acquisition time, is within its declared limit. Otherwise, or if it
+   was never sampled, it gets an explicit no-fresh-reading result. The record
+   carries each channel's original acquisition time, never the due or capture
+   time as a measurement time; UTC is not used in the age arithmetic. The limit
+   should be required at registration rather than given a guessed default
+   (open).
 6. *Same sample twice.* If a channel still holds the sample already recorded at
    the previous boundary and it is still fresh, the record repeats it with the
    **same original sample ID and time**, so it is recognizable as a repeat and
