@@ -31,7 +31,9 @@ before adopting it; the default does not by itself make every board capable.
 ## Proposed C++ interface
 
 `BardBoxBuffer buffer;` creates an instance with one queue owner and one active
-delivery consumer. Calls run when invoked; no automatic background thread.
+delivery consumer. The Buffer does not spawn its own thread: its operations run
+when invoked, and BardBox's internal service invokes them. Student code never
+calls `poll` or other Buffer operations.
 
 | Operation | Contract |
 | --- | --- |
