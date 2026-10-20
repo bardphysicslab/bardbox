@@ -175,15 +175,18 @@ unsolicited serial output.
 
 - exact signatures, result types, callbacks, the sensor handle's type and
   lifetime, and the failure-reporting form;
-- whether each publish becomes its own record or part of a full-node record,
-  how original measurement time and average windows attach, average hand-off
-  timing, cache scheduling, and the raw diagnostic provider for averaging
-  projects;
+- at record creation, whether records are grouped per sensor or as one coherent
+  full-node record, and the matching average hand-off; how original measurement
+  time and average windows attach; cache scheduling; and the raw diagnostic
+  provider for averaging projects. This does not reopen BB-009: raw publishes
+  update the latest cache, and records are created at the recording interval;
 - the internal service mechanism. Independent service is accepted, but a
   single ESP32-S3 service task, its priority, stack, locks and admission slots
   are unaccepted candidates. The service clock is not measurement time, and a
   failed `begin()` cannot promise Serial without a designed owner;
-- wire and NVS names, and any scheduling approval.
+- any new or versioned live-read grammar and wire fields, and any scheduling
+  approval. Existing published commands, NVS keys and configuration macros stay
+  as they are (BB-009).
 
 Firmware/protocol versions are distinct immutable build metadata. The shared
 module supplies the adopted protocol version, physical hardware identity and
