@@ -62,7 +62,7 @@ flowchart TB
         Route["Internal routing by configuration<br/>serial always; Wi-Fi by default;<br/>recording ON by default"]
         Latest["Latest snapshot (serial)"]
         Settings["getSetting: active<br/>reporting interval"]
-        Service["poll(nowMs), wired by template<br/>internal service only"]
+        Service["Internal service task (candidate)<br/>started by begin(); runs during<br/>student delay(); not implemented"]
         Begin["begin(options), once<br/>default Serial + Wi-Fi + recording;<br/>future: Wi-Fi off (serial-only)"]
         Begin -.-> Route
         Publish --> Checks --> Route

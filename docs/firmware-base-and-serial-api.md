@@ -93,8 +93,12 @@ not existing C++ symbols or a compiling implementation.
 
 `BardBoxInterface bardbox;` creates one beginner-facing facade (accepted name
 `BardBoxInterface`, October 20, 2026, replacing the earlier `BardBoxDevice`
-candidate; its methods and results remain proposed and unimplemented). It runs when
-called, not automatically in a background task. The underlying serial module
+candidate; its methods and results remain proposed and unimplemented). Accepted
+target ([FW-SERVICE-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291462264)): `begin()` starts internal BardBox service that
+keeps running while student code waits (for example in `delay(500)`); this
+supersedes the earlier "runs only when called" premise. The mechanism is the
+[proposed internal service design](#internal-service-design-proposed) and is not
+implemented. The underlying serial module
 owns framing/parsing; settings, acquisition scheduling, time, storage and
 network delivery have their own owners. The facade wires their interfaces
 without importing a project's main.cpp. USB CDC/UART remain injected Arduino
@@ -200,7 +204,11 @@ Sensorless startup is valid and cannot manufacture a zero-valued measurement.
 | setSensorFailure(code) | No record could be formed; older data is not served as current valid data |
 | getSetting(name) | Effective settings, including the active reporting interval (see [Operational settings](#operational-settings)) |
 | status() | Optional diagnostics (queue fill, storage and network failures, loss counts); never required in a loop |
-| poll(nowMs) | Internal service of the Serial, network and Buffer owners. The template wires it into `loop()` once; student code does not call or manage it. It does not read sensors, set acquisition cadence or choose the reporting interval; "poll" is not sensor polling and no rename is adopted. No automatic thread or task model is adopted, and its scheduling bound is unproven |
+
+There is no student service call: no `poll`, no `millis()` feeding, no transport
+or storage maintenance, no tickets and no manual queue retry
+([FW-SERVICE-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291462264)). The earlier proposed `poll(nowMs)` loop line is
+superseded.
 
 Serial output keeps the published [device instructions](device-instructions.md):
 `READ` returns the latest published record on request, and `START` streaming
@@ -233,7 +241,9 @@ on template `main` (`75bf01b`) still describe that draft until separately
 reconciled.
 
 The student sees three concepts: **startup**, **one hand-off** and the
-**effective interval**. There are no transport calls, tickets or status loops.
+**effective interval**. There are no service calls, transport calls, tickets or
+status loops. The loop reads sensors, does any math, publishes and may simply
+`delay()`; sensors are read only when that loop runs.
 
 ```cpp
 BardBoxInterface bardbox;                  // the one device
@@ -248,12 +258,10 @@ void setup() {
   pmsB = bardbox.addSensor("pms_b");
   pmsB.addMeasurement("pm25", "ug/m3");
   bme280.begin(); pmsPortA.begin(9600); pmsPortB.begin(9600);  // driver init: explicit
-  bardbox.begin();                         // BardBox only: Serial + Wi-Fi + recording
+  bardbox.begin();                         // BardBox only: starts Serial, Wi-Fi, recording and internal service
 }
 
 void loop() {
-  bardbox.poll(millis());                  // template line: BardBox internal service
-  if (!acquisition.due(millis())) return;
   auto record = bardbox.newRecord();
   record.set(environment, "temp_c", bme280.readTemperature());
   record.set(environment, "rh_pct", bme280.readHumidity());
@@ -261,6 +269,7 @@ void loop() {
   record.set(pmsB, "pm25", readPm25(pmsPortB));
   const auto result = bardbox.publish(record);  // the one hand-off
   if (!result.accepted()) reportProblem(result);  // project choice
+  delay(500);                              // BardBox service continues meanwhile (target)
 }
 ```
 
@@ -337,9 +346,51 @@ eviction appear in optional `status()` diagnostics and loss counts (and the
 server's central error log when communication permits), never as a claim that
 data was sent or stored. Retry, preservation and loss-counting policy for
 `backpressure`, `uncertain` or `failed` records, and queueing policy (RKC
-no-queue versus CESH queue), stay open. `poll` adopts no thread or task model,
-and its serial-latency bound (per-step deadlines, a time budget or a separate
-task) is unresolved.
+no-queue versus CESH queue), stay open.
+
+### Internal service design (proposed)
+
+Accepted need ([FW-SERVICE-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291462264), [acceptance supplement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291470459)): BardBox
+service continues independently of student code and its `delay()`, on the
+current 8 MiB, no-PSRAM ESP32-S3 target. Everything below is a candidate
+mechanism for review, not an adopted thread model, not implemented, and with
+no thread-safety or timing guarantee until built and tested. No per-sensor,
+per-transport or multi-board task framework.
+
+| Topic | Candidate |
+| --- | --- |
+| Worker | One owned BardBox service task, created by `begin()` with a fixed stack, priority and core chosen by measurement (it must starve neither the Arduino loop task nor the Wi-Fi stack). CESH already runs an acquisition task and a buffer mutex ([append reference](firmware-buffer-api.md#compatibility-and-cesh-evidence)), which shows the platform pattern but is not this design |
+| Startup and failure | `begin()` validates registration, loads settings, opens storage, starts Serial and then creates the task. If task creation or storage fails, `begin()` returns an explicit error and Serial `INFO`/diagnostics stay available where possible; there is no silent half-start. Wi-Fi connects asynchronously from the task, and being offline is a normal state. A second `begin()` is an error; stop/restart beyond reboot is open |
+| Clock | The task keeps its own monotonic time; students never pass time. `newRecord()` stamps acquisition time from the same clock; UTC and validity come from the time module |
+| Hand-off | `publish` runs in the student's task: it validates, stamps metadata and copies the record into one of a fixed number of statically sized admission slots (no per-record heap). It waits at most a short bounded time; if the slots are full it returns `backpressure`. The latest snapshot is replaced as a whole copy under a short lock. BardBox never keeps a reference to the student's record object |
+| Ownership | Only the service task touches Serial command I/O, the Wi-Fi/HTTP client and Buffer storage. Student code touches only admission slots, the snapshot copy and settings copies, each under short locks |
+| Progress | Each iteration gives every owner one bounded step: Serial (read available bytes, answer at most one command), admission (move one record into the Buffer), network (one delivery step when connected and due), then a short blocking wait so other tasks run |
+| Failures | Full slots give `backpressure`; storage failures and Wi-Fi outages appear in `status()` and loss counts; records stay in the Buffer while offline. No infinite queue, no indefinite blocking and no silent loss |
+
+**Gates a task alone does not solve.** One task cannot answer serial while it is
+itself blocked inside a slow HTTP request or a flash write/erase. Bounded serial
+responsiveness therefore depends on:
+
+1. HTTP connect and response timeouts plus bounded request and response sizes
+   in the network adapter;
+2. a measured worst-case LittleFS append and erase time on the target;
+3. Wi-Fi connect and reconnect that never blocks the task.
+
+If measurement shows these cannot be bounded tightly enough, the review decides
+between a separate small serial task and a separate network task; neither is
+adopted now.
+
+**First acceptance test (before any CESH or OTA refactor).** An independent
+consumer, not CESH boilerplate: register one sensor with two measurements,
+`begin()`, then loop over read, publish and `delay(500)`. It passes when:
+
+- `INFO` and `READ` are answered during the student's delay, including while
+  Wi-Fi is disconnected, within a stated bound;
+- publishing continues during an outage with honest `accepted`/`backpressure`
+  results, records are kept in the Buffer and delivered oldest-first after
+  reconnect, and nothing is lost silently;
+- `READ` shows the latest published record and `status()` shows progress and
+  failures.
 
 ### Operational settings
 
@@ -362,7 +413,7 @@ No generic public plaintext secret getter or secret echo in errors/logs.
 remain proposal work). Application averaging reads the active reporting interval
 through the existing `getSetting(name)`; there is no separate getter. The
 setting declares explicit units. Proposed: the value given to application code
-is in milliseconds, so it compares directly with `nowMs`; a setting declared in
+is in milliseconds, so it compares directly with millisecond timing; a setting declared in
 seconds states its conversion. `getSetting` returns the effective (active)
 value for this run. After a successful `begin` it is initialized and stays
 stable for the run; before that, or after a failed `begin`, the result is an
@@ -425,6 +476,8 @@ are mutable.
 
 ### Separate acquisition scheduler
 
+Optional for projects that want non-blocking acquisition timing; a beginner
+can use `delay()` instead, since BardBox service no longer depends on the loop.
 `AcquisitionSchedule acquisition;` supplies begin(intervalMs),
 setInterval(intervalMs) and due(nowMs). A true due result consumes one scheduled
 attempt; wraparound and changes are handled without a catch-up storm. This
@@ -438,7 +491,8 @@ The October 14 illustrative loop is superseded by the short example in the
 The working BME280 template must supply initialization, board I2C pins/address,
 complete schema registration, validated settings, recovery and every referenced
 object. Normal-mode sensor reads and forced conversion are different acquisition
-choices; polling serial faster does not create measurements. No loop-wide delay.
+choices; polling serial faster does not create measurements. A student
+`delay()` pauses acquisition only, not BardBox service (target).
 
 ### Serial command map
 
