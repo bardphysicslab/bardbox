@@ -178,6 +178,15 @@ unavailable network stays selected. Measurement, buffering and USB commands cont
 device keeps trying to reconnect. Selecting a reachable network again lets buffered readings
 upload. Every write is reviewed and confirmed by the operator, on the board that was read.
 
+### Template settings capability `config/1` (candidate)
+
+The reference template does not implement DC1/DB1 or the commands above. It saves
+UID, Wi-Fi SSID and password as one mutable settings record through `CONFIG_*`
+(capability `config/1`, [serial/base API](firmware-base-and-serial-api.md#implemented-candidate-subset-config1-template-october-20-2026)).
+Tools detect it with `CONFIG_SCHEMA` and must not treat it as DB1/DC1, nor use it to
+alter an existing immutable record. DC1/DB1 rules and their consumers (CESH) are
+unchanged ([accepted scope](https://github.com/bardphysicslab/firmware-tools/issues/50#issuecomment-6303975922)).
+
 ## 4. Release defaults
 
 A firmware release may carry public defaults for the setup form, in a bundle input of their
