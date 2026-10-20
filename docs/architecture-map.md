@@ -56,7 +56,7 @@ flowchart TB
         Sensors --> Averaging
     end
     subgraph Facade["BardBoxInterface facade (target): one student entry"]
-        Publish["publish(record): the one hand-off<br/>returns per-channel results +<br/>accepted / backpressure / rejected<br/>(never a sent or stored promise)"]
+        Publish["sensor.publish(values...)<br/>declared order; the one hand-off<br/>returns per-channel results +<br/>accepted / backpressure / rejected<br/>(never a sent or stored promise)"]
         Checks["Generic checks (shared)<br/>finite, type, required, bounds"]
         Metadata["Every-record metadata<br/>UID, MAC, firmware / protocol,<br/>time / validity; never fabricated"]
         Route["Internal routing by configuration<br/>serial always; Wi-Fi by default;<br/>recording ON by default"]
@@ -69,8 +69,8 @@ flowchart TB
         Metadata --> Route
         Route --> Latest
     end
-    Sensors -->|"raw completed record"| Publish
-    Averaging -->|"averaged completed record"| Publish
+    Sensors -->|"raw values"| Publish
+    Averaging -->|"averaged values"| Publish
     Settings -.-> Averaging
     Serial["BardBoxSerial owner (target)<br/>READ on request; opt-in streaming;<br/>no unsolicited DAT; never ACKs"]
     Buffer["BardBoxBuffer owner (target)<br/>pending / durable / uncertain / failed;<br/>keep anchor, evict oldest unprotected"]

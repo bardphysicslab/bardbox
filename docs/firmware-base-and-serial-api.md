@@ -171,7 +171,8 @@ default coercion.
 Sensors ([FW-SENSOR-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291273464), October 20, 2026): measurements belong to sensor
 instances, not to one flat set of prefixed names. There is still exactly one
 device object, `BardBoxInterface bardbox`, which starts and coordinates Serial,
-Wi-Fi and the Buffer once, owns the device UID and receives the one `publish`.
+Wi-Fi and the Buffer once, owns the device UID and receives every publication
+that sensor handles delegate to it.
 A sensor handle creates no transport, queue, device UID or authentication
 identity, and there is no nested facade or second `begin` (for example no
 `cesh.begin()`). A sensor is created and registered once, through the interface
@@ -196,12 +197,8 @@ Sensorless startup is valid and cannot manufacture a zero-valued measurement.
 
 | Proposed method | Meaning |
 | --- | --- |
-| newRecord() | Create a typed candidate record for the declared fields; BardBox stamps time and validity, and metadata |
-| record.set(sensor, field, value) | Supply a declared value of that sensor |
-| record.setFailed(sensor, field, code) | Mark one channel failed with a sensor-specific code |
-| record.setAveraging(windowMs, method) | Optional window and method metadata for an application-averaged record ([FW-RECORD-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289832277)) |
-| publish(record) | **The one student hand-off** (name `publish` accepted; signature proposed): validate, add metadata, update the serial latest snapshot and route to enabled recording and network delivery; return an honest result (below) |
-| setSensorFailure(code) | No record could be formed; older data is not served as current valid data |
+| sensor.publish(value1, value2, ...) | **The one student hand-off** (accepted direction; exact C++ signature and types proposed): already-acquired values in the sensor's declared measurement order. The sensor delegates to the one device, which validates, adds metadata, builds the internal record, updates the serial latest snapshot and routes to recording and enabled delivery; returns an honest result (below) |
+| sensor failure reporting | Explicit whole-sensor failure (older data is not served as current valid data) and an explicit per-channel failure marker; spelling open (candidates: `sensor.reportFailure(code)`, a positional failure marker) |
 | getSetting(name) | Effective settings, including the active reporting interval (see [Operational settings](#operational-settings)) |
 | status() | Optional diagnostics (queue fill, storage and network failures, loss counts); never required in a loop |
 
@@ -241,62 +238,64 @@ on template `main` (`75bf01b`) still describe that draft until separately
 reconciled.
 
 The student sees three concepts: **startup**, **one hand-off** and the
-**effective interval**. There are no service calls, transport calls, tickets or
-status loops. The loop reads sensors, does any math, publishes and may simply
-`delay()`; sensors are read only when that loop runs.
+**effective interval**. There are no service calls, transport calls, record
+builders, tickets or status loops. The loop reads sensors, does any math,
+publishes and may simply `delay()`; sensors are read only when that loop runs.
 
 ```cpp
 BardBoxInterface bardbox;                  // the one device
-BardBoxSensor environment, pmsA, pmsB;     // handles, filled by addSensor below
+BardBoxSensor bme280;                      // handle, filled by addSensor below
 
 void setup() {
-  environment = bardbox.addSensor("environment");
-  environment.addMeasurement("temp_c", "degC");  // type omitted: FLOAT
-  environment.addMeasurement("rh_pct", "%");
-  pmsA = bardbox.addSensor("pms_a");
-  pmsA.addMeasurement("pm25", "ug/m3");          // same name, separate sensors
-  pmsB = bardbox.addSensor("pms_b");
-  pmsB.addMeasurement("pm25", "ug/m3");
-  bme280.begin(); pmsPortA.begin(9600); pmsPortB.begin(9600);  // driver init: explicit
-  bardbox.begin();                         // BardBox only: starts Serial, Wi-Fi, recording and internal service
+  bme280 = bardbox.addSensor("bme280");
+  bme280.addMeasurement("humidity", "%");          // type omitted: FLOAT
+  bme280.addMeasurement("temperature", "degC");
+  bme280.addMeasurement("pressure", "Pa");
+  bmeDriver.begin();                       // driver init: explicit, project code
+  bardbox.begin();                         // starts Serial, Wi-Fi, recording and internal service
 }
 
 void loop() {
-  auto record = bardbox.newRecord();
-  record.set(environment, "temp_c", bme280.readTemperature());
-  record.set(environment, "rh_pct", bme280.readHumidity());
-  record.set(pmsA, "pm25", readPm25(pmsPortA));
-  record.set(pmsB, "pm25", readPm25(pmsPortB));
-  const auto result = bardbox.publish(record);  // the one hand-off
-  if (!result.accepted()) reportProblem(result);  // project choice
+  float humidity = bmeDriver.readHumidity();       // values acquired by the application
+  float temperature = bmeDriver.readTemperature();
+  float pressure = bmeDriver.readPressure();
+  bme280.publish(humidity, temperature, pressure); // declared order; the one hand-off
   delay(500);                              // BardBox service continues meanwhile (target)
 }
 ```
 
-(Proposed symbols; not a verified build. `bme280`, `pmsPortA/B` and
-`readPm25` stand for the project's actual drivers; their initialization is
-illustrative. The single record spanning all three sensors is illustrative
-only; per-sensor grouping is open. An averaging project publishes once per
-completed window with `setAveraging`, and sizes its window from `getSetting`.)
+(Proposed symbols; not a verified build. `bmeDriver` stands for the project's
+actual driver. Accepted in [FW-SENSOR-PUBLISH-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291563410) and its
+[acceptance](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291568725).) The result of `publish` may be checked but need not be.
+Other sensors work the same way in their own scopes (for example `pm25` on
+separate PMS-A and PMS-B handles). An averaging project publishes once per
+completed window and sizes the window from `getSetting`; how window and method
+metadata attach to a positional publish (for example declared once per sensor)
+is open. The earlier record-builder example (`newRecord`, `record.set`,
+`bardbox.publish(record)`) is superseded and readable at [`9876221`](https://github.com/bardphysicslab/bardbox/blob/98762213032e77b49add43063cfef667c55db7f8/docs/firmware-base-and-serial-api.md#proposed-student-contract-draft-for-review); it is
+not a parallel beginner API.
 
-If a project chooses integer humidity instead, it declares the type and
-supplies an integer only from a valid reading (illustrative):
+Positional values are checked for count, declared type (with the documented
+integer-to-FLOAT conversion), finiteness and bounds, with coded per-channel
+outcomes; a driver's non-finite FLOAT value becomes an explicit `non_finite`
+null, never zero. Swapping two values of the same type cannot be detected, so
+declaration order must be clear.
 
-```cpp
-environment.addMeasurement("rh_pct", "%", MeasurementType::Integer);
-// ...
-const auto rh = readHumidityWholePercent();  // project/driver code: valid flag, integer value, fault code
-if (rh.valid) record.set(environment, "rh_pct", rh.value);
-else          record.setFailed(environment, "rh_pct", rh.code);
-```
+If a project chooses integer humidity, it declares
+`MeasurementType::Integer` and passes an integer it derived only from a valid
+reading, using its own rounding rule. A failed or non-finite reading is never
+rounded into a number; it is reported with the explicit failure form above. No
+BardBox helper is involved, and an unrounded fractional value on that channel
+is an explicit invalid outcome, not a truncated value.
 
-`readHumidityWholePercent` stands for the project's own driver code, not a
-BardBox helper. It applies the project's chosen rounding rule only after the
-driver reports a valid, finite reading; a failed or non-finite reading is never
-rounded into a number and instead marks the channel failed. Shared generic
-checks still apply to the integer supplied, and nothing invalid becomes zero.
-Passing an unrounded fractional value to that channel would be an explicit
-invalid outcome, not a truncated value.
+**Open gate before code: grouping and wire mapping.** Whether each
+`sensor.publish` becomes its own internal record or contributes to a coherent
+full-node frame, its atomicity, and the versioned mapping onto the current
+serial `HEADER`/`DAT` and server channel schemas are undecided. Unreported
+sensors are never filled with fabricated or stale values, existing `HEADER`/`DAT`
+meaning is never silently reinterpreted, and server schemas are not broken.
+This is internal design; a record builder is not moved back into student code
+to avoid it.
 
 **1. Startup: `begin(options)`.** Arduino-style: capabilities are chosen once.
 A beginner calls `begin()` with no arguments: no baud argument and no required
@@ -319,17 +318,16 @@ from `begin` flags. The existing `begin(transport, settingsStore)` row
 describes the internal wiring the template and shared core supply (USB
 CDC/UART transport and settings store); it is not a second student call.
 
-**2. One hand-off: `publish(record)`.** The name `publish` is accepted from the
-user's conversation; the exact signature and result types stay proposed. Every
-path (raw or averaged; serial, Wi-Fi and recording) uses this one completed-record
-hand-off. It returns `PublishResult`:
+**2. One hand-off: `sensor.publish(values...)`.** Accepted direction; the exact
+signature and result types stay proposed. Every path (raw or averaged; serial,
+Wi-Fi and recording) uses this one hand-off. It returns `PublishResult`:
 
 | Part | Values | Meaning |
 | --- | --- | --- |
-| Per channel | `valid`, `missing`, `invalid` (`non_finite`, `invalid_type`, `out_of_bounds`), `failed` | Non-valid channels become coded nulls; an unknown field is ignored and reported as `unknown_field` |
+| Per channel | `valid`, `missing`, `invalid` (`non_finite`, `invalid_type`, `out_of_bounds`), `failed` | Non-valid channels become coded nulls. A wrong value count is reported explicitly |
 | Admission | `accepted` | Validated, the serial snapshot updated and the record handed to recording and enabled delivery. **Not** a promise that it is durably stored, sent or acknowledged |
 | | `backpressure` | Validated, but recording cannot admit it now (bounded pending space full); not recorded, and the result says so rather than dropping silently |
-| | `rejected` | Structurally unusable (no successful `begin`, unregistered schema, oversized) or refused before any storage I/O; reason given |
+| | `rejected` | Structurally unusable (no successful `begin`, unregistered sensor, wrong value count, oversized) or refused before any storage I/O; reason given |
 
 Republishing an older record never replaces a newer serial snapshot. All-null
 is accepted only when every channel carries an explicit code, as a failure
@@ -368,8 +366,8 @@ per-transport or multi-board task framework.
 | --- | --- |
 | Worker | One owned BardBox service task, created by `begin()` with a fixed stack, priority and core chosen by measurement (it must starve neither the Arduino loop task nor the Wi-Fi stack). CESH already runs an acquisition task and a buffer mutex ([append reference](firmware-buffer-api.md#compatibility-and-cesh-evidence)), which shows the platform pattern but is not this design |
 | Startup and failure | `begin()` validates registration, loads settings, opens storage, starts Serial and then creates the task. If task creation or storage fails, `begin()` returns an explicit error and Serial `INFO`/diagnostics stay available where possible; there is no silent half-start. Wi-Fi connects asynchronously from the task, and being offline is a normal state. A second `begin()` is an error; stop/restart beyond reboot is open |
-| Clock | The task keeps its own monotonic time; students never pass time. `newRecord()` stamps acquisition time from the same clock; UTC and validity come from the time module |
-| Hand-off | `publish` runs in the student's task: it validates, stamps metadata and copies the record into one of a fixed number of statically sized admission slots (no per-record heap). It waits at most a short bounded time; if the slots are full it returns `backpressure`. The latest snapshot is replaced as a whole copy under a short lock. BardBox never keeps a reference to the student's record object |
+| Clock | The task keeps its own monotonic time; students never pass time. `sensor.publish` stamps acquisition time from the same clock; UTC and validity come from the time module |
+| Hand-off | `sensor.publish` runs in the student's task and delegates to the device: it validates, stamps metadata, builds the internal record and copies it into one of a fixed number of statically sized admission slots (no per-record heap). It waits at most a short bounded time; if the slots are full it returns `backpressure`. The latest snapshot is replaced as a whole copy under a short lock. BardBox never keeps a reference to student variables |
 | Ownership | Only the service task touches Serial command I/O, the Wi-Fi/HTTP client and Buffer storage. Student code touches only admission slots, the snapshot copy and settings copies, each under short locks |
 | Progress | Each iteration gives every owner one bounded step: Serial (read available bytes, answer at most one command), admission (move one record into the Buffer), network (one delivery step when connected and due), then a short blocking wait so other tasks run |
 | Failures | Full slots give `backpressure`; storage failures and Wi-Fi outages appear in `status()` and loss counts; records stay in the Buffer while offline. No infinite queue, no indefinite blocking and no silent loss |
