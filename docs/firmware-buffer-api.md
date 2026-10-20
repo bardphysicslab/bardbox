@@ -118,6 +118,42 @@ fault test re-run October 14: 1 passed using simulated LittleFS and compiler
 sanitizers. No new physical power-loss/retention/outage evidence. See the owning
 [compact-storage evidence](https://github.com/bardphysicslab/cesh-air-monitor/blob/main/docs/compact-storage-validation.md).
 
+**Append reference** (accepted modeling baseline,
+[FW-BUFFER-REF-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289854963), October 20, 2026). Source: CESH
+`3913ca9f6837c252f1e73494bf7466c1f66eb765`,
+`software/firmware/esp32-air-node/src/main.cpp`.
+- `appendReadingToBuffer(csvLine)` runs under the buffer mutex and returns `bool`.
+- It rejects with `lastBufferError` set for a full queue (`buffer_full`, by
+  record count or free space), an invalid record size and an exhausted chunk
+  sequence.
+- It appends the framed bytes (delta-encoded after a chunk's first record),
+  flushes and closes the file, then updates and saves the queue metadata. It
+  returns `true` only after that metadata save succeeds.
+- The acquisition task increments `windowsDropped` when it returns `false`.
+- Delivery and acknowledgement are separate operations.
+
+This is the existing reference implementation to model and extract around. The
+interface above (append ticket, `operationStatus`, durable completion) remains
+the proposed target. This record does not adopt a boolean over it, a universal
+preserve-or-drop rule, a generic extraction or physical power-loss acceptance.
+Concrete gaps between the reference and that target:
+
+- One `bool` merges admission rejection (full, invalid size, exhausted
+  sequence) with write and metadata failures, and has no pending outcome. The
+  proposed ticket and `operationStatus` keep admission, pending and durable
+  completion apart.
+- A short write, or a metadata save that fails after the frame was written,
+  returns `false` and marks metadata for rescan. In the second case a record the
+  caller counts as dropped may still be found on rescan (inferred from the
+  source, not verified on hardware). The target needs an explicit uncertain or
+  failed outcome rather than an implied drop.
+- In `appendReadingToBuffer` itself, the delta-encode and framing failure
+  returns do not set a new `lastBufferError`, so the reported reason can be stale.
+- `flush()` and `close()` success means durability only as far as the LittleFS
+  adapter guarantees it; physical power-loss behavior is unproven.
+- CESH's caller counts a failed append as a dropped window. Whether a failure is
+  preserved, retried or dropped is caller/project policy and is not settled here.
+
 Firmware updates/rollback must check supported queue formats and retain old
 decoders until old records drain, or use an explicitly reversible migration.
 Preserve the data partition during normal firmware installs. Serial responsiveness
