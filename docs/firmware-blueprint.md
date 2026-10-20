@@ -77,7 +77,8 @@ checks, and a firmware-version CI job builds every environment.
 
 **Proposed separation.** A target, not a refactor requirement:
 
-- **Composition.** `main.cpp` only wires components; command parsing and dispatch
+- **Composition.** `main.cpp` is the student's start file and holds sensor setup,
+  reads and facade calls; it is not limited to wiring. Command parsing and dispatch
   belong to the shared serial module ([serial/base API](firmware-base-and-serial-api.md)).
 - **Reusable capabilities.** Serial module, settings store, provisioning transfer,
   acquisition schedule, record queue, OTA state/verification/writer and sensor
@@ -91,6 +92,49 @@ checks, and a firmware-version CI job builds every environment.
 
 CESH still holds much policy and wiring in its 3,058-line `main.cpp` (2026-10-12).
 Extracting it is separate work and is not part of adoption.
+
+**Accepted starting layout ([FW-LAYOUT-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6290294824), October 20, 2026; role README
+scaffold created, nothing implemented).** One PlatformIO project,
+`bardbox-project-template/software/firmware/`, holds the student start file and
+the BardBox core libraries as `lib/` siblings of `src/` and `include/`.
+Authoritative architecture and contracts stay in `bardbox/docs`; bardbox keeps
+no duplicate firmware core under `bardbox/software/`. Superseded: the earlier
+single `BardBoxCore/src` example tree, the split-home recommendation (core in
+`bardbox/software/`, starter in the template) recorded at
+[FW-CHECKPOINT-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6290013749),
+and the briefly scaffolded `src/application/` and `src/application/sensors/`
+folders, removed by the user's simplification: students start in
+`src/main.cpp` and split a larger project later, only when needed.
+
+Actual tree on [`codex/firmware-starter-scaffold`](https://github.com/bardphysicslab/bardbox-project-template/tree/codex/firmware-starter-scaffold/software/firmware)
+(not merged); every README is new except the root one, which gained a layout map:
+
+```text
+bardbox-project-template/software/firmware/
+  README.md                 existing; layout map added
+  platformio.ini            existing; unchanged
+  src/README.md             start file, config convention, current vs target
+  src/main.cpp              existing simulator; unchanged; the start file
+  include/README.md         folder purpose; the two existing helpers
+  include/BardBoxSensorHealth.h, BardBoxTransportRecovery.h   existing; unchanged
+  lib/BardBoxInterface/README.md facade contract overview (no code)
+  lib/BardBoxSerial/README.md    serial owner contract overview (no code)
+  lib/BardBoxNetwork/README.md   network owner contract overview (no code)
+  lib/BardBoxBuffer/README.md    Buffer owner contract overview (no code)
+  test/README.md            host and integration test home (no tests yet)
+```
+
+Configuration follows the [repository layout](repository-layout.md#firmware-configuration)
+convention: tracked `src/config.example.h` and ignored `src/config.h`, added
+only when a variant needs per-device build values; the simulator needs neither,
+so neither exists. Accepted: colocation and this starting layout. The facade library
+and class name `BardBoxInterface` is accepted (replacing the `BardBoxDevice`
+candidate). Still proposed: the other library names, per-library layout, every API, result and durability
+choice, test wiring and any versioning. Each library gets `include/`, `src/` or
+tests only when needed; drivers and platform adapters only when a consumer
+needs them. A compile of `example_node` from cached packages produced a
+byte-identical image before and after the scaffold (checked at template `27d7358`; later commits are README-only). The interfaces are drafted
+in the [proposed student contract](firmware-base-and-serial-api.md#proposed-student-contract-draft-for-review).
 
 ## 3. Build-time hardware versus runtime settings
 

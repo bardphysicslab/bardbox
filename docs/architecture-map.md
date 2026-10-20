@@ -30,40 +30,63 @@ three explicit responsibility groups below.
 
 ## Node firmware template
 
-Student code declares sensors/fields and submits complete measurements through
-one BardBox communications interface. A sensor-level write operation is
-illustrative: exact API names remain undecided. Acquisition, aggregation, record
-publication, recording, serial output and network upload have independent
-schedules.
+Student code supplies named, typed readings through one beginner-facing facade
+([BB-005](DECISIONS.md)). The facade encloses and coordinates separate Serial,
+network delivery and Buffer owners; the student makes no transport calls.
+Acquisition, application averaging, record submission, serial output and
+network upload have independent schedules. Method names follow the
+[student contract draft](firmware-base-and-serial-api.md#proposed-student-contract-draft-for-review)
+and are proposed, not accepted.
 
-October 19, 2026 accepted direction
+October 19 and 20, 2026 accepted direction
 ([BB-003](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991),
-items 6–7) is drawn here as target design, not implemented behavior.
+items 6–7; BB-005; [BB-006](DECISIONS.md)) is drawn here as **target design**.
+No generic shared implementation of any box exists. Library names match the
+[accepted starting layout](firmware-blueprint.md#2-source-tree), whose role
+READMEs contain no code.
 
 ```mermaid
 flowchart TB
-    Sensors["Sensor drivers"] --> Acquisition["Student acquisition code<br/>Sample, validate, optionally aggregate"]
-    Acquisition --> Publish["BardBox communications interface<br/>Declare fields and publish once"]
-    Publish --> Latest["Latest per-sensor measurement<br/>Identity, UTC timestamp and validity"]
-    Latest --> Serial["Serial adapter<br/>READ / streaming; own schedule<br/>never drains or ACKs recording"]
-    Publish --> Records["Record publication<br/>Own cadence"]
-    Records --> Queue["Persistent recording (ON by default, every transport)<br/>Persist completed records first<br/>At saturation: keep oldest unacknowledged anchor,<br/>evict oldest unprotected record"]
-    Queue --> Upload["Network push delivery<br/>Own schedule, bounded retry and catch-up"]
-    Upload -->|Acknowledged record| Queue
-    Upload -->|Push records| Server["Project server"]
-    Server -->|Acknowledgements| Upload
-    Queue -.->|"Serial historical recovery / ACK:<br/>open contract"| Serial
-    WiFi["Wi-Fi connectivity<br/>Bounded recovery"] -.-> Upload
-    Identity["Provisioned identity / configuration"] -.-> Publish
-    Identity -.-> Upload
-    Time["Clock / timer utilities"] -.-> Acquisition
-    Time -.-> Records
-    Time -.-> Serial
-    Time -.-> Upload
-    Diagnostics["Diagnostics / local commands<br/>queue fill, bounded durable loss count"]
-    Queue --> Diagnostics
-    WiFi --> Diagnostics
-    Acquisition --> Diagnostics
+    subgraph App["Student code (src/main.cpp)"]
+        Sensors["Sensor adapters / drivers<br/>reads, readiness,<br/>sensor-specific faults"]
+        Acquisition["Acquisition schedule<br/>independent of transports"]
+        Averaging["Averaging (application-owned)<br/>completed record with<br/>window / method metadata"]
+        Acquisition --> Sensors
+    end
+    subgraph Facade["BardBoxInterface facade (target): one student entry"]
+        Checks["Generic checks (shared)<br/>finite, type, required, bounds<br/>per-channel outcomes"]
+        Metadata["Every-record metadata<br/>UID, MAC, firmware / protocol,<br/>time / validity; never fabricated"]
+        Latest["Latest snapshot<br/>publishSample"]
+        Completed["Completed-record handoff<br/>submitRecord, ticket status"]
+        Poll["poll(nowMs)<br/>bounded progress of owners"]
+        Checks --> Latest
+        Checks --> Completed
+        Metadata --> Latest
+        Metadata --> Completed
+    end
+    Sensors -->|"sample"| Checks
+    Latest -->|"checked PublishResult:<br/>valid channels only"| Averaging
+    Averaging -->|"completed record"| Checks
+    Serial["BardBoxSerial owner (target)<br/>INFO / HEADER / READ / streaming<br/>bounded; never drains or ACKs"]
+    Buffer["BardBoxBuffer owner (target)<br/>persistent recording ON by default<br/>pending / durable /<br/>uncertain / failed;<br/>keep anchor, evict oldest unprotected"]
+    Network["BardBoxNetwork owner (target)<br/>Wi-Fi connect, bounded retry,<br/>oldest-first delivery, ACK"]
+    Server["Project server"]
+    Latest --> Serial
+    Completed --> Buffer
+    Buffer -->|"oldest durable record"| Network
+    Network -->|"push records"| Server
+    Server -->|"acknowledgements"| Network
+    Network -->|"acknowledge"| Buffer
+    Buffer -.->|"serial historical recovery / ACK:<br/>open contract"| Serial
+    Poll -.-> Serial
+    Poll -.-> Network
+    Poll -.-> Buffer
+    Identity["Provisioned identity / configuration"] -.-> Metadata
+    Time["Clock / time module"] -.-> Metadata
+    Time -.-> Acquisition
+    Diagnostics["Diagnostics<br/>queue fill, bounded durable loss count"]
+    Buffer --> Diagnostics
+    Network --> Diagnostics
     Diagnostics --> Serial
     Maintenance["Provisioning / optional OTA"] --> Identity
 ```

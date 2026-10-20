@@ -91,7 +91,9 @@ Updated October 14, 2026. This replaces the earlier four-argument
 BardBoxSerial/provider sketch in this proposal. Names below are proposed,
 not existing C++ symbols or a compiling implementation.
 
-`BardBoxDevice device;` creates one beginner-facing facade. It runs when
+`BardBoxInterface device;` creates one beginner-facing facade (accepted name
+`BardBoxInterface`, October 20, 2026, replacing the earlier `BardBoxDevice`
+candidate; its methods and results remain proposed and unimplemented). It runs when
 called, not automatically in a background task. The underlying serial module
 owns framing/parsing; settings, acquisition scheduling, time, storage and
 network delivery have their own owners. The facade wires their interfaces
@@ -174,6 +176,140 @@ Open, and not settled by this direction:
 
 Until that reconciliation is designed, those statements describe the current
 proposal and existing serial behavior, not a per-channel serial format.
+Recommended choices for each of these are drafted below; none is adopted.
+
+### Proposed student contract (draft for review)
+
+October 20, 2026 draft for user and Codex review. Every name, type and choice
+in this subsection is a recommendation, not an accepted API, and nothing here
+is implemented. Library homes follow the
+[accepted starting layout](firmware-blueprint.md#2-source-tree).
+
+**Two student handoffs.** The facade (`BardBoxInterface`) takes two distinct
+things from application code:
+
+| Proposed call | Hands over | Goes to | Result |
+| --- | --- | --- | --- |
+| `publishSample(sample)` | Latest snapshot at acquisition time | Serial owner only (READ/streaming) | `PublishResult`: per-channel outcomes; replaces the latest snapshot |
+| `submitRecord(record)` | Completed record the application built (raw or averaged, with window/method) | Buffer owner, then network owner | `SubmitResult`: rejection, or an admission ticket plus per-channel outcomes |
+| `recordStatus(ticket)` | — (query only; no Buffer servicing) | Buffer owner | Pending, durable, uncertain or failed, with error code |
+
+Publishing a sample never creates, queues or uploads a record, and submitting a
+record never changes the latest snapshot. The facade stamps the agreed
+every-record metadata ([BB-006](DECISIONS.md)) on both; application code never
+builds it. Generic checks (finiteness, declared type, required field, declared
+bounds) run in the facade on both handoffs.
+
+**Per-channel outcomes.** Each declared channel ends in exactly one state:
+
+| Outcome | Meaning | Value carried |
+| --- | --- | --- |
+| `valid` | Supplied and passed generic checks | The value |
+| `missing` | Required channel not supplied | Null with code |
+| `invalid` | Failed a generic check (`non_finite`, `invalid_type`, `out_of_bounds`) | Null with code |
+| `failed` | Application marked it (`sample.setFailed(field, code)`), e.g. a sensor-specific fault | Null with the application's code |
+
+A value of the wrong declared type is an `invalid_type` channel outcome, so one
+mistyped channel never discards valid independent channels. An unknown field
+name is recommended to be ignored for storage and reported as an
+`unknown_field` error in the result, leaving declared channels unaffected (the
+Reference Ingestion demo also ignores unknown channels). Whole rejection is
+reserved for a structurally unusable sample or record: no successful `begin`,
+no registered schema, a handle from another schema revision, or an oversized
+envelope. No outcome turns a value into zero, clamps it or presents it as
+valid.
+
+**Durability outcomes for records.** Recommended states, extending the
+proposed [Buffer ticket interface](firmware-buffer-api.md) (pending, durably
+completed, failed) with one honest uncertain state; not adopted:
+
+| State | Meaning |
+| --- | --- |
+| `rejected` | Not admitted (for example full queue, invalid size, exhausted sequence); nothing written; reason given |
+| `pending` | Admitted, not yet durable; may be lost on restart or power loss |
+| `durable` | Saved and indexed, as far as the storage adapter guarantees; physical power-loss behavior is unverified |
+| `uncertain` | A write or metadata step failed after bytes may have been written; the record may or may not be recovered on rescan |
+| `failed` | Not saved, only where the adapter can show nothing was written |
+
+The [append reference](firmware-buffer-api.md#compatibility-and-cesh-evidence)
+shows why `uncertain` is needed: a CESH metadata save that fails after the frame
+is written returns `false`, yet the record may still be found on rescan.
+`rejected` is decided before any storage I/O, and `failed` is used only where
+the adapter can show nothing was written; any other write or metadata failure
+is `uncertain`, which assumes no zero-byte write, dropped record or loss count.
+Whether an `uncertain` or `failed` record is retried, preserved or counted as
+lost is project policy and stays open (CESH's `windowsDropped` is its current
+policy, not a shared rule). After `durable`, delivery belongs to the network
+owner: server ACK removes the record; saturation eviction is counted data loss,
+never an ACK. Students query states and diagnostics; they make no delivery or
+Buffer servicing calls.
+
+**Internal owners and the network boundary.** Serial (`BardBoxSerial`), network
+delivery (`BardBoxNetwork`) and Buffer (`BardBoxBuffer`) stay separate owners
+behind the facade. `poll(nowMs)` is meant to give each owner one limited step,
+serving serial first. Ordering alone cannot bound serial latency if a single
+network or storage step blocks (CESH's synchronous HTTP calls currently precede
+serial service). Bounded serial therefore needs every adapter step to have a
+deadline or a fixed work limit, a per-poll time budget, or a separate task; that
+scheduling model is unresolved, and this draft proves no runtime guarantee.
+The network owner internally handles Wi-Fi connect and bounded retry, reading
+oldest-first from the Buffer, delivery, server ACK and `acknowledge(token)`,
+and separates send-time diagnostics from the record's own stored metadata. The
+student makes no Wi-Fi, upload, retry or ACK call. Acquisition runs on the
+application's own schedule and continues through network outages.
+
+**Recommended choices (not adopted):**
+
+1. *Exact API.* Recommend the typed result objects above (`PublishResult`,
+   `SubmitResult`, ticket plus `recordStatus`) over CESH's `bool` plus
+   last-error. Rationale: a `bool` cannot report per-channel outcomes or
+   separate admission from durable completion.
+2. *All-null acceptance.* Recommend accepting an all-null record only when every
+   channel has an explicit `missing`/`invalid`/`failed` code, as a failure
+   record that is never presented as a measurement; for the latest snapshot,
+   serial READ keeps returning the existing `ERR SENSOR_FAIL`. Rationale: the
+   failure stays visible with time and metadata on the server instead of
+   becoming a silent gap. Alternative: reject all-null records and rely on
+   `setSensorFailure`; simpler, but the record-level evidence is lost.
+3. *Atomic versus partial publication.* Recommend partial: healthy channels are
+   kept and unhealthy ones, including `invalid_type`, become coded nulls, per
+   FW-VALIDATION-1; only a structurally unusable sample is rejected whole.
+   Rationale: one failed sensor channel should not discard independent healthy
+   ones. Serial reconciliation: existing
+   `DAT` has no null form, so until a versioned per-channel serial form is
+   designed and adopted, READ returns `ERR SENSOR_FAIL` whenever the latest
+   snapshot has any non-valid channel. No new serial grammar is defined here.
+4. *Durable handoff.* Recommend the explicit `submitRecord` above rather than
+   recording every published sample automatically. Rationale: the application
+   owns averaging (FW-RECORD-1), so only it knows when a record is complete;
+   the ticket separates admission from durable completion. Alternative: an
+   opt-in helper that submits each sample as a raw record, for projects without
+   averaging. Queueing policy (RKC's no-queue versus CESH's queue) stays open.
+
+**Reconciling the earlier whole-snapshot wording.** The single validity result
+for READ, "rejected readings do not become a valid DAT line" and the
+illustrative loop below are the earlier all-or-nothing proposal. Under the
+recommended partial design, one bad channel does not fail the sample, and
+`setSensorFailure` is kept for when no sample can be formed at all. The
+illustrative loop below is kept unchanged and labelled as the historical
+proposal. Until the APIs settle, the recommended shape is the ordered hand-off
+below rather than a second code loop.
+
+**Recommended hand-off sequence (not adopted).**
+
+| Step | Owner | Hand-off |
+| --- | --- | --- |
+| 1 | Student code (`src/main.cpp`) | On its own acquisition schedule, read the sensors. If no sample can be formed, call `setSensorFailure(code)` and stop here |
+| 2 | Student code | `newSample(acquiredAtMs)`; `set` each declared field; `setFailed(field, code)` for a sensor-specific fault |
+| 3 | Facade | `publishSample`: generic checks and metadata; replace the latest snapshot; return `PublishResult` |
+| 4 | Student code | Check `PublishResult` first. A whole rejection (structurally unusable sample) is reported and adds nothing to averaging. Otherwise only `valid` channel values enter averaging; coded nulls are never averaged as values |
+| 5 | Student code | When its window completes, build the record with window/method metadata and call `submitRecord` |
+| 6 | Facade / Buffer | Admit and return a ticket; or reject before any storage I/O; or return `backpressure` when the bounded number of outstanding tickets is reached |
+| 7 | Student code | On rejection or backpressure, keep the record and retry or report it under project policy; never drop it silently. Keep each ticket in a bounded set (never overwrite an earlier one) and query `recordStatus` until it settles |
+| 8 | Internal owners | `poll(nowMs)` advances Buffer persistence and network delivery; student code makes no Buffer or network calls |
+
+The outstanding-ticket bound, the `backpressure` result and retry policy are
+proposed names and choices for review.
 
 ### Operational settings
 
@@ -207,7 +343,9 @@ replaces the earlier device.acquisitionDue suggestion. Sensor conversion
 readiness and recovery remain sensor-driver responsibilities. The template
 connects interval-change notifications to the scheduler.
 
-Illustrative loop (proposed symbols; not a verified build):
+Illustrative loop: **historical proposal** (October 14 whole-snapshot design,
+superseded for review by the hand-off sequence above; proposed symbols; not a
+verified build):
 
 ```cpp
 void loop() {
