@@ -131,13 +131,28 @@ unsafe fields. Descriptors are stable after successful begin.
 | --- | --- |
 | setFirmwareVersion(version) | Required build metadata; the template rejects missing/placeholder versions at build time |
 | addSensor(name) | Declare a project sensor; initialization/health are separate |
-| addFloatField(name, unit) | Declare an ordered floating-point measurement |
-| addIntegerField(name, unit) | Declare an ordered integer measurement |
-| addBooleanField(name) | Declare an ordered boolean measurement |
+| addMeasurement(name, unit) | Declare an ordered measurement; the type argument is omitted, so it is FLOAT |
+| addMeasurement(name, unit, INTEGER) | Declare an ordered exact integer measurement, for counts |
+| addMeasurement(name, unit, BOOLEAN) | Declare an ordered Boolean measurement (how a unitless Boolean is written is syntax design) |
 | addInfoField(name, provider) | Register a bounded typed public status provider |
 | addCapability(module) | Attach an optional capability's descriptors and handlers |
 | begin(options) | Student startup: validate the complete registration, load settings and enable the chosen capabilities once; return initialization result. Default Serial + Wi-Fi + recording; see [student contract](#proposed-student-contract-draft-for-review) |
 | begin(transport, settingsStore) | Internal wiring supplied by the template/shared core (USB CDC/UART transport, settings store); not a separate student call |
+
+Measurement types ([FW-MEASUREMENT-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6291173701), October 20, 2026): `addMeasurement`
+replaces the October 14 proposed `addFloatField`/`addIntegerField`/`addBooleanField`
+names. The type is declared at registration, never inferred from a reading.
+Omitting the type argument selects FLOAT; "leave empty" means omit it, never an
+empty string or runtime guessing. INTEGER is for counts and other exact
+integers; BOOLEAN is distinct. Double is not adopted as a further required
+type. Passing an ordinary integer value to a FLOAT measurement is the one
+documented numeric conversion; large integers may lose precision in floating
+point (for example, a 32-bit float holds integers exactly only up to 2^24), so
+it promises no exactness, and exact counts use INTEGER. Any other mismatch is
+an `invalid_type` channel outcome, with no other coercion. Finiteness, declared
+bounds, coded per-channel nulls and faults, and record metadata are unchanged:
+nothing becomes zero or is clamped. Exact supported widths, syntax and the
+representability/error policy remain contract design.
 
 Firmware/protocol versions are distinct immutable build metadata. The shared
 module supplies adopted protocol version, physical hardware identity and required
@@ -169,7 +184,8 @@ consumer needs it, never a required second publication.
 
 Generic checks (accepted direction, [FW-VALIDATION-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289980118),
 October 20, 2026): on `publish`, the shared facade checks numeric finiteness,
-declared types, required fields and declared validity bounds, so application
+declared types (allowing only the documented integer-to-FLOAT conversion),
+required fields and declared validity bounds, so application
 code does not import `cmath`/`isfinite` or repeat those checks. It reports
 explicit per-channel outcomes and keeps healthy independent channels. It never
 turns NaN, missing or invalid values into zero, clamps them or presents them as
@@ -194,8 +210,8 @@ The student sees three concepts: **startup**, **one hand-off** and the
 BardBoxInterface bardbox;
 
 void setup() {
-  bardbox.addFloatField("temp_c", "degC");
-  bardbox.addFloatField("rh_pct", "%");
+  bardbox.addMeasurement("temp_c", "degC");    // type omitted: FLOAT
+  bardbox.addMeasurement("rh_pct", "%");
   bardbox.begin();                      // default: Serial + Wi-Fi + recording
 }
 
