@@ -139,7 +139,7 @@ Sensorless startup is valid and cannot manufacture a zero-valued measurement.
 | newSample(acquiredAtMs) | Create a typed candidate snapshot at acquisition time |
 | sample.set(field, value) | Supply a declared value; reject wrong types/unknown fields |
 | sample.setTime(stamp) | Attach optional UTC/validity from the separate time module |
-| publishSample(sample) | Validate all required fields/rules, copy coherently and assign sample identity; return result |
+| publishSample(sample) | Validate the sample (required fields, declared types and rules, and the generic checks below), copy coherently and assign sample identity; return result |
 | setReadingNotReady() | Explicit no-usable-sample state; also initial state |
 | setSensorFailure(code) | Mark acquisition failed; older data is not silently served as current valid data |
 
@@ -150,6 +150,30 @@ without silently changing existing HEADER/DAT compatibility. Publish is a
 snapshot update, not automatic network upload or unsolicited serial output.
 Late acquisition is distinct from a failed sensor: the application/driver owns
 freshness policy and must be able to inspect sample age.
+
+Generic sample checks (accepted direction, [FW-VALIDATION-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6289980118),
+October 20, 2026): when a sample is published, the shared facade checks numeric
+finiteness, declared types, required fields and declared validity bounds, so
+application code does not import `cmath`/`isfinite` or repeat those checks. It
+reports explicit per-channel invalid or failed outcomes and keeps healthy
+independent channels where the governing contracts permit. It never turns NaN,
+missing or invalid values into zero, clamps them, or presents them as valid
+measurements. Sensor reads, readiness, calibration and sensor-specific fault
+detection stay with the sensor adapter and application. These checks do not
+replace or weaken server validation or trust checks.
+
+Open, and not settled by this direction:
+
+- the exact result types and API;
+- whether a record whose channels are all null is accepted;
+- atomic versus partial (per-channel) publication;
+- how per-channel outcomes reconcile with the whole-snapshot wording in this
+  proposal: READ's single validity result, a rejected reading not becoming a
+  valid DAT line, and the illustrative loop below treating any rejected publish
+  as a sensor failure.
+
+Until that reconciliation is designed, those statements describe the current
+proposal and existing serial behavior, not a per-channel serial format.
 
 ### Operational settings
 
