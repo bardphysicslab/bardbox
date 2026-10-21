@@ -65,17 +65,24 @@ not modify a snapshot midway through serialization.
 The [template implementation record](https://github.com/bardphysicslab/bardbox-project-template/issues/36#issuecomment-6304935972)
 requires the same connectivity information in serial INFO and outbound network JSON.
 This does not require a network INFO command, TCP listener, or server-side polling.
-Serial retains its named-field framing; network uses structured JSON. Exact field
-spellings and encoding are checked against the implementation before publication.
+Serial retains its named-field framing; network uses structured JSON. The reviewed candidate uses the mapping below; hardware verification remains separate.
 
-| Shared diagnostic | Meaning in both transports |
+| Field in serial INFO / JSON `device_status` | Meaning in both transports |
 | --- | --- |
-| Wi-Fi state | Whether the station is connected; distinguish unavailable/disabled states from delivery failure |
-| IP address | Current station address; explicitly unavailable when disconnected |
-| MAC address | Station interface MAC, for diagnostics only; not authentication or registry binding |
-| RSSI | Current signal strength in dBm; unavailable when disconnected, never a fabricated zero |
-| Active SSID | Effective network name used by the running firmware, including saved overrides |
-| Receiver address | Safe destination identity; omit credentials and credential-bearing URL components |
+| `wifi` | `connected`, `disconnected`, `disabled`, or `unconfigured`; separate from delivery state |
+| `ip` | Current station IPv4 address, unavailable while disconnected |
+| `mac` | Station interface MAC once available; diagnostic only, not authentication or registry binding |
+| `rssi_dbm` | Current signal strength in dBm, unavailable while disconnected |
+| `wifi_ssid` | Effective SSID this boot; hex-encoded in serial, a JSON string on the network |
+| `receiver` | HTTPS scheme and host with optional port; no path, query, user info, or token |
+
+Unavailable serial values use `-`; JSON uses `null`. JSON `device_status.at` is
+`send`, distinguishing this current delivery snapshot from the saved measurement.
+The snapshot refreshes about once per second; it is not an instantaneous radio
+measurement at each serializer call. The serial reply is bounded at 1280 bytes;
+the tested worst-case INFO is 1126 bytes. Delivery JSON remains bounded at 6144
+bytes, with a tested maximum candidate of 4986 bytes including connectivity.
+
 
 Network owns the bounded connectivity snapshot. Serial and network serialization
 consume that shared model rather than independently defining fields or meanings.
