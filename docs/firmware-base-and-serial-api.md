@@ -59,6 +59,38 @@ CSV. The module checks count/type/bounds before writing a response. Rejected or
 unavailable readings do not become a valid DAT line. Concurrent acquisition must
 not modify a snapshot midway through serialization.
 
+### Shared connectivity diagnostics: serial and network
+
+**Accepted scope, implementation pending verification (October 20, 2026).**
+The [template implementation record](https://github.com/bardphysicslab/bardbox-project-template/issues/36#issuecomment-6304935972)
+requires the same connectivity information in serial INFO and outbound network JSON.
+This does not require a network INFO command, TCP listener, or server-side polling.
+Serial retains its named-field framing; network uses structured JSON. Exact field
+spellings and encoding are checked against the implementation before publication.
+
+| Shared diagnostic | Meaning in both transports |
+| --- | --- |
+| Wi-Fi state | Whether the station is connected; distinguish unavailable/disabled states from delivery failure |
+| IP address | Current station address; explicitly unavailable when disconnected |
+| MAC address | Station interface MAC, for diagnostics only; not authentication or registry binding |
+| RSSI | Current signal strength in dBm; unavailable when disconnected, never a fabricated zero |
+| Active SSID | Effective network name used by the running firmware, including saved overrides |
+| Receiver address | Safe destination identity; omit credentials and credential-bearing URL components |
+
+Network owns the bounded connectivity snapshot. Serial and network serialization
+consume that shared model rather than independently defining fields or meanings.
+The network representation is device/delivery status, separate from the immutable
+measurement record: during catch-up, current connectivity must not be presented as
+connectivity measured when the historical sample was acquired. Existing measurement
+identity, acknowledgement rules, commands, and published fields remain compatible.
+Passwords and bearer tokens must never appear in either diagnostic representation.
+
+Acceptance includes connected/disconnected cases, serial/JSON semantic parity,
+bounded output and escaping, secret exclusion, and an ESP32-S3 compile. Host checks
+do not establish hardware acceptance. A missing hardware RTC is not a fault;
+[UTC synchronization over NTP](https://github.com/bardphysicslab/bardbox-project-template/issues/49)
+is deferred and does not block this diagnostic change.
+
 ### Normal READ and live read
 
 Accepted target ([CESH#59](https://github.com/bardphysicslab/cesh-air-monitor/issues/59#issuecomment-6295361501), October 20, 2026); not implemented or
@@ -483,6 +515,14 @@ accepted scope: [repeatable serial settings](https://github.com/bardphysicslab/f
 [two actions](https://github.com/bardphysicslab/firmware-tools/issues/50#issuecomment-6303999176), [visible fields](https://github.com/bardphysicslab/firmware-tools/issues/50#issuecomment-6304076785)). The commands are
 `CONFIG_SCHEMA`, `CONFIG_GET`, `CONFIG_BEGIN <revision>`, `CONFIG_SET <field> <hex>`,
 `CONFIG_COMMIT` and `CONFIG_ABORT`. Values are hex-encoded, and the password is set-only.
+Configuration precedence is: saved per-device settings, then explicit project
+`include/config.h` values compiled into the selected binary, then module defaults.
+For Wi-Fi, the current module fallback is the open `BardWireless` network; an
+explicit project SSID, even an empty one, overrides that fallback. Flashing a
+binary does not replace its compiled project settings with newer source defaults,
+and an ordinary reflash preserves saved settings. Thus an older or project-specific
+network name after flashing is not evidence that the write failed. Inspect the
+active and saved values separately; saved changes activate at the next start.
 Saved values override compiled defaults at the next start and survive an ordinary
 reflash. A failed save keeps the previous record, and a lost reply is resolved by
 reading the revision back. Exact grammar: the template's
