@@ -65,9 +65,11 @@ mobile widths. Do not hide critical status behind navigation.
   Never use color as the only signal. Standard meanings and labels are below.
 - Availability of a field never implies its display: projects select the
   original and derived values a card shows.
-- Missing **read-only** values render as `—`, unframed. An **editable** value
-  sits in a subtle frame; when it is unassigned the frame is empty (no dash)
-  and its label stays visible ([editable frames](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323356438)). Labels
+- Missing **read-only** values render as `—`, unframed. A saved **editable**
+  value is unframed at rest and shows its frame on hover or keyboard focus; an
+  unassigned editable value keeps a subtle empty frame (no dash) with its label
+  visible ([editable frames](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323356438), refined by
+  [save feedback](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323916487)). Labels
   precede values; units are visually muted and never fused into field names. Timestamps explicitly identify UTC or local
   time and unavailable timestamps render as `—`.
 - A recorded no-fresh-reading result ([BB-010](DECISIONS.md)) renders as `—`
@@ -180,16 +182,39 @@ Accepted direction ([editable-field rule](https://github.com/bardphysicslab/bard
 October 21 by [in-place editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690); documentation only, not
 runtime adoption or authorization for any particular editor.
 
-- **Edit in place.** Activating an editable displayed value replaces that value
-  at its existing position with the appropriate input or control and adjacent
-  **Save** and **Cancel**. This applies to featured values and to values inside
+- **Edit in place.** Activating (click, tap or Enter on) an editable displayed
+  value replaces that value at its existing position with the appropriate input
+  or control. This applies to featured values and to values inside
   expandable sections. There is no separate form below the value, large editor
   panel or modal. Editable booleans use switches; editable numbers and ranges
   use inline editors; measured and status values stay read-only. No control is
   invented for an absent module.
-- **Editable values are framed.** Each editable value sits in a subtle frame
-  that is also its keyboard-accessible edit affordance; unassigned means an
-  empty frame with a visible label, never `—`. **Missing** read-only values
+- **No visible edit controls; server-confirmed feedback** ([save feedback](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323916487)).
+  There is no visible Edit, Save, Cancel, Unsaved or Saving label or button and
+  no checkmark or icon; accessible names and a polite status may stay invisible.
+  An unchanged open editor is neutral (white). A draft that differs from the
+  last saved value is **amber** until the owner confirms the save. Enter, or the
+  phone keyboard's Done, submits; related values such as a coordinate pair are
+  submitted together. Only a successful save whose readback shows a real change
+  flashes the saved value **green** briefly and then returns it to white with
+  the editing frame gone (a confirmed clear flashes the empty frame's border).
+  Green never comes from typing, local optimistic state or a URL. Escape
+  restores the last saved value, white, without writing; an unchanged Enter
+  closes neutrally without a save; nothing is saved on blur. A refusal keeps the
+  draft, frame and amber with a meaningful inline error. An uncertain outcome (no
+  reply, an unreadable reply or a storage error that may follow a commit) is
+  never shown as saved or claimed rolled back: every exit re-reads the saved
+  value. A pending save is neither cancelled falsely nor sent twice; IME
+  composition and keyboard navigation are preserved; phones submit with Done
+  and abandon a draft by leaving or reloading, without extra visible buttons.
+  This supersedes the earlier visible Save/Cancel beside the input
+  ([in-place editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690)) and always-framed saved values
+  ([editable frames](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323356438)), whose records are kept. Reference
+  implementation: [BardBox-Reference#23](https://github.com/bardphysicslab/BardBox-Reference/pull/23), merged `386271d`.
+- **Editable affordance.** Saved editable values are unframed at rest; the
+  value itself is the keyboard-accessible edit affordance and shows a subtle
+  frame on hover or focus. An unassigned editable value keeps a subtle empty
+  frame with a visible label, never `—`. **Missing** read-only values
   (for example an absent factory MAC, status, measurements or unavailable
   capabilities) keep `—` and no frame; available read-only values such as the
   UID and factory MAC show their actual value, unframed

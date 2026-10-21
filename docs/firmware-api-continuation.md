@@ -6,7 +6,19 @@ earlier open-decision list are archived unchanged in
 GitHub ([bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31)) is
 authoritative for status; this file does not embed its own commit hash.
 
-## October 21, 2026 — Editable frames and Owner (latest)
+## October 21, 2026 — Save feedback without visible edit controls (latest)
+
+[EDIT-SAVE-FEEDBACK-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323916487): no visible Edit/Save/Cancel or status
+labels and no icons; a changed draft is amber until the server confirms the
+save, a confirmed change flashes green then returns white with the frame gone;
+Escape and an unchanged Enter write nothing; refusals keep the amber draft;
+uncertain outcomes are re-read, never shown as saved; saved values are unframed
+at rest while empty ones keep a framed label. Reference app merged in
+[PR23](https://github.com/bardphysicslab/BardBox-Reference/pull/23) at `386271d` after independent review. Documentation
+only on branch `claude/edit-save-feedback-docs` from `5207bda`; the handoff is
+[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+
+## October 21, 2026 — Editable frames and Owner (history)
 
 [EDITABLE-FRAMES-OWNER-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323356438) (also [bardbox#10](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6323356061)):
 editable values are framed, unassigned editable values are empty frames with a
@@ -15,7 +27,7 @@ edited in place in Identity; new registrations assume no owner (superseding the
 CESH/RKC default); no inline UID Registry link. Reference app merged in
 [PR22](https://github.com/bardphysicslab/BardBox-Reference/pull/22) at `59b6b7e`. Documentation only on branch
 `claude/editable-frames-owner-docs` from `d93491c`; the handoff is
-[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+[coordination/archive/CLAUDE-HANDOFF-EDITABLE-FRAMES-OWNER-1-DOCS.md](../coordination/archive/CLAUDE-HANDOFF-EDITABLE-FRAMES-OWNER-1-DOCS.md). The entries below are history.
 
 ## October 21, 2026 — Registry and rendering documentation reconciliation (history)
 

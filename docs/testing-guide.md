@@ -33,7 +33,12 @@ channel normalization, and error handling without live hardware.
 Dashboard checks should verify:
 
 - `null` read-only values render as `—`; unassigned editable values are empty
-  frames with a visible label, not `—`
+  frames with a visible label, not `—`; saved editable values are unframed at
+  rest
+- inline edits show no visible Edit/Save/Cancel; a changed draft is amber,
+  turns green only after a confirmed server save, then white; Escape and an
+  unchanged Enter write nothing; refusals and uncertain outcomes never show
+  green or the old value as saved
 - unavailable/error nodes show red status
 - stale nodes do not display old metric values as current
 - `last_seen` appears separately when shown

@@ -1,39 +1,34 @@
-# Claude handoff: EDITABLE-FRAMES-OWNER-1 shared documentation
+# Claude handoff: EDIT-SAVE-FEEDBACK-1 shared documentation
 
-- **Event:** `EDITABLE-FRAMES-OWNER-1-DOCS`, October 21, 2026. **Status:** the two wording fixes from Codex's review of `cab7211` are applied; ready for Codex exact-head review. Documentation only.
-- **Branch:** `claude/editable-frames-owner-docs` from clean `main` `d93491c`. The PR, exact head and status are recorded in [#64](https://github.com/bardphysicslab/bardbox/issues/64). Not merged; Claude does not self-merge. The branch was checked before every commit and push; there are no `main` writes.
-- **Acceptance:** [bardbox#31 comment 6323356438](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323356438) and [bardbox#10 comment 6323356061](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6323356061), identical to [Reference#9 comment 6323355685](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6323355685). Pinned to engineering-standards `91a2d7c` and bardbox `d93491c`.
-- **App:** [BardBox-Reference#22](https://github.com/bardphysicslab/BardBox-Reference/pull/22), merged at `59b6b7e`.
-- **Previous handoff** (DOCS-RECONCILE, PR #65): archived at [archive/CLAUDE-HANDOFF-DOCS-RECONCILE.md](archive/CLAUDE-HANDOFF-DOCS-RECONCILE.md). Only one relative link path was changed (its OCT19-LAYOUT-1 link now points to the sibling file); the prose is unchanged.
-
-## Correction after review (wording only)
-
-Findings: [PR #66 comment 6323617378](https://github.com/bardphysicslab/bardbox/pull/66#issuecomment-6323617378). Codex's semantic review passed otherwise.
-- **First-pass section set:** "unavailable values show `—`" now reads "unavailable read-only values show `—` and unassigned editable values are empty frames".
-- **"Editable values are framed" bullet:** "Read-only values … keep `—`" now reads "**Missing** read-only values (an absent factory MAC, status, measurements, unavailable capabilities) keep `—` …; available read-only values such as the UID and factory MAC show their actual value, unframed".
-- **Checks:** the link/anchor check and `git diff --check` were re-run (see #64). No Mermaid or runtime change.
-- **User preview** (Codex): restarted on the same DB. A user Name edit during the work moved the baseline to 9 devices / 33 history, which was preserved exactly ([Reference#9 comment 6323586918](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6323586918)).
+- **Event:** `EDIT-SAVE-FEEDBACK-1-DOCS`, October 21, 2026. **Status:** complete, ready for Codex independent exact-head review. Documentation only.
+- **Branch:** `claude/edit-save-feedback-docs` from clean `main` `5207bda`. The PR, exact head and status are recorded in [#64](https://github.com/bardphysicslab/bardbox/issues/64). Not merged; Claude does not self-merge. The branch was checked before every commit and push; there are no `main` writes.
+- **Acceptance:** [bardbox#31 comment 6323916487](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323916487), identical to [Reference#9 comment 6323915997](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6323915997). Pinned to engineering-standards `91a2d7c` and bardbox `5207bda`.
+- **App:** [BardBox-Reference#23](https://github.com/bardphysicslab/BardBox-Reference/pull/23), merged at `386271d` after independent review (review-only `233c867`, 10 checks green).
+- **Previous handoff** (EDITABLE-FRAMES-OWNER-1-DOCS, PR #66): archived at [archive/CLAUDE-HANDOFF-EDITABLE-FRAMES-OWNER-1-DOCS.md](archive/CLAUDE-HANDOFF-EDITABLE-FRAMES-OWNER-1-DOCS.md). Only one relative link path was changed (to the sibling archive file); the prose is unchanged.
+- **Kept as is:** the historical `codex/registry-identity-docs@28d97a3` ref and PR52's records.
 
 ## Changes
 
 - **`docs/web-ui-standard.md`:**
-  - **Generic rule:** missing *read-only* values show `—`, unframed. *Editable* values are framed, and an unassigned one is an empty frame with its label visible.
-  - **Card top:** an unassigned Name or Location is an empty frame, superseding the labelled-dash wording.
-  - **Edit rule:**
-    - a new "Editable values are framed" bullet (a keyboard-accessible affordance; read-only UID, MAC, status, measurements and unavailable capabilities keep `—`);
-    - Registry owns the optional owner;
-    - Owner is editable in Identity, and is descriptive, not an account, permission or identity;
-    - Name, Owner and hardware identity are independent;
-    - UID/MAC are read-only on the card with no inline Registry link, and the top-navigation Registry list is their editor.
-- **`docs/architecture-map.md`:**
-  - **Registry list:** new registrations have no owner assigned, superseding the once-per-project CESH/RKC default. Existing explicit owners are kept.
-  - **Dashboard card:** Owner is added to the in-place fields, with the same validation, revision and history, and empty clears it. Values are framed, and there is no inline UID link.
-- **`ARCHITECTURE.md`:** the UI-flow summary says no assumed owner, with Owner editable in frames.
-- **`docs/DECISIONS.md`:** a new EDITABLE-FRAMES-OWNER-1 row. It notes what it supersedes (the REG-UI-FLOW-1 owner default and the editable labelled dash), keeps the earlier rows, and records PR22 merged at `59b6b7e`.
-- **`docs/testing-guide.md`:** the dashboard check now separates read-only dashes from empty editable frames.
-- **`docs/firmware-api-continuation.md`:** a new **latest** entry with PR22's merge proof. The previous entry is labelled history, and its handoff link is repointed to the archive.
+  - **Generic rule:** saved editable values are unframed at rest, with the frame on hover or focus; unassigned ones keep the subtle empty frame and label; missing read-only values keep `—`.
+  - **Edit in place:** activating a value (click, tap or Enter) replaces it with its input; there are no adjacent Save/Cancel.
+  - **New bullet, "No visible edit controls; server-confirmed feedback":**
+    - an unchanged editor is neutral, and a changed draft is amber until confirmation;
+    - Enter or Done submits, with related values together;
+    - green appears only on a confirmed real change, then white with the frame gone, and a confirmed clear flashes the empty border;
+    - green never comes from typing, optimistic state or a URL;
+    - Escape restores without writing, an unchanged Enter is neutral, and nothing saves on blur;
+    - a refusal keeps the amber draft with an error;
+    - an uncertain outcome (no reply, an unreadable reply, or a storage error that may follow a commit) is re-read on every exit and never shown as saved;
+    - no false cancel or double send, IME and keyboard support, and phone Done with leave/reload to abandon.
+    - It explicitly supersedes the visible Save/Cancel (TRUE-INPLACE-EDIT-1) and the always-framed saved values (EDITABLE-FRAMES-OWNER-1); both records are kept. It links PR23.
+  - **"Editable affordance" bullet:** replaces "Editable values are framed", which is superseded for saved values.
+- **`docs/architecture-map.md`** (Dashboard card) and **`ARCHITECTURE.md`** (UI flow): describe server-confirmed feedback without visible buttons, with saved values unframed at rest.
+- **`docs/testing-guide.md`:** dashboard checks for the unframed resting state and the amber → confirmed green → white sequence, the no-write exits, and refusal/uncertain behaviour.
+- **`docs/DECISIONS.md`:** a new EDIT-SAVE-FEEDBACK-1 row, noting what it supersedes, with earlier rows kept and PR23 recorded as merged.
+- **`docs/firmware-api-continuation.md`:** a new **latest** entry. The previous entry is labelled history, and its handoff link is repointed to the archive.
 
-**Historical checkpoint prose is kept.** For example, the October 21 identity checkpoint still says "owner default", as history. No Mermaid block changed, so no render was needed. No runtime change.
+Historical decision prose is kept. No Mermaid block changed, and there is no runtime change.
 
 ## Checks
 
@@ -42,11 +37,10 @@ Findings: [PR #66 comment 6323617378](https://github.com/bardphysicslab/bardbox/
 
 ## State
 
-- **Canonical checkout:** restored to `main` (`d93491c`) after the push.
-- **Kept as is:** the historical `codex/registry-identity-docs@28d97a3` ref and PR52's records.
+- **Canonical checkout:** restored to `main` after the push.
 - **No Reference writes.**
-- **My Reference scratch server on 8780 (PID 45848):** stopped after this handoff; its DB is kept. Port 8781 was not touched.
+- **My Reference scratch server on 8780 (PID 50129):** stopped after this handoff; its DB is kept. Port 8781 was not touched.
 
 ## Next step
 
-Codex reviews the exact head. Merge after review; then the local sync.
+Codex reviews the exact head, then merges and does the local sync.
