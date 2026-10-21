@@ -28,7 +28,10 @@ archived-reuse warning) with transitional UID/MAC corrections and deferred
 permanence. One consolidated Registry paragraph lives in the architecture map;
 ARCHITECTURE keeps a linked summary; the decision index adds the Reference
 follow-up rows. Documentation only; no runtime, hardware or deployment claim.
-Exact head and review status are recorded in #64.
+The app part, [BardBox-Reference#20](https://github.com/bardphysicslab/BardBox-Reference/pull/20), is merged at `cc8808f`
+([delivery](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6323058396)). Exact head and review status of this
+documentation PR are recorded in #64; the handoff is
+[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md).
 
 ## October 21, 2026 — Registry identity documentation checkpoint (history)
 

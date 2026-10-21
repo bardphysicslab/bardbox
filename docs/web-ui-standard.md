@@ -216,7 +216,7 @@ runtime adoption or authorization for any particular editor.
   accepted placement or an implemented capability.
 - Existing implementations may differ until adopted. Reference evidence: the
   earlier Identity placement ([verification](https://github.com/bardphysicslab/BardBox-Reference/issues/1#issuecomment-6274298406), historical) and the
-  in-place first pass ([BardBox-Reference#20](https://github.com/bardphysicslab/BardBox-Reference/pull/20), in review).
+  in-place first pass ([BardBox-Reference#20](https://github.com/bardphysicslab/BardBox-Reference/pull/20), merged `cc8808f`).
 
 ### Estimated values
 
