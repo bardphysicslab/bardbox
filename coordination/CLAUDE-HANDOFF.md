@@ -1,10 +1,20 @@
 # Claude handoff: Registry and rendering documentation reconciliation
 
-- **Event:** `DOCS-RECONCILE` (TRUE-INPLACE-EDIT-1, part 2), October 21, 2026. **Status:** complete, ready for Codex independent exact-head review. Documentation only.
+- **Event:** `DOCS-RECONCILE` (TRUE-INPLACE-EDIT-1, part 2), October 21, 2026. **Status:** the three semantic findings from Codex's review of `40f05c2` are fixed; ready for Codex exact-head review. Documentation only.
 - **PR:** [bardbox#65](https://github.com/bardphysicslab/bardbox/pull/65), branch `claude/registry-rendering-docs`. The exact head is the commit containing this file; it is recorded in [#64](https://github.com/bardphysicslab/bardbox/issues/64). Not merged; Claude does not self-merge.
 - **Authority:** the [accepted reconciliation](https://github.com/bardphysicslab/bardbox/issues/64#issuecomment-6322822102), which authorizes publishing, and the Codex-approved [preservation plan](https://github.com/bardphysicslab/bardbox/issues/64#issuecomment-6322957422). Pinned to engineering-standards `91a2d7c` and bardbox `641b5c0`.
 - **App part:** [BardBox-Reference#20](https://github.com/bardphysicslab/BardBox-Reference/pull/20), merged at `cc8808f` ([delivery](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6323058396)).
 - **The previous handoff** (OCT19-LAYOUT-1) is archived unchanged at [archive/CLAUDE-HANDOFF-OCT19-LAYOUT-1.md](archive/CLAUDE-HANDOFF-OCT19-LAYOUT-1.md). This was done by cherry-picking PR52's own rename commit `798d267`.
+
+## Corrections after review (`39a4d21`)
+
+Findings: [PR #65 comment 6323094706](https://github.com/bardphysicslab/bardbox/pull/65#issuecomment-6323094706).
+1. **Web UI standard:** the old "healthy communications (`LIVE`)" sentence now reads "a fresh valid measurement (`LIVE`) can coexist with an active freezer `ALARM`", consistent with "contact alone never earns `LIVE`".
+2. **Cards:** the target is one card per monitored entity. The Reference first pass draws one card per registered device, because no entity runtime exists yet. This is stated in the section-set passage and in the RENDER-SECTIONS-1 index row.
+3. **Name semantics:** Name is a descriptive heading (CryoCube, Ulster County), backed today by `equipment`. Changing it never changes the owner or the hardware identity (UID, factory MAC). Location stays separate. Stated in the card-top item, the index row and the map's target bullet.
+4. **PR20 merged proof** (`cc8808f`, delivery 6323058396) was added in `f261a6f`, and the PR19 row now names `057c5df`.
+
+**Checks:** the link/anchor check, including this file, passes, and `git diff --check` is clean. No Mermaid block changed after the earlier render check.
 
 ## Preservation
 
@@ -41,7 +51,7 @@
 
 - **Canonical checkout** `/Users/kornelispoort/Code/bardcollege/bardbox`: restored to `codex/registry-identity-docs@28d97a3`, clean, after each step. Other worktrees untouched.
 - **No worker or watcher started.**
-- **Process slip (reported to the reviewer):** a Reference handoff-only commit `bd13a9a` was pushed directly to BardBox-Reference `main` after PR20 had merged. It is coordination-file only. It was not force-pushed or rewritten; the remedy is the maintainer's choice.
+- **Process slip:** a Reference handoff-only commit `bd13a9a` was pushed directly to BardBox-Reference `main` after PR20 had merged. It is coordination-file only; Codex verified runtime unchanged. It was not reset, force-pushed or rewritten. Its stale wording is corrected through a separate small Reference documentation PR from current `main`, reviewed before merge.
 
 ## Next step
 
