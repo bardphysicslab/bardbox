@@ -6,6 +6,59 @@ earlier open-decision list are archived unchanged in
 GitHub ([bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31)) is
 authoritative for status; this file does not embed its own commit hash.
 
+## October 21, 2026 — Registry and rendering documentation reconciliation (latest)
+
+Owning [issue #64](https://github.com/bardphysicslab/bardbox/issues/64); plan
+[6322957422](https://github.com/bardphysicslab/bardbox/issues/64#issuecomment-6322957422) (Codex-approved) under the
+[accepted reconciliation](https://github.com/bardphysicslab/bardbox/issues/64#issuecomment-6322822102), which authorizes
+publication and supersedes the local-only next action of the checkpoint below.
+Branch `claude/registry-rendering-docs` builds on that checkpoint's local
+commits (`28d97a3`, kept as ancestors; its branch ref is unchanged) and carries
+the documentation commits of [PR52](https://github.com/bardphysicslab/bardbox/pull/52) by cherry-pick with
+provenance (alarm switch inside Alarm with a read-only card indicator; owner-
+declared editable fields, save/readback, drafts and failures). PR52's
+coordination records stay on its own branch.
+
+Reconciled: in-place editing ([TRUE-INPLACE-EDIT-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690)) superseding
+the single edit-home / display-only heading rule for featured Name/Location;
+first-pass ten card sections with dashes; future display selection, Featured
+and auto-hide; future Alarm-outside preference; contact state versus `LIVE`;
+the inline Registry list (Add row, in-row identity Edit/review, Archive,
+archived-reuse warning) with transitional UID/MAC corrections and deferred
+permanence. One consolidated Registry paragraph lives in the architecture map;
+ARCHITECTURE keeps a linked summary; the decision index adds the Reference
+follow-up rows. Documentation only; no runtime, hardware or deployment claim.
+The app part, [BardBox-Reference#20](https://github.com/bardphysicslab/BardBox-Reference/pull/20), is merged at `cc8808f`
+([delivery](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6323058396)). Exact head and review status of this
+documentation PR are recorded in #64; the handoff is
+[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md).
+
+## October 21, 2026 — Registry identity documentation checkpoint (history)
+
+Owning [issue #64](https://github.com/bardphysicslab/bardbox/issues/64),
+accepted discussion [#10](https://github.com/bardphysicslab/bardbox/issues/10).
+Canonical BardBox checkout; Codex chat `01a15df1-50d4-7ec2-abd6-64d14f69d85a`,
+branch `codex/registry-identity-docs`, baseline
+`641b5c04cc87edc5a4513fd889741101ce9ff7fb`. Shared guidance:
+`engineering-standards@91a2d7c0d4afd3eac55ec612be9866f46fb3a11d`.
+
+Decision index and architecture/map now describe accepted project authority,
+permanent board identity, mutable dated assignments and deferred enforcement.
+The destructive reassignment purge task is cancelled, not implemented. Existing
+experimental configuration and original-UID backlog remain compatible.
+Latest accepted flow REG-UI-FLOW-1: registration UID/optional MAC only; automatic
+dashboard card and descriptive edits there via Controls/Registry, with project
+owner default and archival preserving history. Health owns Not yet seen/offline;
+server metadata sync to devices is future discussion. REG-MANAGE-1 adds the
+identity management list/forms (Reference PR12 merged a6f8b8d); dashboard
+descriptive editing remains separate. Prior form placement is
+superseded; no demo Ingestion or runtime change.
+Documentation only; no runtime/hardware/deployment verification claimed.
+Exact commit, local checks and review status are recorded in #64.
+Next owner/action: Codex preserves the reviewable local revision; maintainer
+authorizes independent review/publication/merge separately. Historical schema,
+effective-time and late-record rules remain open in #10.
+
 ## October 19, 2026 — OCT19-DOCS-1 documentation reconciliation
 
 - **Decisions applied:** [BB-003 accepted direction](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991),

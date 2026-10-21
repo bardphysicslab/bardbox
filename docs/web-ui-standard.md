@@ -91,13 +91,22 @@ representative RKC/CESH review. Every entity card shares one rough top structure
    fields, several entities may share a location, and the name need not equal
    the location. The stable entity ID and the hardware UID are distinct and need
    not be shown in the heading. Contributing hardware identity and health sit
-   beneath, normally in a foldout.
-2. **Alarm enable/disable switch (when the Alarm module is included).** A
-   prominent sliding switch directly below the name, location and status and
-   above the headline readings, following the RKC pilot pattern ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043)). It always
-   shows whether the alarm is enabled or disabled. Detailed alarm settings stay
-   in the expandable Alarm section. Behavior is defined under
-   [alarm switch and disabled state](#alarm-switch-and-disabled-state).
+   beneath, normally in a foldout. They are labelled **Name** and **Location**
+   everywhere, are featured at the top by default, and are also shown in
+   Identity; both places present and edit the same Registry values. Name is a
+   descriptive heading (for example CryoCube or Ulster County), backed today by
+   the Registry `equipment` value; changing it never changes the owner or the
+   hardware identity (UID, factory MAC). Location (for example RKC basement or
+   Red Hook Library) stays a separate value ([in-place
+   editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690)). An unavailable value shows its label
+   and `—`.
+2. **Alarm enabled/disabled indicator (when the Alarm module is included).** A
+   clearly labelled, read-only "Alarm enabled" or "Alarm disabled" indicator,
+   using text plus color, directly below the name, location and status and above
+   the headline readings ([placement decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274413539)). It is always shown, is not a toggle, and stays
+   distinct from the active `ALARM` condition and its red outline. The switch
+   that changes it is inside the expandable Alarm section. Behavior is defined
+   under [alarm switch and disabled state](#alarm-switch-and-disabled-state).
 3. **Optional prominent reading.** A project may select one or more prominent
    original or derived values (RKC: a single temperature) or none.
 4. **Optional buffer fill indicator.** A compact battery-style fill with a rough
@@ -137,15 +146,83 @@ and exact fields remain deferred.
 - Modules may explicitly declare displayable status, values and control
   descriptors; the project selects which are shown. Full configuration and
   secrets are never exposed automatically.
+- **First-pass section set** ([RENDER-SECTIONS-1](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6321871609), Reference
+  layout): the target is one card per monitored entity; the Reference first
+  pass draws one card per registered device, because stable entity/hardware
+  association is not implemented yet. The card never collapses itself and has collapsed
+  `<details>` sections inside (several may be open): Identity, Health, Hardware,
+  Firmware, Measurements, Recording, Connectivity, Delivery, Alarm and
+  Escalation. Every proposed field is represented and unavailable values show
+  `—`; including a section in the layout does not imply the capability, and no
+  control is shown for a module that is not included. *Future:* a
+  display-selection page to hide or show available fields and sections and to
+  mark fields or controls **Featured** (shown above the sections, still also
+  inside their section), automatic omission of unsupplied fields, and per-user
+  preferences. None of these is implemented.
 - **Alarm enable/disable control.** Alarm declares the allowed range and the
   control's meaning, state, permission and label; Rendering supplies the shared
-  visual switch and the authorized edit path (save through Alarm, then re-read).
+  visual switch inside the expandable Alarm section, the read-only main-card
+  indicator, and the authorized edit path (save through Alarm, then re-read).
   Its accepted *target* meaning is in
   [alarm switch and disabled state](#alarm-switch-and-disabled-state). Existing
   implementations may differ; this is a documented target, not a runtime change.
 - A future AQI or color indicator light is explicitly deferred. Future CESH
   research may examine the PurpleAir Flex dual-PMS6003 correction, averaging and
   AQI method to evaluate matching it; no algorithm is selected or implemented.
+
+### Where editing controls live
+
+Accepted direction ([editable-field rule](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274318475), a BB-003 supplement), amended
+October 21 by [in-place editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690); documentation only, not
+runtime adoption or authorization for any particular editor.
+
+- **Edit in place.** Activating an editable displayed value replaces that value
+  at its existing position with the appropriate input or control and adjacent
+  **Save** and **Cancel**. This applies to featured values and to values inside
+  expandable sections. There is no separate form below the value, large editor
+  panel or modal. Editable booleans use switches; editable numbers and ranges
+  use inline editors; measured and status values stay read-only. No control is
+  invented for an absent module.
+- **Ownership decides validation, not position.** Each setting is owned by its
+  module (Registry: name, location and coordinates; Alarm: thresholds;
+  Escalation: contacts; Rendering: display preferences). A value may be edited
+  wherever it is displayed when that placement is accepted; every placement
+  uses the owner's path and the same saved value. Name and Location are
+  featured and also editable in Identity on that basis.
+- *Superseded October 21 (history kept in the [editable-field rule](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274318475)):*
+  "edit them in one place … values may be shown elsewhere, but not edited
+  there", and the display-only card heading changed only through an **Edit name
+  and location** button inside Identity, for the featured Name and Location.
+  Other authorized owner interfaces (a Registry API or admin tool) remain
+  possible.
+- **Owners decide what is editable.** Each owning module explicitly declares
+  its editable fields and who may change them, and it validates, persists and
+  applies changes. Only declared fields are offered: configuration, secrets,
+  internal settings and read-only values are never exposed or made editable
+  just because they exist.
+- **Save path.** Rendering sends an authorized request through Controls, waits
+  for the owner to finish saving, then reads and shows the saved values. The
+  owner never calls Rendering (for example, Registry never calls Rendering).
+- **Drafts and refresh.** Automatic refresh leaves an open editor, its section
+  and its unfinished draft alone until Save or Cancel. A response older than a
+  completed save must not overwrite the newly saved values.
+- **Failures.** A rejected or failed edit keeps the old authoritative values,
+  shows useful feedback and is reported centrally. When the outcome is
+  uncertain (for example, no response arrived), say so rather than claiming the
+  change was rolled back, and offer a way to check the saved values.
+- **Exception for frequent operational controls.** A frequent, important
+  operational control may be placed on the main card only by an explicit,
+  accepted decision for that control; the owner, permission, save and readback
+  rules above still apply. The alarm enable/disable switch is *not* such an
+  exception: it is edited inside the Alarm section, and the main card shows only
+  a read-only enabled/disabled indicator
+  ([alarm switch and disabled state](#alarm-switch-and-disabled-state)). A
+  laboratory preference to feature the switch outside the section later is a
+  recorded *future direction* ([in-place editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690)), not an
+  accepted placement or an implemented capability.
+- Existing implementations may differ until adopted. Reference evidence: the
+  earlier Identity placement ([verification](https://github.com/bardphysicslab/BardBox-Reference/issues/1#issuecomment-6274298406), historical) and the
+  in-place first pass ([BardBox-Reference#20](https://github.com/bardphysicslab/BardBox-Reference/pull/20), merged `cc8808f`).
 
 ### Estimated values
 
@@ -178,8 +255,12 @@ labels remain open.
 
 `OFFLINE` and `ERROR` are distinct meanings, as in the
 [data source drivers](data-source-drivers.md#ui-rule) UI rule. Alarm state is
-shown independently of availability: healthy communications (`LIVE`) can coexist
-with an active freezer `ALARM`. Project measurement content remains configurable.
+shown independently of availability: a fresh valid measurement (`LIVE`) can
+coexist with an active freezer `ALARM`. Project measurement content remains configurable.
+Contact alone never earns `LIVE`, which means a fresh valid measurement: the
+Reference first pass labels recent contact without a measurement as `ONLINE`
+contact state and a never-contacted device as `OFFLINE` / "Not yet seen"
+([RENDER-SECTIONS-1](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6321871609)). The full vocabulary remains open.
 
 ### Active-alarm card outline
 
@@ -201,7 +282,18 @@ Accepted direction ([active-alarm outline amendment](https://github.com/bardphys
 
 ### Alarm switch and disabled state
 
-Accepted direction ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043)); documentation only, not a runtime change.
+Accepted direction ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043),
+with its placement superseded by the [placement decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274413539)); documentation only, not a runtime
+change.
+
+- **Placement: deliberate, not easy.** The enable/disable switch is inside the
+  expandable Alarm section, so changing it takes a deliberate step: opening that
+  section. The main card always shows the read-only "Alarm enabled" or "Alarm
+  disabled" indicator (text plus color), which is not a toggle and is distinct
+  from the active `ALARM` condition and red outline. No confirmation dialog,
+  hold-to-act interaction or new authentication workflow is selected. This
+  replaces the earlier prominent main-card slider placement; earlier decision
+  entries remain as history.
 
 - **Disabled pauses delivery, not evaluation.** "Alarm disabled" immediately
   pauses notifications and escalation. Acquisition, measurement and evaluation of

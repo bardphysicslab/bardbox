@@ -10,8 +10,9 @@ shared spreadsheet is authoritative.
 - **Who owns node definitions and entity association:** the project Registry in the
   [Architecture Map](architecture-map.md#project-server-template).
 - **Shared allocation, enrollment and authentication:** deferred registry work in
-  [firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)
-  and [bardbox#10](https://github.com/bardphysicslab/bardbox/issues/10).
+  [bardbox#10](https://github.com/bardphysicslab/bardbox/issues/10) (one Registry authority per project instance,
+  [REG-AUTHORITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6313633845));
+  [firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41) is superseded history.
 
 Where the UID lives today: programmable nodes provisioned over USB keep it in
 their device configuration record

@@ -148,7 +148,7 @@ flowchart TB
         Normalize --> Ingest["Ingestion: validate observations and record semantics"]
     end
     subgraph StateBoundary["Registry, health and archive: separate state owners"]
-        Registry["Project Registry (required): node definitions, entity association;<br/>resolves schemas/units from the declared project measurement contract"] --> Ingest
+        Registry["Project Registry (required): board identity, dated entity assignments;<br/>resolves schemas/units from the declared project measurement contract"] --> Ingest
         Registry -.-> Communications
         Ingest -->|Archive records| Archive["Durable archive / deduplication<br/>local history ON by default; storage allowance;<br/>tombstones survive row eviction"]
         Archive -->|Durable acceptance or known duplicate| Push
@@ -177,7 +177,7 @@ flowchart TB
     Alarm --> Queries
     Escalation --> Queries
     Auth -.-> Controls
-    Controls -->|"Edit requests: owner validates and saves, then saved values are re-read"| Registry
+    Controls -->|"UI edits: Registry validates/saves; read back saved state"| Registry
     Controls -->|Project setting edit requests| Settings["Module-owned configuration: each owner validates, persists and applies"]
     Controls --> Alarm
     Controls --> Escalation
@@ -259,6 +259,50 @@ the Registry may hold only node UIDs and resolve channel schemas and units from
 the declared project measurement contract; it remains the resolver even then.
 These edits are not sensor-ingestion input.
 
+**Registry identity and descriptive assignments, October 21** (decisions:
+[REG-PERMANENT-IDENTITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316463523),
+[REG-UI-FLOW-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316897392),
+[REG-MANAGE-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6319947290) and the Reference follow-ups indexed in
+[DECISIONS](DECISIONS.md)).
+
+- **Target.** One physical board keeps one permanent UID and one factory base
+  MAC; replacement boards get new UIDs. Owner, entity, Name (a descriptive
+  heading such as CryoCube, stored today as the Registry `equipment` value;
+  changing it never changes owner or hardware identity), Location, coordinates and measurement
+  configuration are dated mutable assignments. Changes preserve recorded
+  UID/metadata and never reinterpret earlier readings. Sensor identity is
+  distinct; no sensor serial scheme is selected.
+- **Current (enforcement deferred).** UID and factory MAC remain editable for
+  transitional corrections such as typos, with a confirmation review in the
+  Registry list and dated history; uniqueness is checked among active entries
+  only; experimental reuse stays allowed and a registration that reuses an
+  archived UID or MAC shows a visible warning. There is no purge/drain
+  ([cancelled](https://github.com/bardphysicslab/BardBox-Reference/issues/7)), history rewrite, migration or new rejection.
+- **Registry list** (Reference first pass). Registration asks only UID and an
+  optional factory MAC and the device card then appears automatically with the
+  project owner default (CESH or RKC); placeholders never invent a location or
+  coordinates. One searchable list with 25-row pages: Add is one inline table
+  row, identity Edit happens in the saved row with its review in that row, and
+  Archive hides without deleting history; the legacy registration URL stays
+  compatible. (The earlier "one Add/Edit panel with
+  the list" wording of REG-MANAGE-1 is superseded by [REG-INLINE-ADD-1](https://github.com/bardphysicslab/BardBox-Reference/issues/13) and
+  [REG-INLINE-EDIT-1](https://github.com/bardphysicslab/BardBox-Reference/issues/17).)
+- **Dashboard card.** Name, Location and coordinates are edited on the card, in
+  place, through Controls/Registry with readback; Name and Location are featured
+  and also editable in Identity, which is the same saved value. UID and MAC are
+  read-only there ([web UI standard](web-ui-standard.md#where-editing-controls-live)).
+  Rendering never writes SQLite; Registry owns the saved record and history;
+  Health owns contact/freshness. The dashboard inventory combines Registry with
+  Health/Latest, so a never-contacted device is offline with no readings,
+  labelled Not yet seen, and existing readings keep their existing stale rules.
+- **Boundaries.** Server metadata is not synchronized to devices; legacy firmware
+  names remain compatible. Initial editing uses the replaceable allow-all
+  Controls hook within existing app protection; customer clients/roles,
+  channel editing, asset services, a real contact/Latest feed and Template
+  promotion are future work, and the CESH demo Ingestion snapshot is unchanged.
+  Exact representation, effective-time, schema-version and storage rules remain
+  open. See the [accepted architecture boundary](../ARCHITECTURE.md#accepted-registry-identity-direction-october-21-2026).
+
 ### Location metadata and observed position
 
 Installation location and coordinates of fixed nodes (freezer monitors, roof
@@ -290,7 +334,7 @@ module's code, `config/` and saved `data/` are in the
 | Node definitions, entity association, names, installation location/coordinates, link type, per-device cadence | Registry | Required module |
 | Project measurement contract: channels, units, validators | Declared by the project; resolved by Registry | Metric default; units always explicit |
 | Calculations, derived-result definitions, conversion helpers | Processing | Required module; may be a no-op |
-| Alarm thresholds, delays, allowed ranges, and the alarm enable/disable control's meaning, state, permission and label | Alarm (optional) | Thresholds stay in the alarm's units; display units never change alarm semantics. Target: "alarm disabled" pauses notifications/escalation, not measurement or alarm evaluation; manual re-enable ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043)) ([card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270321987)) |
+| Alarm thresholds, delays, allowed ranges, and the alarm enable/disable control's meaning, state, permission and label | Alarm (optional) | Thresholds stay in the alarm's units; display units never change alarm semantics. Target: "alarm disabled" pauses notifications/escalation, not measurement or alarm evaluation; manual re-enable ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043)); switch inside the Alarm section with a read-only main-card indicator ([placement decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274413539)) ([card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270321987)) |
 | Contacts, order, availability, opt-outs, message templates | Phone chain / escalation (optional, independent of delivery channel) | RKC ownership work: [rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16). Acknowledgements and next action are Escalation-owned operational state (inventory row 18), not editable settings; the Escalation card section may display both |
 | Display selections: which module-declared sections, status, values and controls appear; optional prominent reading and buffer indicator; display units; timezone presentation | Rendering (shared visual controls and authorized edit path) | Modules declare displayable descriptors; full configuration and secrets are never auto-exposed. Field selection and timezone preference persistence remain open |
 | Local history storage allowance and target window | Archive | About two weeks is an adjustable target, not a guarantee |
@@ -542,7 +586,7 @@ inventoried here. Science computed from BardBox measurements stays in scope. Mod
 | 13 | Project configuration (titles, timezone, clock and freshness policy, poll/stale/offline, feature flags, retention, backup policy) | Operators | Persistent configuration owner | Both | JSON app config, environment overrides, backup env file | Backup scope (D4) |
 | 14 | Display settings (visible fields, order, labels, optional prominent reading and buffer indicator, display units, timezone presentation) | Project | Rendering (module-owned configuration) | Both | Templates and code | Field selection and timezone preference persistence (D2) |
 | 15 | Users, roles and sessions (operator identity — not device UID) | Operators | Authorization at the control and query boundaries | Both | RKC: one admin login from environment; no user IDs or roles. CESH: no dashboard login; machine bearer token for the historical Data API | Operator user/role model (D6) |
-| 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, device Wi-Fi/OTA secrets, partner export credentials (future) | Deployment; provisioning | Deployment secret storage outside source. Communications authenticates devices and Registry owns identity bindings (per the ingestion contract); issuance and lifecycle are separately owned ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; issuance scheme and credential-to-identity integration contract (D7) |
+| 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, device Wi-Fi/OTA secrets, partner export credentials (future) | Deployment; provisioning | Deployment secret storage outside source. Communications authenticates devices and Registry owns identity bindings (per the ingestion contract); issuance and lifecycle are separately owned ([Registry discussion #10](https://github.com/bardphysicslab/bardbox/issues/10); firmware-tools#41 is superseded history) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; issuance scheme and credential-to-identity integration contract (D7) |
 | 17 | Contacts and availability (people, phone/email, order, availability, opt-outs) | Operators; inbound SMS | Phone chain / escalation (optional); RKC implementation in [rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16) | RKC | App config, updated by the admin page and inbound STOP | D4 |
 | 18 | Alarm, escalation, acknowledgement and notification state (incidents, acknowledgement windows, processed inbound IDs, incident log, templates) | Alarm module; providers | Alarm and escalation modules | RKC | In-memory alert state; processed-ID JSON file; incident CSV copied by rclone | Restart durability; D4, D6 |
 | 19 | Inbound messages and request logs (SMS replies, sender numbers, unknown-node attempts with remote IP) | External senders | Communications diagnostics; notification adapter | Both | CESH logs rejected-UID attempts. RKC parses SMS replies (webhook and poller) | Retention and privacy (D9) |
@@ -676,7 +720,7 @@ Notes:
   operator identity.
 - **D7** Device credential issuance and lifecycle scheme, and the concrete
   contract linking a credential to its registered identity
-  ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)).
+  ([Registry discussion #10](https://github.com/bardphysicslab/bardbox/issues/10); firmware-tools#41 is superseded history).
   The existing owners are settled by the ingestion contract: Registry owns
   identity bindings and archive device keys, and Communications authenticates.
 - **D8** *Resolved October 19:* the phone chain owns contacts and templates
@@ -806,12 +850,12 @@ flowchart TB
     PSComms -->|"Record acknowledgements"| Runtime
     subgraph Future["Proposed extensions — not implemented here"]
         Profiles["Release declarations — transports and conditional settings"]
-        Registry["Registry — identifier allocation and lifecycle"]
+        Registry["Project Registry client — allocation and lifecycle (proposed)"]
         Export["Non-destructive bulk USB queue export"]
     end
     Profiles -.-> Build
     Registry -.-> Composition
-    Registry -.-> ServerRegistry
+    Registry -.->|"one project-instance authority"| ServerRegistry
     Queue -.-> Export
     Export -.-> Adapters
     classDef planned fill:#fff4d6,stroke:#a67700,stroke-dasharray:5 5,color:#222;

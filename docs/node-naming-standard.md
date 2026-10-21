@@ -28,6 +28,10 @@ Examples:
 - Use hyphens only.
 - UID must be immutable once deployed.
 - Never reuse a retired UID; check the project registry before assigning one.
+- These are the target rules ([REG-PERMANENT-IDENTITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316463523)). Registry
+  enforcement is deferred: the current Reference Registry still allows
+  transitional UID/MAC corrections and reuse after archive, with history and a
+  visible warning ([architecture map](architecture-map.md#project-server-template)).
 - Physically label devices with their UID whenever possible.
 
 Regular expression:
