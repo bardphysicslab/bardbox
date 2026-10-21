@@ -107,6 +107,15 @@ Keep the CESH API experiment/demo Ingestion snapshot unchanged initially.
 Archival preserves history. Schema, effective-time/versioning and exact interface
 details remain open; no runtime implementation or rollout is authorized.
 
+[REG-MANAGE-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6319947290) adds one compact Registry management list,
+search and 25-row pagination. Add/Edit identity forms and change confirmation
+appear as one panel with the list; successful saves return to the list. The
+legacy registration URL remains compatible. Archive hides without deleting
+history. Dashboard descriptive edits remain separate; identity edits remain
+transitional, with permanent identity enforcement deferred. The bounded local
+Reference demo is [proved and merged](https://github.com/bardphysicslab/BardBox-Reference/pull/12)
+at `a6f8b8d`; Template promotion and a real contact/Latest feed remain separate.
+
 Registry owns identity and assignment state; Authentication checks credentials
 and permissions; Ingestion preserves its published consistency/record contract;
 Archive preserves historical attribution. These are accepted boundaries, not

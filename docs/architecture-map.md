@@ -177,7 +177,7 @@ flowchart TB
     Alarm --> Queries
     Escalation --> Queries
     Auth -.-> Controls
-    Controls -->|"Dashboard edits: Registry validates/saves; read back saved state"| Registry
+    Controls -->|"UI edits: Registry validates/saves; read back saved state"| Registry
     Controls -->|Project setting edit requests| Settings["Module-owned configuration: each owner validates, persists and applies"]
     Controls --> Alarm
     Controls --> Escalation
@@ -281,6 +281,13 @@ are not implemented. No competing registration metadata form, channel editor,
 asset service, demo Ingestion change or rollout is approved. Exact representation,
 effective-time/schema-version/storage rules remain open.
 See the [accepted architecture boundary](../ARCHITECTURE.md#accepted-registry-identity-direction-october-21-2026).
+
+[REG-MANAGE-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6319947290) places identity Add/Edit and Archive in one
+searchable Registry list with 25-row pages and at most one form/review panel.
+Saves return to the list; the registration URL remains compatible. Descriptive
+metadata stays editable on the dashboard card. Both views use Controls/Registry,
+with the same saved record/history and deferred permanent-identity enforcement.
+This local Reference proof does not adopt customer, real-feed or Template work.
 
 ### Location metadata and observed position
 

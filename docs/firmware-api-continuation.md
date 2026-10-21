@@ -22,7 +22,9 @@ experimental configuration and original-UID backlog remain compatible.
 Latest accepted flow REG-UI-FLOW-1: registration UID/optional MAC only; automatic
 dashboard card and descriptive edits there via Controls/Registry, with project
 owner default and archival preserving history. Health owns Not yet seen/offline;
-server metadata sync to devices is future discussion. Prior form placement is
+server metadata sync to devices is future discussion. REG-MANAGE-1 adds the
+identity management list/forms (Reference PR12 merged a6f8b8d); dashboard
+descriptive editing remains separate. Prior form placement is
 superseded; no demo Ingestion or runtime change.
 Documentation only; no runtime/hardware/deployment verification claimed.
 Exact commit, local checks and review status are recorded in #64.
