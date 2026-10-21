@@ -87,8 +87,9 @@ Summary; the [architecture map](docs/architecture-map.md#project-server-template
   follow-ups: identity-only registration; one searchable Registry list with an
   inline Add row and in-row identity Edit/review; the dashboard card appears
   automatically with no assumed owner and is where Name, Location, coordinates
-  and the optional Owner are edited, in place, in subtle frames (empty when
-  unassigned) ([web UI standard](docs/web-ui-standard.md#where-editing-controls-live)). Health owns contact/freshness (Not yet seen).
+  and the optional Owner are edited in place with server-confirmed feedback and
+  no visible edit buttons (saved values unframed at rest; empty ones keep a
+  subtle frame) ([web UI standard](docs/web-ui-standard.md#where-editing-controls-live)). Health owns contact/freshness (Not yet seen).
 - **Boundaries.** Registry owns identity and assignment state; Authentication
   checks credentials and permissions; Ingestion keeps its published contract;
   Archive preserves historical attribution. Rendering calls Controls/Registry and
