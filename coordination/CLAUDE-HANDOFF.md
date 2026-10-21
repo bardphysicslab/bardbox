@@ -1,10 +1,18 @@
 # Claude handoff: EDITABLE-FRAMES-OWNER-1 shared documentation
 
-- **Event:** `EDITABLE-FRAMES-OWNER-1-DOCS`, October 21, 2026. **Status:** complete, ready for Codex independent exact-head review. Documentation only.
+- **Event:** `EDITABLE-FRAMES-OWNER-1-DOCS`, October 21, 2026. **Status:** the two wording fixes from Codex's review of `cab7211` are applied; ready for Codex exact-head review. Documentation only.
 - **Branch:** `claude/editable-frames-owner-docs` from clean `main` `d93491c`. The PR, exact head and status are recorded in [#64](https://github.com/bardphysicslab/bardbox/issues/64). Not merged; Claude does not self-merge. The branch was checked before every commit and push; there are no `main` writes.
 - **Acceptance:** [bardbox#31 comment 6323356438](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323356438) and [bardbox#10 comment 6323356061](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6323356061), identical to [Reference#9 comment 6323355685](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6323355685). Pinned to engineering-standards `91a2d7c` and bardbox `d93491c`.
 - **App:** [BardBox-Reference#22](https://github.com/bardphysicslab/BardBox-Reference/pull/22), merged at `59b6b7e`.
 - **Previous handoff** (DOCS-RECONCILE, PR #65): archived at [archive/CLAUDE-HANDOFF-DOCS-RECONCILE.md](archive/CLAUDE-HANDOFF-DOCS-RECONCILE.md). Only one relative link path was changed (its OCT19-LAYOUT-1 link now points to the sibling file); the prose is unchanged.
+
+## Correction after review (wording only)
+
+Findings: [PR #66 comment 6323617378](https://github.com/bardphysicslab/bardbox/pull/66#issuecomment-6323617378). Codex's semantic review passed otherwise.
+- **First-pass section set:** "unavailable values show `—`" now reads "unavailable read-only values show `—` and unassigned editable values are empty frames".
+- **"Editable values are framed" bullet:** "Read-only values … keep `—`" now reads "**Missing** read-only values (an absent factory MAC, status, measurements, unavailable capabilities) keep `—` …; available read-only values such as the UID and factory MAC show their actual value, unframed".
+- **Checks:** the link/anchor check and `git diff --check` were re-run (see #64). No Mermaid or runtime change.
+- **User preview** (Codex): restarted on the same DB. A user Name edit during the work moved the baseline to 9 devices / 33 history, which was preserved exactly ([Reference#9 comment 6323586918](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6323586918)).
 
 ## Changes
 

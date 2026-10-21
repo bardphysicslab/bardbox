@@ -156,8 +156,8 @@ and exact fields remain deferred.
   association is not implemented yet. The card never collapses itself and has collapsed
   `<details>` sections inside (several may be open): Identity, Health, Hardware,
   Firmware, Measurements, Recording, Connectivity, Delivery, Alarm and
-  Escalation. Every proposed field is represented and unavailable values show
-  `—`; including a section in the layout does not imply the capability, and no
+  Escalation. Every proposed field is represented: unavailable read-only values
+  show `—` and unassigned editable values are empty frames; including a section in the layout does not imply the capability, and no
   control is shown for a module that is not included. *Future:* a
   display-selection page to hide or show available fields and sections and to
   mark fields or controls **Featured** (shown above the sections, still also
@@ -189,8 +189,10 @@ runtime adoption or authorization for any particular editor.
   invented for an absent module.
 - **Editable values are framed.** Each editable value sits in a subtle frame
   that is also its keyboard-accessible edit affordance; unassigned means an
-  empty frame with a visible label, never `—`. Read-only values (UID, factory
-  MAC, status, measurements, unavailable capabilities) keep `—` and no frame
+  empty frame with a visible label, never `—`. **Missing** read-only values
+  (for example an absent factory MAC, status, measurements or unavailable
+  capabilities) keep `—` and no frame; available read-only values such as the
+  UID and factory MAC show their actual value, unframed
   ([editable frames](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323356438)).
 - **Ownership decides validation, not position.** Each setting is owned by its
   module (Registry: name, location, coordinates and the optional owner; Alarm: thresholds;
