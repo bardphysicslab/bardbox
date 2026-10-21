@@ -70,3 +70,13 @@ implementation needs its own bounded scope and prerequisite open decisions.
 Shared guidance: bardphysicslab/engineering-standards@aa8454649fc2e8bb5ad50a5829f8d0cbda736442
 
 BardBox standards: bardphysicslab/bardbox@41fb97e7b0d7b80738ba44cb3942c795ecb3eaca
+
+# Codex review — EDITABLE-FRAMES-OWNER-1-DOCS — October21,2026
+
+PASS at author6d501dda100510ebca1904fa60dc922cfcf7f711, baseline d93491c7fd94c31bc702ae51d30e0c59de190792, PR66. Shared engineering91a2d7c0d4afd3eac55ec612be9866f46fb3a11d; BardBoxd93491c govern. User acceptance#31comment6323356438/#10comment6323356061; requested GitHub and local documentation publication, prior authorized checks-gated merge/sync. Claude implements, Codex independently reviews; this added review changes no standard text/runtime.
+
+All8 changed Markdown files read: architecture, map, Web UI standard, testing guide, index, continuation, current handoff and archived prior handoff. Current rules consistently distinguish framed editable values (empty when unassigned with labels) from missing read-only dash/unframed and populated read-only actual values. Optional Owner edited in Identity through Registry validation/revision/history; new registration has no assumed owner, existing assignments preserved. Name/Owner/hardware identity remain independent. Inline UID Registry link removed, top navigation retained. Earlier owner default/editable-dash decisions linked as superseded, historical checkpoint prose preserved.
+
+Two wording findings resolved at final author head. Independent local link/anchor/fence check128 links across all changed docs, zero findings; whitespace PASS. Archived DOCS-RECONCILE prose independently compared: unchanged except one corrected sibling relative path. Maintained Mermaid blocks unchanged; no render repetition warranted. No configured PR CI. No runtime tests repeated for prose. Separate app PR22 merged59b6b7e with19 independently passing focused tests, desktop/375px Owner save/clear/Cancel/long-value checks and all10 final CI green. Same-DB user preview restarted; current9devices/33history exactly preserved, including user's Name edit during the task. No hardware/deployment claim.
+
+No remaining blocking findings. Merge and synchronize canonical local main, retain historical28dref and PR52 unique process records; clean only confirmed merged new task branch under shared rule10. Existing Reference#9 stays open/Backlog for future feedback/display preferences/feeds/promotion. Current completion evidence belongs#9 and shared#10/#31/#64; no further coding in this milestone.

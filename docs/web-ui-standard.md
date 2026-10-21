@@ -65,8 +65,10 @@ mobile widths. Do not hide critical status behind navigation.
   Never use color as the only signal. Standard meanings and labels are below.
 - Availability of a field never implies its display: projects select the
   original and derived values a card shows.
-- Missing values render as `—`. Labels precede values; units are visually muted
-  and never fused into field names. Timestamps explicitly identify UTC or local
+- Missing **read-only** values render as `—`, unframed. An **editable** value
+  sits in a subtle frame; when it is unassigned the frame is empty (no dash)
+  and its label stays visible ([editable frames](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323356438)). Labels
+  precede values; units are visually muted and never fused into field names. Timestamps explicitly identify UTC or local
   time and unavailable timestamps render as `—`.
 - A recorded no-fresh-reading result ([BB-010](DECISIONS.md)) renders as `—`
   for the current value. The dash is display only: the underlying measurement
@@ -98,8 +100,10 @@ representative RKC/CESH review. Every entity card shares one rough top structure
    the Registry `equipment` value; changing it never changes the owner or the
    hardware identity (UID, factory MAC). Location (for example RKC basement or
    Red Hook Library) stays a separate value ([in-place
-   editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690)). An unavailable value shows its label
-   and `—`.
+   editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690)). They are editable, so an unassigned Name or
+   Location is an empty frame with its label visible, not a dash
+   ([editable frames](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323356438); this supersedes the earlier labelled-dash
+   wording).
 2. **Alarm enabled/disabled indicator (when the Alarm module is included).** A
    clearly labelled, read-only "Alarm enabled" or "Alarm disabled" indicator,
    using text plus color, directly below the name, location and status and above
@@ -152,8 +156,8 @@ and exact fields remain deferred.
   association is not implemented yet. The card never collapses itself and has collapsed
   `<details>` sections inside (several may be open): Identity, Health, Hardware,
   Firmware, Measurements, Recording, Connectivity, Delivery, Alarm and
-  Escalation. Every proposed field is represented and unavailable values show
-  `—`; including a section in the layout does not imply the capability, and no
+  Escalation. Every proposed field is represented: unavailable read-only values
+  show `—` and unassigned editable values are empty frames; including a section in the layout does not imply the capability, and no
   control is shown for a module that is not included. *Future:* a
   display-selection page to hide or show available fields and sections and to
   mark fields or controls **Featured** (shown above the sections, still also
@@ -183,12 +187,23 @@ runtime adoption or authorization for any particular editor.
   panel or modal. Editable booleans use switches; editable numbers and ranges
   use inline editors; measured and status values stay read-only. No control is
   invented for an absent module.
+- **Editable values are framed.** Each editable value sits in a subtle frame
+  that is also its keyboard-accessible edit affordance; unassigned means an
+  empty frame with a visible label, never `—`. **Missing** read-only values
+  (for example an absent factory MAC, status, measurements or unavailable
+  capabilities) keep `—` and no frame; available read-only values such as the
+  UID and factory MAC show their actual value, unframed
+  ([editable frames](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323356438)).
 - **Ownership decides validation, not position.** Each setting is owned by its
-  module (Registry: name, location and coordinates; Alarm: thresholds;
+  module (Registry: name, location, coordinates and the optional owner; Alarm: thresholds;
   Escalation: contacts; Rendering: display preferences). A value may be edited
   wherever it is displayed when that placement is accepted; every placement
   uses the owner's path and the same saved value. Name and Location are
-  featured and also editable in Identity on that basis.
+  featured and also editable in Identity on that basis; Owner is editable in
+  Identity. Owner is descriptive metadata, not an account, permission or
+  identity; Name, Owner and the hardware identity are independent. UID and
+  factory MAC are read-only on the card, without an inline Registry link; the
+  Registry list in the top navigation is their editor.
 - *Superseded October 21 (history kept in the [editable-field rule](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274318475)):*
   "edit them in one place … values may be shown elsewhere, but not edited
   there", and the display-only card heading changed only through an **Edit name

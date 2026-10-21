@@ -86,8 +86,9 @@ Summary; the [architecture map](docs/architecture-map.md#project-server-template
 - **UI flow.** [REG-UI-FLOW-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316897392) and [REG-MANAGE-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6319947290), refined by the Reference
   follow-ups: identity-only registration; one searchable Registry list with an
   inline Add row and in-row identity Edit/review; the dashboard card appears
-  automatically and is where Name, Location and coordinates are edited, in place
-  ([web UI standard](docs/web-ui-standard.md#where-editing-controls-live)). Health owns contact/freshness (Not yet seen).
+  automatically with no assumed owner and is where Name, Location, coordinates
+  and the optional Owner are edited, in place, in subtle frames (empty when
+  unassigned) ([web UI standard](docs/web-ui-standard.md#where-editing-controls-live)). Health owns contact/freshness (Not yet seen).
 - **Boundaries.** Registry owns identity and assignment state; Authentication
   checks credentials and permissions; Ingestion keeps its published contract;
   Archive preserves historical attribution. Rendering calls Controls/Registry and

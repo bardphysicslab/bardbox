@@ -6,7 +6,18 @@ earlier open-decision list are archived unchanged in
 GitHub ([bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31)) is
 authoritative for status; this file does not embed its own commit hash.
 
-## October 21, 2026 — Registry and rendering documentation reconciliation (latest)
+## October 21, 2026 — Editable frames and Owner (latest)
+
+[EDITABLE-FRAMES-OWNER-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323356438) (also [bardbox#10](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6323356061)):
+editable values are framed, unassigned editable values are empty frames with a
+visible label, read-only unavailable values keep `—`; Owner is optional and
+edited in place in Identity; new registrations assume no owner (superseding the
+CESH/RKC default); no inline UID Registry link. Reference app merged in
+[PR22](https://github.com/bardphysicslab/BardBox-Reference/pull/22) at `59b6b7e`. Documentation only on branch
+`claude/editable-frames-owner-docs` from `d93491c`; the handoff is
+[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+
+## October 21, 2026 — Registry and rendering documentation reconciliation (history)
 
 Owning [issue #64](https://github.com/bardphysicslab/bardbox/issues/64); plan
 [6322957422](https://github.com/bardphysicslab/bardbox/issues/64#issuecomment-6322957422) (Codex-approved) under the
@@ -30,8 +41,8 @@ ARCHITECTURE keeps a linked summary; the decision index adds the Reference
 follow-up rows. Documentation only; no runtime, hardware or deployment claim.
 The app part, [BardBox-Reference#20](https://github.com/bardphysicslab/BardBox-Reference/pull/20), is merged at `cc8808f`
 ([delivery](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6323058396)). Exact head and review status of this
-documentation PR are recorded in #64; the handoff is
-[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md).
+documentation PR are recorded in #64; the handoff is archived at
+[coordination/archive/CLAUDE-HANDOFF-DOCS-RECONCILE.md](../coordination/archive/CLAUDE-HANDOFF-DOCS-RECONCILE.md).
 
 ## October 21, 2026 — Registry identity documentation checkpoint (history)
 

@@ -32,7 +32,8 @@ channel normalization, and error handling without live hardware.
 
 Dashboard checks should verify:
 
-- `null` values render as `—`
+- `null` read-only values render as `—`; unassigned editable values are empty
+  frames with a visible label, not `—`
 - unavailable/error nodes show red status
 - stale nodes do not display old metric values as current
 - `last_seen` appears separately when shown
