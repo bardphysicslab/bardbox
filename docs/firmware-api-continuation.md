@@ -6,7 +6,31 @@ earlier open-decision list are archived unchanged in
 GitHub ([bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31)) is
 authoritative for status; this file does not embed its own commit hash.
 
-## October 21, 2026 — Registry identity documentation checkpoint
+## October 21, 2026 — Registry and rendering documentation reconciliation (latest)
+
+Owning [issue #64](https://github.com/bardphysicslab/bardbox/issues/64); plan
+[6322957422](https://github.com/bardphysicslab/bardbox/issues/64#issuecomment-6322957422) (Codex-approved) under the
+[accepted reconciliation](https://github.com/bardphysicslab/bardbox/issues/64#issuecomment-6322822102), which authorizes
+publication and supersedes the local-only next action of the checkpoint below.
+Branch `claude/registry-rendering-docs` builds on that checkpoint's local
+commits (`28d97a3`, kept as ancestors; its branch ref is unchanged) and carries
+the documentation commits of [PR52](https://github.com/bardphysicslab/bardbox/pull/52) by cherry-pick with
+provenance (alarm switch inside Alarm with a read-only card indicator; owner-
+declared editable fields, save/readback, drafts and failures). PR52's
+coordination records stay on its own branch.
+
+Reconciled: in-place editing ([TRUE-INPLACE-EDIT-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690)) superseding
+the single edit-home / display-only heading rule for featured Name/Location;
+first-pass ten card sections with dashes; future display selection, Featured
+and auto-hide; future Alarm-outside preference; contact state versus `LIVE`;
+the inline Registry list (Add row, in-row identity Edit/review, Archive,
+archived-reuse warning) with transitional UID/MAC corrections and deferred
+permanence. One consolidated Registry paragraph lives in the architecture map;
+ARCHITECTURE keeps a linked summary; the decision index adds the Reference
+follow-up rows. Documentation only; no runtime, hardware or deployment claim.
+Exact head and review status are recorded in #64.
+
+## October 21, 2026 — Registry identity documentation checkpoint (history)
 
 Owning [issue #64](https://github.com/bardphysicslab/bardbox/issues/64),
 accepted discussion [#10](https://github.com/bardphysicslab/bardbox/issues/10).

@@ -68,7 +68,7 @@ It is design status, not implementation: draft or target documents merged to
 
 ## Accepted Registry identity direction (October 21, 2026)
 
-Summary; the [architecture map](docs/architecture-map.md#location-metadata-and-observed-position) and the
+Summary; the [architecture map](docs/architecture-map.md#project-server-template) and the
 [decision index](docs/DECISIONS.md) carry the detail and links.
 
 - **Authority.** [REG-AUTHORITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6313633845): one Registry authority per project
