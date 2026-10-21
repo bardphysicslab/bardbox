@@ -279,18 +279,22 @@ These edits are not sensor-ingestion input.
   archived UID or MAC shows a visible warning. There is no purge/drain
   ([cancelled](https://github.com/bardphysicslab/BardBox-Reference/issues/7)), history rewrite, migration or new rejection.
 - **Registry list** (Reference first pass). Registration asks only UID and an
-  optional factory MAC and the device card then appears automatically with the
-  project owner default (CESH or RKC); placeholders never invent a location or
-  coordinates. One searchable list with 25-row pages: Add is one inline table
+  optional factory MAC and the device card then appears automatically with **no
+  owner assigned** ([editable frames](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6323356061); this supersedes the
+  earlier once-per-project CESH/RKC owner default, and existing explicit owners
+  are kept); placeholders never invent an owner, location or coordinates. One searchable list with 25-row pages: Add is one inline table
   row, identity Edit happens in the saved row with its review in that row, and
   Archive hides without deleting history; the legacy registration URL stays
   compatible. (The earlier "one Add/Edit panel with
   the list" wording of REG-MANAGE-1 is superseded by [REG-INLINE-ADD-1](https://github.com/bardphysicslab/BardBox-Reference/issues/13) and
   [REG-INLINE-EDIT-1](https://github.com/bardphysicslab/BardBox-Reference/issues/17).)
-- **Dashboard card.** Name, Location and coordinates are edited on the card, in
-  place, through Controls/Registry with readback; Name and Location are featured
-  and also editable in Identity, which is the same saved value. UID and MAC are
-  read-only there ([web UI standard](web-ui-standard.md#where-editing-controls-live)).
+- **Dashboard card.** Name, Location, coordinates and the optional Owner are
+  edited on the card, in place, through Controls/Registry with the same
+  validation, revision and dated history and readback; Name and Location are
+  featured and also editable in Identity, which is the same saved value, and an
+  empty Owner clears the assignment. Editable values are framed (empty when
+  unassigned); UID and MAC are read-only there, with no inline Registry link
+  ([web UI standard](web-ui-standard.md#where-editing-controls-live)).
   Rendering never writes SQLite; Registry owns the saved record and history;
   Health owns contact/freshness. The dashboard inventory combines Registry with
   Health/Latest, so a never-contacted device is offline with no readings,
