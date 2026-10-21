@@ -291,11 +291,15 @@ These edits are not sensor-ingestion input.
 - **Dashboard card.** Name, Location, coordinates and the optional Owner are
   edited on the card, in place, through Controls/Registry with the same
   validation, revision and dated history and readback; Name and Location are
-  featured and also editable in Identity, which is the same saved value, and an
-  empty Owner clears the assignment. Saved editable values are unframed at rest
-  and empty ones keep a subtle frame; a changed draft stays amber until
+  featured at the card top only (no longer repeated in Identity), and an
+  empty Owner clears the assignment. A separate Device settings table page
+  edits the same values with the Registry table's Edit → Review → Confirm
+  pattern (UID first and read-only; no Add/Archive), whose explicit Edit,
+  Review, Confirm, Back and Cancel labels are accepted for that table only. On
+  the dashboard card's inline editing, saved editable values are unframed at
+  rest and empty ones keep a subtle frame; a changed draft stays amber until
   Registry's readback confirms the save (green only then), without visible
-  edit buttons; UID and MAC are read-only there, with no inline Registry link
+  edit buttons; UID and MAC are read-only on the card, with no inline Registry link
   ([web UI standard](web-ui-standard.md#where-editing-controls-live)).
   Rendering never writes SQLite; Registry owns the saved record and history;
   Health owns contact/freshness. The dashboard inventory combines Registry with

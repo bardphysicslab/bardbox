@@ -39,6 +39,10 @@ Dashboard checks should verify:
   turns green only after a confirmed server save, then white; Escape and an
   unchanged Enter write nothing; refusals and uncertain outcomes never show
   green or the old value as saved
+- a featured field (currently Name and Location) is not repeated in its section
+- the Device settings table keeps UID first and read-only (visible while
+  editing on phones), offers no Add/Archive, saves only after Review → Confirm,
+  and shows the same values as the dashboard
 - unavailable/error nodes show red status
 - stale nodes do not display old metric values as current
 - `last_seen` appears separately when shown

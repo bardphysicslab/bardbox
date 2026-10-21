@@ -6,7 +6,18 @@ earlier open-decision list are archived unchanged in
 GitHub ([bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31)) is
 authoritative for status; this file does not embed its own commit hash.
 
-## October 21, 2026 — Save feedback without visible edit controls (latest)
+## October 21, 2026 — Device settings comparison and featured once (latest)
+
+[Combined acceptance](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6326655979): a Device settings table page with the
+Registry table's Edit → Review → Confirm pattern for Name, Location, Owner and
+coordinates (UID first, read-only; no Add/Archive), kept alongside label-free
+dashboard editing for comparison on the same Registry values; featured Name and
+Location appear only at the card top, no longer in Identity. Reference app
+merged in [PR24](https://github.com/bardphysicslab/BardBox-Reference/pull/24) at `2fd900e` after independent review.
+Documentation only on branch `claude/device-settings-docs` from `86a8b69`; the
+handoff is [coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+
+## October 21, 2026 — Save feedback without visible edit controls (history)
 
 [EDIT-SAVE-FEEDBACK-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323916487): no visible Edit/Save/Cancel or status
 labels and no icons; a changed draft is amber until the server confirms the
@@ -16,7 +27,7 @@ uncertain outcomes are re-read, never shown as saved; saved values are unframed
 at rest while empty ones keep a framed label. Reference app merged in
 [PR23](https://github.com/bardphysicslab/BardBox-Reference/pull/23) at `386271d` after independent review. Documentation
 only on branch `claude/edit-save-feedback-docs` from `5207bda`; the handoff is
-[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+[coordination/archive/CLAUDE-HANDOFF-EDIT-SAVE-FEEDBACK-1-DOCS.md](../coordination/archive/CLAUDE-HANDOFF-EDIT-SAVE-FEEDBACK-1-DOCS.md). The entries below are history.
 
 ## October 21, 2026 — Editable frames and Owner (history)
 
