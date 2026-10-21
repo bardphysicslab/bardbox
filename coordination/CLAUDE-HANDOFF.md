@@ -1,11 +1,19 @@
 # Claude handoff: DEVICE-SETTINGS-COMPARE-1 + FEATURED-ONCE-1 shared documentation
 
-- **Event:** `DEVICE-SETTINGS-FEATURED-ONCE-DOCS`, October 21, 2026. **Status:** complete, ready for Codex independent exact-head review. Documentation only.
+- **Event:** `DEVICE-SETTINGS-FEATURED-ONCE-DOCS`, October 21, 2026. **Status:** the two wording findings from Codex's review of `c46155a` are applied; ready for Codex exact-head review. Documentation only.
 - **Branch:** `claude/device-settings-docs` from clean `main` `86a8b69`. The PR, exact head and status are recorded in [#64](https://github.com/bardphysicslab/bardbox/issues/64). Not merged; Claude does not self-merge. The branch was checked before every commit and push; there are no `main` writes.
 - **Acceptance:** [bardbox#31 comment 6326655979](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6326655979), the combined scope, identical to [Reference#9 comment 6326655675](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6326655675). Pinned to engineering-standards `91a2d7c` and bardbox `86a8b69`.
 - **App:** [BardBox-Reference#24](https://github.com/bardphysicslab/BardBox-Reference/pull/24), merged at `2fd900e` after independent review (review-only `d97c36a`, 10 checks green).
 - **Previous handoff** (EDIT-SAVE-FEEDBACK-1-DOCS, PR #67): archived at [archive/CLAUDE-HANDOFF-EDIT-SAVE-FEEDBACK-1-DOCS.md](archive/CLAUDE-HANDOFF-EDIT-SAVE-FEEDBACK-1-DOCS.md). Only one relative link path was changed (to the sibling archive file).
 - **Kept as is:** the historical `codex/registry-identity-docs@28d97a3` ref and PR52's records.
+
+## Corrections after review (wording only)
+
+Findings: [bardbox#31 comment 6326865323](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6326865323).
+1. **Web UI standard, first-pass section set:** the future-Featured sentence no longer says "shown above the sections, still also inside their section". Placement is now decided: a featured field is shown above the sections and omitted from its section, while still belonging to that section's logical group (Name and Location to Identity), so featuring moves it rather than duplicating it. Only the selection itself remains future.
+2. **Architecture map, Dashboard card:** the unframed / amber / green / no-visible-buttons sentences are now explicitly scoped to the **dashboard card's inline editing**. The Device settings table's explicit Edit, Review, Confirm, Back and Cancel labels are stated as accepted for that table only.
+
+**Checks:** the focused link/anchor check and `git diff --check` were re-run (see #64). No runtime or Mermaid change.
 
 ## Changes
 

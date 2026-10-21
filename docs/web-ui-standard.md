@@ -164,9 +164,12 @@ and exact fields remain deferred.
   show `—` and unassigned editable values are empty frames; including a section in the layout does not imply the capability, and no
   control is shown for a module that is not included. *Future:* a
   display-selection page to hide or show available fields and sections and to
-  mark fields or controls **Featured** (shown above the sections, still also
-  inside their section), automatic omission of unsupplied fields, and per-user
-  preferences. None of these is implemented.
+  mark fields or controls **Featured**, automatic omission of unsupplied fields,
+  and per-user preferences. None of these is implemented. Placement itself is
+  decided: a featured field is shown above the sections and omitted from its
+  section; it still belongs to that section's logical group (for example Name
+  and Location to Identity), but featuring moves it rather than duplicating it
+  ([featured once](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6326655979)). Only the selection is future.
 - **Alarm enable/disable control.** Alarm declares the allowed range and the
   control's meaning, state, permission and label; Rendering supplies the shared
   visual switch inside the expandable Alarm section, the read-only main-card
