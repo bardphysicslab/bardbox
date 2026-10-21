@@ -89,7 +89,9 @@ Summary; the [architecture map](docs/architecture-map.md#project-server-template
   automatically with no assumed owner and is where Name, Location, coordinates
   and the optional Owner are edited in place with server-confirmed feedback and
   no visible edit buttons (saved values unframed at rest; empty ones keep a
-  subtle frame) ([web UI standard](docs/web-ui-standard.md#where-editing-controls-live)). Health owns contact/freshness (Not yet seen).
+  subtle frame; featured Name/Location appear only at the card top). A Device
+  settings table page offers the same descriptive settings with Registry-style
+  Edit/Review/Confirm for comparison ([web UI standard](docs/web-ui-standard.md#where-editing-controls-live)). Health owns contact/freshness (Not yet seen).
 - **Boundaries.** Registry owns identity and assignment state; Authentication
   checks credentials and permissions; Ingestion keeps its published contract;
   Archive preserves historical attribution. Rendering calls Controls/Registry and

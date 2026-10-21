@@ -96,8 +96,10 @@ representative RKC/CESH review. Every entity card shares one rough top structure
    the location. The stable entity ID and the hardware UID are distinct and need
    not be shown in the heading. Contributing hardware identity and health sit
    beneath, normally in a foldout. They are labelled **Name** and **Location**
-   everywhere, are featured at the top by default, and are also shown in
-   Identity; both places present and edit the same Registry values. Name is a
+   everywhere and are featured at the top by default. A featured field appears
+   only in the featured area and is not repeated in its section, so Name and
+   Location are no longer shown in Identity ([featured once](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6326655979); this
+   supersedes the earlier featured-and-in-Identity rule). Name is a
    descriptive heading (for example CryoCube or Ulster County), backed today by
    the Registry `equipment` value; changing it never changes the owner or the
    hardware identity (UID, factory MAC). Location (for example RKC basement or
@@ -224,11 +226,23 @@ runtime adoption or authorization for any particular editor.
   Escalation: contacts; Rendering: display preferences). A value may be edited
   wherever it is displayed when that placement is accepted; every placement
   uses the owner's path and the same saved value. Name and Location are
-  featured and also editable in Identity on that basis; Owner is editable in
-  Identity. Owner is descriptive metadata, not an account, permission or
+  edited at their featured card-top position only (featured once); Owner and
+  coordinates are edited in Identity. Owner is descriptive metadata, not an account, permission or
   identity; Name, Owner and the hardware identity are independent. UID and
   factory MAC are read-only on the card, without an inline Registry link; the
   Registry list in the top navigation is their editor.
+- **Device settings comparison page** ([combined acceptance](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6326655979)). A
+  separate table page reuses the Registry table layout and its in-row **Edit →
+  Review → Confirm / Back / Cancel** for each device's current descriptive
+  settings (Name, Location, Owner, coordinate pair). UID is the first column,
+  plain and read-only, and stays visible while editing (on narrow screens the
+  table scrolls inside its container with the UID column fixed). There is no
+  Add, Register or Archive there. Those explicit labels apply to this table page
+  only; dashboard editing stays label-free and remains available alongside it
+  for comparison. Both edit the same Registry values; no settings are copied.
+  Future owning-module settings may join this page only when implemented and
+  scoped; no Alarm settings, preferences or access control exist yet. Reference
+  implementation: [BardBox-Reference#24](https://github.com/bardphysicslab/BardBox-Reference/pull/24), merged `2fd900e`.
 - *Superseded October 21 (history kept in the [editable-field rule](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274318475)):*
   "edit them in one place … values may be shown elsewhere, but not edited
   there", and the display-only card heading changed only through an **Edit name
