@@ -6,6 +6,25 @@ earlier open-decision list are archived unchanged in
 GitHub ([bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31)) is
 authoritative for status; this file does not embed its own commit hash.
 
+## October 21, 2026 — Registry identity documentation checkpoint
+
+Owning [issue #64](https://github.com/bardphysicslab/bardbox/issues/64),
+accepted discussion [#10](https://github.com/bardphysicslab/bardbox/issues/10).
+Canonical BardBox checkout; Codex chat `01a15df1-50d4-7ec2-abd6-64d14f69d85a`,
+branch `codex/registry-identity-docs`, baseline
+`641b5c04cc87edc5a4513fd889741101ce9ff7fb`. Shared guidance:
+`engineering-standards@91a2d7c0d4afd3eac55ec612be9866f46fb3a11d`.
+
+Decision index and architecture/map now describe accepted project authority,
+permanent board identity, mutable dated assignments and deferred enforcement.
+The destructive reassignment purge task is cancelled, not implemented. Existing
+experimental configuration and original-UID backlog remain compatible.
+Documentation only; no runtime/hardware/deployment verification claimed.
+Exact commit, local checks and review status are recorded in #64.
+Next owner/action: Codex preserves the reviewable local revision; maintainer
+authorizes independent review/publication/merge separately. Historical schema,
+effective-time and late-record rules remain open in #10.
+
 ## October 19, 2026 — OCT19-DOCS-1 documentation reconciliation
 
 - **Decisions applied:** [BB-003 accepted direction](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6269561991),

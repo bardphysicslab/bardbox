@@ -63,6 +63,37 @@ It is design status, not implementation: draft or target documents merged to
   module-owned saved data, is the [repository layout](docs/repository-layout.md)
   ([BB-004](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6271296848)).
 
+## Accepted Registry identity direction (October 21, 2026)
+
+[REG-AUTHORITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6313633845) establishes one Registry authority per project
+instance, shared by receiving, enrollment/provisioning and future OTA. Firmware
+Tools is a client, not a competing authority. This does not create a global
+cross-project registry or implement those integrations.
+
+[REG-PERMANENT-IDENTITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316463523) establishes the target: one physical board,
+one permanent device UID, one factory-programmed base MAC. The UID stays with
+the board; replacement hardware receives a new UID. Owner, monitored entity,
+location and measurement configuration are separate mutable assignments with
+dated history. Preserve original recorded UID and metadata; later edits must
+not retrospectively reinterpret past readings. Attached sensors have identity
+distinct from the board; no sensor serial scheme is selected.
+
+**Enforcement is deferred.** Experimental UID moves/reuse remain compatible;
+no new rejection, automatic migration/backfill or credential changes. Current
+firmware retains original-UID buffered readings. The former reassignment
+purge/drain requirement is cancelled, not implemented ([Reference #7](https://github.com/bardphysicslab/BardBox-Reference/issues/7)).
+Phase 1 remains UID plus optional factory MAC, without mandatory owner/entity
+or measurement-configuration screens. The initial owner default is configured once per project: CESH for CESH and RKC
+for RKC for now, with no per-device owner-entry requirement or customer
+accounts/owner-management screens. Effective-time rules, historical schema
+versioning, late-record attribution and storage remain unresolved.
+
+Registry owns identity and assignment state; Authentication checks credentials
+and permissions; Ingestion preserves its published consistency/record contract;
+Archive preserves historical attribution. These are accepted boundaries, not
+implemented operations or authorization to weaken current checks.
+[Documentation continuation](https://github.com/bardphysicslab/bardbox/issues/64).
+
 ## Ownership and project composition
 
 `bardbox` owns shared standards and specifications. `bardbox-project-template`

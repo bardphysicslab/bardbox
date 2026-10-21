@@ -148,7 +148,7 @@ flowchart TB
         Normalize --> Ingest["Ingestion: validate observations and record semantics"]
     end
     subgraph StateBoundary["Registry, health and archive: separate state owners"]
-        Registry["Project Registry (required): node definitions, entity association;<br/>resolves schemas/units from the declared project measurement contract"] --> Ingest
+        Registry["Project Registry (required): board identity, dated entity assignments;<br/>resolves schemas/units from the declared project measurement contract"] --> Ingest
         Registry -.-> Communications
         Ingest -->|Archive records| Archive["Durable archive / deduplication<br/>local history ON by default; storage allowance;<br/>tombstones survive row eviction"]
         Archive -->|Durable acceptance or known duplicate| Push
@@ -258,6 +258,16 @@ records keep their original node attribution
 the Registry may hold only node UIDs and resolve channel schemas and units from
 the declared project measurement contract; it remains the resolver even then.
 These edits are not sensor-ingestion input.
+
+October 21 accepted target ([REG-PERMANENT-IDENTITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316463523)):
+a board retains one permanent UID and factory base MAC; replacement boards get
+new UIDs. Owner, entity, location and measurement configuration are dated mutable
+assignments. Changes preserve recorded UID/metadata and must not reinterpret
+earlier readings. Sensor identity remains distinct; no sensor serial scheme is
+selected. Enforcement is deferred: experimental UID moves/reuse remain allowed,
+with no purge/drain, history rewrite, migration or new rejection. Phase 1 stays
+UID/optional MAC; exact effective-time/schema-version/storage rules remain open.
+See the [accepted architecture boundary](../ARCHITECTURE.md#accepted-registry-identity-direction-october-21-2026).
 
 ### Location metadata and observed position
 
@@ -542,7 +552,7 @@ inventoried here. Science computed from BardBox measurements stays in scope. Mod
 | 13 | Project configuration (titles, timezone, clock and freshness policy, poll/stale/offline, feature flags, retention, backup policy) | Operators | Persistent configuration owner | Both | JSON app config, environment overrides, backup env file | Backup scope (D4) |
 | 14 | Display settings (visible fields, order, labels, optional prominent reading and buffer indicator, display units, timezone presentation) | Project | Rendering (module-owned configuration) | Both | Templates and code | Field selection and timezone preference persistence (D2) |
 | 15 | Users, roles and sessions (operator identity — not device UID) | Operators | Authorization at the control and query boundaries | Both | RKC: one admin login from environment; no user IDs or roles. CESH: no dashboard login; machine bearer token for the historical Data API | Operator user/role model (D6) |
-| 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, device Wi-Fi/OTA secrets, partner export credentials (future) | Deployment; provisioning | Deployment secret storage outside source. Communications authenticates devices and Registry owns identity bindings (per the ingestion contract); issuance and lifecycle are separately owned ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; issuance scheme and credential-to-identity integration contract (D7) |
+| 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, device Wi-Fi/OTA secrets, partner export credentials (future) | Deployment; provisioning | Deployment secret storage outside source. Communications authenticates devices and Registry owns identity bindings (per the ingestion contract); issuance and lifecycle are separately owned ([Registry discussion #10](https://github.com/bardphysicslab/bardbox/issues/10); firmware-tools#41 is superseded history) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; issuance scheme and credential-to-identity integration contract (D7) |
 | 17 | Contacts and availability (people, phone/email, order, availability, opt-outs) | Operators; inbound SMS | Phone chain / escalation (optional); RKC implementation in [rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16) | RKC | App config, updated by the admin page and inbound STOP | D4 |
 | 18 | Alarm, escalation, acknowledgement and notification state (incidents, acknowledgement windows, processed inbound IDs, incident log, templates) | Alarm module; providers | Alarm and escalation modules | RKC | In-memory alert state; processed-ID JSON file; incident CSV copied by rclone | Restart durability; D4, D6 |
 | 19 | Inbound messages and request logs (SMS replies, sender numbers, unknown-node attempts with remote IP) | External senders | Communications diagnostics; notification adapter | Both | CESH logs rejected-UID attempts. RKC parses SMS replies (webhook and poller) | Retention and privacy (D9) |
@@ -676,7 +686,7 @@ Notes:
   operator identity.
 - **D7** Device credential issuance and lifecycle scheme, and the concrete
   contract linking a credential to its registered identity
-  ([firmware-tools#41](https://github.com/bardphysicslab/firmware-tools/issues/41)).
+  ([Registry discussion #10](https://github.com/bardphysicslab/bardbox/issues/10); firmware-tools#41 is superseded history).
   The existing owners are settled by the ingestion contract: Registry owns
   identity bindings and archive device keys, and Communications authenticates.
 - **D8** *Resolved October 19:* the phone chain owns contacts and templates
@@ -806,12 +816,12 @@ flowchart TB
     PSComms -->|"Record acknowledgements"| Runtime
     subgraph Future["Proposed extensions — not implemented here"]
         Profiles["Release declarations — transports and conditional settings"]
-        Registry["Registry — identifier allocation and lifecycle"]
+        Registry["Project Registry client — allocation and lifecycle (proposed)"]
         Export["Non-destructive bulk USB queue export"]
     end
     Profiles -.-> Build
     Registry -.-> Composition
-    Registry -.-> ServerRegistry
+    Registry -.->|"one project-instance authority"| ServerRegistry
     Queue -.-> Export
     Export -.-> Adapters
     classDef planned fill:#fff4d6,stroke:#a67700,stroke-dasharray:5 5,color:#222;
