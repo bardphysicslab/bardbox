@@ -19,6 +19,8 @@ Decision index and architecture/map now describe accepted project authority,
 permanent board identity, mutable dated assignments and deferred enforcement.
 The destructive reassignment purge task is cancelled, not implemented. Existing
 experimental configuration and original-UID backlog remain compatible.
+Initial staff page scope includes editable equipment/entity and location alongside
+UID/optional MAC, project owner default and archival preserving history.
 Documentation only; no runtime/hardware/deployment verification claimed.
 Exact commit, local checks and review status are recorded in #64.
 Next owner/action: Codex preserves the reviewable local revision; maintainer

@@ -82,8 +82,10 @@ distinct from the board; no sensor serial scheme is selected.
 no new rejection, automatic migration/backfill or credential changes. Current
 firmware retains original-UID buffered readings. The former reassignment
 purge/drain requirement is cancelled, not implemented ([Reference #7](https://github.com/bardphysicslab/BardBox-Reference/issues/7)).
-Phase 1 remains UID plus optional factory MAC, without mandatory owner/entity
-or measurement-configuration screens. The initial owner default is configured once per project: CESH for CESH and RKC
+Phase 1 includes UID, optional factory MAC, editable monitored equipment/entity
+and installation location, plus archival preserving history. Equipment (for
+example, Freezer Todd) is distinct from measurement channels (temperature/door);
+no measurement-channel editor or asset-management service is approved. The initial owner default is configured once per project: CESH for CESH and RKC
 for RKC for now, with no per-device owner-entry requirement or customer
 accounts/owner-management screens. Effective-time rules, historical schema
 versioning, late-record attribution and storage remain unresolved.

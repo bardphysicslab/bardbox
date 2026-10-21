@@ -265,8 +265,11 @@ new UIDs. Owner, entity, location and measurement configuration are dated mutabl
 assignments. Changes preserve recorded UID/metadata and must not reinterpret
 earlier readings. Sensor identity remains distinct; no sensor serial scheme is
 selected. Enforcement is deferred: experimental UID moves/reuse remain allowed,
-with no purge/drain, history rewrite, migration or new rejection. Phase 1 stays
-UID/optional MAC; exact effective-time/schema-version/storage rules remain open.
+with no purge/drain, history rewrite, migration or new rejection. Phase 1 includes
+UID/optional MAC and editable equipment/entity and installation location, with
+project owner defaults and archival preserving history. This does not approve
+measurement-channel editing or an equipment asset-management service. Exact
+representation, effective-time/schema-version/storage rules remain open.
 See the [accepted architecture boundary](../ARCHITECTURE.md#accepted-registry-identity-direction-october-21-2026).
 
 ### Location metadata and observed position
