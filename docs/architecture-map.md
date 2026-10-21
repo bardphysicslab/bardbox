@@ -177,7 +177,7 @@ flowchart TB
     Alarm --> Queries
     Escalation --> Queries
     Auth -.-> Controls
-    Controls -->|"Edit requests: owner validates and saves, then saved values are re-read"| Registry
+    Controls -->|"Dashboard edits: Registry validates/saves; read back saved state"| Registry
     Controls -->|Project setting edit requests| Settings["Module-owned configuration: each owner validates, persists and applies"]
     Controls --> Alarm
     Controls --> Escalation
@@ -265,11 +265,21 @@ new UIDs. Owner, entity, location and measurement configuration are dated mutabl
 assignments. Changes preserve recorded UID/metadata and must not reinterpret
 earlier readings. Sensor identity remains distinct; no sensor serial scheme is
 selected. Enforcement is deferred: experimental UID moves/reuse remain allowed,
-with no purge/drain, history rewrite, migration or new rejection. Phase 1 includes
-UID/optional MAC and editable equipment/entity and installation location, with
-project owner defaults and archival preserving history. This does not approve
-measurement-channel editing or an equipment asset-management service. Exact
-representation, effective-time/schema-version/storage rules remain open.
+with no purge/drain, history rewrite, migration or new rejection.
+[REG-UI-FLOW-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316897392): registration asks only UID/optional MAC.
+The new dashboard card appears automatically; descriptive edits (equipment/name,
+location, optional coordinates) occur only there through Controls/Registry,
+never direct UI SQLite writes. Project owner defaults CESH/RKC and descriptive
+placeholders do not invent location/coordinates. Registry owns the saved record
+and dated assignment history; Health owns contact/freshness. Dashboard inventory
+combines Registry with Health/Latest: never-contacted devices are offline with
+no readings, labelled Not yet seen; existing stale values retain existing rules.
+Server metadata is not synchronized to devices now; legacy firmware names remain
+compatible. Initial editing uses the replaceable allow-all Controls hook within
+existing app protection. Future customer clients/roles reuse the interface but
+are not implemented. No competing registration metadata form, channel editor,
+asset service, demo Ingestion change or rollout is approved. Exact representation,
+effective-time/schema-version/storage rules remain open.
 See the [accepted architecture boundary](../ARCHITECTURE.md#accepted-registry-identity-direction-october-21-2026).
 
 ### Location metadata and observed position

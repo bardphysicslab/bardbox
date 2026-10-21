@@ -19,8 +19,11 @@ Decision index and architecture/map now describe accepted project authority,
 permanent board identity, mutable dated assignments and deferred enforcement.
 The destructive reassignment purge task is cancelled, not implemented. Existing
 experimental configuration and original-UID backlog remain compatible.
-Initial staff page scope includes editable equipment/entity and location alongside
-UID/optional MAC, project owner default and archival preserving history.
+Latest accepted flow REG-UI-FLOW-1: registration UID/optional MAC only; automatic
+dashboard card and descriptive edits there via Controls/Registry, with project
+owner default and archival preserving history. Health owns Not yet seen/offline;
+server metadata sync to devices is future discussion. Prior form placement is
+superseded; no demo Ingestion or runtime change.
 Documentation only; no runtime/hardware/deployment verification claimed.
 Exact commit, local checks and review status are recorded in #64.
 Next owner/action: Codex preserves the reviewable local revision; maintainer

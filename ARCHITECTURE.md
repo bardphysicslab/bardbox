@@ -82,13 +82,30 @@ distinct from the board; no sensor serial scheme is selected.
 no new rejection, automatic migration/backfill or credential changes. Current
 firmware retains original-UID buffered readings. The former reassignment
 purge/drain requirement is cancelled, not implemented ([Reference #7](https://github.com/bardphysicslab/BardBox-Reference/issues/7)).
-Phase 1 includes UID, optional factory MAC, editable monitored equipment/entity
-and installation location, plus archival preserving history. Equipment (for
-example, Freezer Todd) is distinct from measurement channels (temperature/door);
-no measurement-channel editor or asset-management service is approved. The initial owner default is configured once per project: CESH for CESH and RKC
-for RKC for now, with no per-device owner-entry requirement or customer
-accounts/owner-management screens. Effective-time rules, historical schema
-versioning, late-record attribution and storage remain unresolved.
+
+[REG-UI-FLOW-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316897392) defines the initial internal UI:
+registration asks only UID and optional factory MAC (missing MAC nonblocking).
+Registration creates a dashboard card automatically, using descriptive placeholders
+and the once-per-project owner default, CESH or RKC; do not invent coordinates
+or an actual location. Equipment/freezer name, location text, optional latitude/
+longitude and other agreed descriptive fields are edited only on the dashboard
+card. This supersedes placing those editors on registration. Equipment/entity
+is distinct from measurement channels; no channel editor or asset service is
+approved. Registry remains authoritative: Rendering calls Controls/Registry,
+which validates, saves dated assignments and returns saved state for readback;
+no direct UI SQLite writes. Initial app users may edit through a replaceable
+allow-all Controls hook within existing outer protection. Customer pages/roles
+are future work using the same interface, not access to the all-devices dashboard.
+
+Dashboard inventory combines registered devices with Health/Latest; a new,
+never-contacted device is offline, has no readings and says **Not yet seen**.
+Registration never marks it online. Health owns contact/freshness status; existing
+readings retain existing stale-value rules. Names, owner, location and coordinates
+are server-side metadata now; devices report UID/factory MAC when supported and
+may retain a legacy name. Device metadata polling/sync is future discussion.
+Keep the CESH API experiment/demo Ingestion snapshot unchanged initially.
+Archival preserves history. Schema, effective-time/versioning and exact interface
+details remain open; no runtime implementation or rollout is authorized.
 
 Registry owns identity and assignment state; Authentication checks credentials
 and permissions; Ingestion preserves its published consistency/record contract;
