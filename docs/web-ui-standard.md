@@ -92,12 +92,13 @@ representative RKC/CESH review. Every entity card shares one rough top structure
    the location. The stable entity ID and the hardware UID are distinct and need
    not be shown in the heading. Contributing hardware identity and health sit
    beneath, normally in a foldout.
-2. **Alarm enable/disable switch (when the Alarm module is included).** A
-   prominent sliding switch directly below the name, location and status and
-   above the headline readings, following the RKC pilot pattern ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043)). It always
-   shows whether the alarm is enabled or disabled. Detailed alarm settings stay
-   in the expandable Alarm section. Behavior is defined under
-   [alarm switch and disabled state](#alarm-switch-and-disabled-state).
+2. **Alarm enabled/disabled indicator (when the Alarm module is included).** A
+   clearly labelled, read-only "Alarm enabled" or "Alarm disabled" indicator,
+   using text plus color, directly below the name, location and status and above
+   the headline readings ([placement decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274413539)). It is always shown, is not a toggle, and stays
+   distinct from the active `ALARM` condition and its red outline. The switch
+   that changes it is inside the expandable Alarm section. Behavior is defined
+   under [alarm switch and disabled state](#alarm-switch-and-disabled-state).
 3. **Optional prominent reading.** A project may select one or more prominent
    original or derived values (RKC: a single temperature) or none.
 4. **Optional buffer fill indicator.** A compact battery-style fill with a rough
@@ -139,7 +140,8 @@ and exact fields remain deferred.
   secrets are never exposed automatically.
 - **Alarm enable/disable control.** Alarm declares the allowed range and the
   control's meaning, state, permission and label; Rendering supplies the shared
-  visual switch and the authorized edit path (save through Alarm, then re-read).
+  visual switch inside the expandable Alarm section, the read-only main-card
+  indicator, and the authorized edit path (save through Alarm, then re-read).
   Its accepted *target* meaning is in
   [alarm switch and disabled state](#alarm-switch-and-disabled-state). Existing
   implementations may differ; this is a documented target, not a runtime change.
@@ -177,16 +179,12 @@ adoption or authorization for any particular editor.
   uncertain (for example, no response arrived), say so rather than claiming the
   change was rolled back, and offer a way to check the saved values.
 - **Exception for frequent operational controls.** A frequent, important
-  operational control may stay prominent on the main card. The current accepted
-  baseline is the [alarm enable/disable switch](#alarm-switch-and-disabled-state)
-  on the main card. Its exact placement is under discussion
-  ([discussion record](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274357927);
-  one option being explored keeps the switch inside the Alarm section with a
-  labelled indicator on the main card, not accepted); until that is separately
-  decided, the baseline stands.
-  Either way, the alarm's enabled or disabled state stays visible on the main
-  card at all times, labelled distinctly from an active `ALARM` condition, and
-  the owner, permission, save and readback rules above still apply.
+  operational control may be placed on the main card only by an explicit,
+  accepted decision for that control; the owner, permission, save and readback
+  rules above still apply. The alarm enable/disable switch is *not* such an
+  exception: it is edited inside the Alarm section, and the main card shows only
+  a read-only enabled/disabled indicator
+  ([alarm switch and disabled state](#alarm-switch-and-disabled-state)).
 - Existing implementations may differ until adopted. Reference evidence of the
   Identity placement: [BardBox-Reference verification](https://github.com/bardphysicslab/BardBox-Reference/issues/1#issuecomment-6274298406).
 
@@ -244,7 +242,18 @@ Accepted direction ([active-alarm outline amendment](https://github.com/bardphys
 
 ### Alarm switch and disabled state
 
-Accepted direction ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043)); documentation only, not a runtime change.
+Accepted direction ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043),
+with its placement superseded by the [placement decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274413539)); documentation only, not a runtime
+change.
+
+- **Placement: deliberate, not easy.** The enable/disable switch is inside the
+  expandable Alarm section, so changing it takes a deliberate step: opening that
+  section. The main card always shows the read-only "Alarm enabled" or "Alarm
+  disabled" indicator (text plus color), which is not a toggle and is distinct
+  from the active `ALARM` condition and red outline. No confirmation dialog,
+  hold-to-act interaction or new authentication workflow is selected. This
+  replaces the earlier prominent main-card slider placement; earlier decision
+  entries remain as history.
 
 - **Disabled pauses delivery, not evaluation.** "Alarm disabled" immediately
   pauses notifications and escalation. Acquisition, measurement and evaluation of
