@@ -173,6 +173,22 @@ documented interface. `INFO` should expose, where applicable:
 - `buffer_count`;
 - `buffer_max_records`.
 
+Connectivity diagnostics (reference template, candidate, October 20, 2026,
+[template#36](https://github.com/bardphysicslab/bardbox-project-template/issues/36)):
+a Web Node that reports Wi-Fi state uses the same field names and meanings
+locally and in its network payload, fed by one status snapshot owned by its
+network module. The template uses `wifi` (`disabled`, `unconfigured`,
+`disconnected`, `connected`), `ip`, `mac` (station), `rssi_dbm`, `wifi_ssid`
+(effective) and `receiver` (the endpoint as `scheme://host[:port]` only). It
+appends them to `INFO` (`-` = unavailable; the SSID hex-encoded) and sends them
+in a separate `device_status` object of its upload body (`null` = unavailable),
+describing the sender at send time and never mixed into the measurement record.
+IP and RSSI are reported only while connected, never as stale values.
+Passwords, tokens and URL paths, queries or credentials never appear. This is
+current template behavior, not yet a required field set for other nodes, and
+not a network command channel: no node is required to answer `INFO` over the
+network.
+
 `buffer_count` is the number of measurements waiting for acknowledgment.
 `buffer_max_records` is the configured maximum queue capacity. When practical,
 the same names and meanings should also appear in `READ`, `START`, and network
