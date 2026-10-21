@@ -15,12 +15,12 @@
   the pull request and the #31 checkpoint; this file does not embed its own hash.
 - **Roles:** Claude implements (sole writer); Codex independently reviews the
   exact head; the maintainer decides merge. engineering-standards is unchanged.
-- **Previous milestone records:** [OCT19-DOCS-1 handoff](archive/CLAUDE-HANDOFF-OCT19-DOCS-1.md)
-  and [review](archive/CODEX-REVIEW-OCT19-DOCS-1.md), archived unchanged.
+- **Previous milestone records:** [OCT19-DOCS-1 handoff](CLAUDE-HANDOFF-OCT19-DOCS-1.md)
+  and [review](CODEX-REVIEW-OCT19-DOCS-1.md), archived unchanged.
 
 ## Changes
 
-- [docs/repository-layout.md](../docs/repository-layout.md) is the one annotated
+- [docs/repository-layout.md](../../docs/repository-layout.md) is the one annotated
   general tree: repository roots (no top-level `data/`); 18 application modules,
   each with `config/` and `data/` only where state applies; map-label mapping;
   per-module table; locators; configuration files; state-survival caveats; the

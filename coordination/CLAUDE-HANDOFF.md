@@ -6,6 +6,14 @@
 - **App part:** [BardBox-Reference#20](https://github.com/bardphysicslab/BardBox-Reference/pull/20), merged at `cc8808f` ([delivery](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6323058396)).
 - **The previous handoff** (OCT19-LAYOUT-1) is archived unchanged at [archive/CLAUDE-HANDOFF-OCT19-LAYOUT-1.md](archive/CLAUDE-HANDOFF-OCT19-LAYOUT-1.md). This was done by cherry-picking PR52's own rename commit `798d267`.
 
+## Archive path correction (after review of `d31e213`)
+
+Finding: [PR #65 comment 6323143129](https://github.com/bardphysicslab/bardbox/pull/65#issuecomment-6323143129); the semantic review passed. The moved `coordination/archive/CLAUDE-HANDOFF-OCT19-LAYOUT-1.md` still used its old relative paths. Only the paths changed; the historical prose is unchanged:
+- `../docs/repository-layout.md` → `../../docs/repository-layout.md`;
+- `archive/CLAUDE-HANDOFF-OCT19-DOCS-1.md` and `archive/CODEX-REVIEW-OCT19-DOCS-1.md` → the sibling filenames.
+
+**Link/anchor check:** the 7 changed docs, this handoff and all 3 archive files (11 files, 134 local links) pass, and `git diff --check` is clean. No Mermaid or runtime change.
+
 ## Corrections after review (`39a4d21`)
 
 Findings: [PR #65 comment 6323094706](https://github.com/bardphysicslab/bardbox/pull/65#issuecomment-6323094706).
