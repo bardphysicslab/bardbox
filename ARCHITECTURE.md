@@ -51,9 +51,10 @@ It is design status, not implementation: draft or target documents merged to
   fields, keys and hosting are deferred and existing network restrictions stay.
 - **Presentation.** Shared branding, project title and current time on every
   dashboard; entity-led cards; standard status meanings; field availability
-  never implies display; in the dashboard, settings are edited in the owning
-  module's UI section, with an explicit exception for frequent operational
-  controls ([Web UI standard](docs/web-ui-standard.md#where-editing-controls-live)).
+  never implies display; editable values are edited in place where they are
+  shown, through the owning module's path (amended October 21 from the earlier
+  single owning-section rule), with an explicit exception rule for frequent
+  operational controls ([Web UI standard](docs/web-ui-standard.md#where-editing-controls-live)).
 - **Adoption.** CESH first in a development instance of the shared template,
   then RKC; pilots are preserved.
 - **Organization.** New module folders and names reflect responsibility; Time
@@ -67,62 +68,33 @@ It is design status, not implementation: draft or target documents merged to
 
 ## Accepted Registry identity direction (October 21, 2026)
 
-[REG-AUTHORITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6313633845) establishes one Registry authority per project
-instance, shared by receiving, enrollment/provisioning and future OTA. Firmware
-Tools is a client, not a competing authority. This does not create a global
-cross-project registry or implement those integrations.
+Summary; the [architecture map](docs/architecture-map.md#location-metadata-and-observed-position) and the
+[decision index](docs/DECISIONS.md) carry the detail and links.
 
-[REG-PERMANENT-IDENTITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316463523) establishes the target: one physical board,
-one permanent device UID, one factory-programmed base MAC. The UID stays with
-the board; replacement hardware receives a new UID. Owner, monitored entity,
-location and measurement configuration are separate mutable assignments with
-dated history. Preserve original recorded UID and metadata; later edits must
-not retrospectively reinterpret past readings. Attached sensors have identity
-distinct from the board; no sensor serial scheme is selected.
-
-**Enforcement is deferred.** Experimental UID moves/reuse remain compatible;
-no new rejection, automatic migration/backfill or credential changes. Current
-firmware retains original-UID buffered readings. The former reassignment
-purge/drain requirement is cancelled, not implemented ([Reference #7](https://github.com/bardphysicslab/BardBox-Reference/issues/7)).
-
-[REG-UI-FLOW-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316897392) defines the initial internal UI:
-registration asks only UID and optional factory MAC (missing MAC nonblocking).
-Registration creates a dashboard card automatically, using descriptive placeholders
-and the once-per-project owner default, CESH or RKC; do not invent coordinates
-or an actual location. Equipment/freezer name, location text, optional latitude/
-longitude and other agreed descriptive fields are edited only on the dashboard
-card. This supersedes placing those editors on registration. Equipment/entity
-is distinct from measurement channels; no channel editor or asset service is
-approved. Registry remains authoritative: Rendering calls Controls/Registry,
-which validates, saves dated assignments and returns saved state for readback;
-no direct UI SQLite writes. Initial app users may edit through a replaceable
-allow-all Controls hook within existing outer protection. Customer pages/roles
-are future work using the same interface, not access to the all-devices dashboard.
-
-Dashboard inventory combines registered devices with Health/Latest; a new,
-never-contacted device is offline, has no readings and says **Not yet seen**.
-Registration never marks it online. Health owns contact/freshness status; existing
-readings retain existing stale-value rules. Names, owner, location and coordinates
-are server-side metadata now; devices report UID/factory MAC when supported and
-may retain a legacy name. Device metadata polling/sync is future discussion.
-Keep the CESH API experiment/demo Ingestion snapshot unchanged initially.
-Archival preserves history. Schema, effective-time/versioning and exact interface
-details remain open; no runtime implementation or rollout is authorized.
-
-[REG-MANAGE-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6319947290) adds one compact Registry management list,
-search and 25-row pagination. Add/Edit identity forms and change confirmation
-appear as one panel with the list; successful saves return to the list. The
-legacy registration URL remains compatible. Archive hides without deleting
-history. Dashboard descriptive edits remain separate; identity edits remain
-transitional, with permanent identity enforcement deferred. The bounded local
-Reference demo is [proved and merged](https://github.com/bardphysicslab/BardBox-Reference/pull/12)
-at `a6f8b8d`; Template promotion and a real contact/Latest feed remain separate.
-
-Registry owns identity and assignment state; Authentication checks credentials
-and permissions; Ingestion preserves its published consistency/record contract;
-Archive preserves historical attribution. These are accepted boundaries, not
-implemented operations or authorization to weaken current checks.
-[Documentation continuation](https://github.com/bardphysicslab/bardbox/issues/64).
+- **Authority.** [REG-AUTHORITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6313633845): one Registry authority per project
+  instance, shared by receiving, enrollment/provisioning and future OTA; Firmware
+  Tools is a client. No global cross-project registry or integration is implemented.
+- **Target identity.** [REG-PERMANENT-IDENTITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316463523): one physical board, one
+  permanent UID, one factory base MAC; owner, entity, Name, Location, coordinates
+  and measurement configuration are dated mutable assignments that never
+  reinterpret past readings.
+- **Current, enforcement deferred.** Experimental UID moves/reuse stay
+  compatible (transitional UID/MAC corrections with review and history; a
+  visible warning when a registration reuses an archived UID or MAC). No new
+  rejection, migration, backfill or credential change; the reassignment
+  purge/drain is cancelled ([Reference #7](https://github.com/bardphysicslab/BardBox-Reference/issues/7)).
+- **UI flow.** [REG-UI-FLOW-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316897392) and [REG-MANAGE-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6319947290), refined by the Reference
+  follow-ups: identity-only registration; one searchable Registry list with an
+  inline Add row and in-row identity Edit/review; the dashboard card appears
+  automatically and is where Name, Location and coordinates are edited, in place
+  ([web UI standard](docs/web-ui-standard.md#where-editing-controls-live)). Health owns contact/freshness (Not yet seen).
+- **Boundaries.** Registry owns identity and assignment state; Authentication
+  checks credentials and permissions; Ingestion keeps its published contract;
+  Archive preserves historical attribution. Rendering calls Controls/Registry and
+  reads back; it never writes SQLite. These are accepted boundaries, not
+  implemented operations or authorization to weaken current checks. The Reference
+  demo is local only; customer pages, a real feed and Template promotion are
+  separate. [Documentation continuation](https://github.com/bardphysicslab/bardbox/issues/64).
 
 ## Ownership and project composition
 

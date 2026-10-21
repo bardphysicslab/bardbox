@@ -259,35 +259,48 @@ the Registry may hold only node UIDs and resolve channel schemas and units from
 the declared project measurement contract; it remains the resolver even then.
 These edits are not sensor-ingestion input.
 
-October 21 accepted target ([REG-PERMANENT-IDENTITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316463523)):
-a board retains one permanent UID and factory base MAC; replacement boards get
-new UIDs. Owner, entity, location and measurement configuration are dated mutable
-assignments. Changes preserve recorded UID/metadata and must not reinterpret
-earlier readings. Sensor identity remains distinct; no sensor serial scheme is
-selected. Enforcement is deferred: experimental UID moves/reuse remain allowed,
-with no purge/drain, history rewrite, migration or new rejection.
-[REG-UI-FLOW-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316897392): registration asks only UID/optional MAC.
-The new dashboard card appears automatically; descriptive edits (equipment/name,
-location, optional coordinates) occur only there through Controls/Registry,
-never direct UI SQLite writes. Project owner defaults CESH/RKC and descriptive
-placeholders do not invent location/coordinates. Registry owns the saved record
-and dated assignment history; Health owns contact/freshness. Dashboard inventory
-combines Registry with Health/Latest: never-contacted devices are offline with
-no readings, labelled Not yet seen; existing stale values retain existing rules.
-Server metadata is not synchronized to devices now; legacy firmware names remain
-compatible. Initial editing uses the replaceable allow-all Controls hook within
-existing app protection. Future customer clients/roles reuse the interface but
-are not implemented. No competing registration metadata form, channel editor,
-asset service, demo Ingestion change or rollout is approved. Exact representation,
-effective-time/schema-version/storage rules remain open.
-See the [accepted architecture boundary](../ARCHITECTURE.md#accepted-registry-identity-direction-october-21-2026).
+**Registry identity and descriptive assignments, October 21** (decisions:
+[REG-PERMANENT-IDENTITY-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316463523),
+[REG-UI-FLOW-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6316897392),
+[REG-MANAGE-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6319947290) and the Reference follow-ups indexed in
+[DECISIONS](DECISIONS.md)).
 
-[REG-MANAGE-1](https://github.com/bardphysicslab/bardbox/issues/10#issuecomment-6319947290) places identity Add/Edit and Archive in one
-searchable Registry list with 25-row pages and at most one form/review panel.
-Saves return to the list; the registration URL remains compatible. Descriptive
-metadata stays editable on the dashboard card. Both views use Controls/Registry,
-with the same saved record/history and deferred permanent-identity enforcement.
-This local Reference proof does not adopt customer, real-feed or Template work.
+- **Target.** One physical board keeps one permanent UID and one factory base
+  MAC; replacement boards get new UIDs. Owner, entity, Name (stored today as
+  the Registry `equipment` value), Location, coordinates and measurement
+  configuration are dated mutable assignments. Changes preserve recorded
+  UID/metadata and never reinterpret earlier readings. Sensor identity is
+  distinct; no sensor serial scheme is selected.
+- **Current (enforcement deferred).** UID and factory MAC remain editable for
+  transitional corrections such as typos, with a confirmation review in the
+  Registry list and dated history; uniqueness is checked among active entries
+  only; experimental reuse stays allowed and a registration that reuses an
+  archived UID or MAC shows a visible warning. There is no purge/drain
+  ([cancelled](https://github.com/bardphysicslab/BardBox-Reference/issues/7)), history rewrite, migration or new rejection.
+- **Registry list** (Reference first pass). Registration asks only UID and an
+  optional factory MAC and the device card then appears automatically with the
+  project owner default (CESH or RKC); placeholders never invent a location or
+  coordinates. One searchable list with 25-row pages: Add is one inline table
+  row, identity Edit happens in the saved row with its review in that row, and
+  Archive hides without deleting history; the legacy registration URL stays
+  compatible. (The earlier "one Add/Edit panel with
+  the list" wording of REG-MANAGE-1 is superseded by [REG-INLINE-ADD-1](https://github.com/bardphysicslab/BardBox-Reference/issues/13) and
+  [REG-INLINE-EDIT-1](https://github.com/bardphysicslab/BardBox-Reference/issues/17).)
+- **Dashboard card.** Name, Location and coordinates are edited on the card, in
+  place, through Controls/Registry with readback; Name and Location are featured
+  and also editable in Identity, which is the same saved value. UID and MAC are
+  read-only there ([web UI standard](web-ui-standard.md#where-editing-controls-live)).
+  Rendering never writes SQLite; Registry owns the saved record and history;
+  Health owns contact/freshness. The dashboard inventory combines Registry with
+  Health/Latest, so a never-contacted device is offline with no readings,
+  labelled Not yet seen, and existing readings keep their existing stale rules.
+- **Boundaries.** Server metadata is not synchronized to devices; legacy firmware
+  names remain compatible. Initial editing uses the replaceable allow-all
+  Controls hook within existing app protection; customer clients/roles,
+  channel editing, asset services, a real contact/Latest feed and Template
+  promotion are future work, and the CESH demo Ingestion snapshot is unchanged.
+  Exact representation, effective-time, schema-version and storage rules remain
+  open. See the [accepted architecture boundary](../ARCHITECTURE.md#accepted-registry-identity-direction-october-21-2026).
 
 ### Location metadata and observed position
 

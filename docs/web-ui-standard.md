@@ -91,7 +91,11 @@ representative RKC/CESH review. Every entity card shares one rough top structure
    fields, several entities may share a location, and the name need not equal
    the location. The stable entity ID and the hardware UID are distinct and need
    not be shown in the heading. Contributing hardware identity and health sit
-   beneath, normally in a foldout.
+   beneath, normally in a foldout. They are labelled **Name** and **Location**
+   everywhere, are featured at the top by default, and are also shown in
+   Identity; both places present and edit the same Registry values ([in-place
+   editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690)). An unavailable value shows its label
+   and `—`.
 2. **Alarm enabled/disabled indicator (when the Alarm module is included).** A
    clearly labelled, read-only "Alarm enabled" or "Alarm disabled" indicator,
    using text plus color, directly below the name, location and status and above
@@ -138,6 +142,17 @@ and exact fields remain deferred.
 - Modules may explicitly declare displayable status, values and control
   descriptors; the project selects which are shown. Full configuration and
   secrets are never exposed automatically.
+- **First-pass section set** ([RENDER-SECTIONS-1](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6321871609), Reference
+  layout): one card per entity that never collapses itself, with collapsed
+  `<details>` sections inside (several may be open): Identity, Health, Hardware,
+  Firmware, Measurements, Recording, Connectivity, Delivery, Alarm and
+  Escalation. Every proposed field is represented and unavailable values show
+  `—`; including a section in the layout does not imply the capability, and no
+  control is shown for a module that is not included. *Future:* a
+  display-selection page to hide or show available fields and sections and to
+  mark fields or controls **Featured** (shown above the sections, still also
+  inside their section), automatic omission of unsupplied fields, and per-user
+  preferences. None of these is implemented.
 - **Alarm enable/disable control.** Alarm declares the allowed range and the
   control's meaning, state, permission and label; Rendering supplies the shared
   visual switch inside the expandable Alarm section, the read-only main-card
@@ -151,18 +166,29 @@ and exact fields remain deferred.
 
 ### Where editing controls live
 
-Accepted direction ([editable-field rule](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274318475), a BB-003 supplement); documentation only, not runtime
-adoption or authorization for any particular editor.
+Accepted direction ([editable-field rule](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274318475), a BB-003 supplement), amended
+October 21 by [in-place editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690); documentation only, not
+runtime adoption or authorization for any particular editor.
 
-- **Show values where useful; edit them in one place: the UI section of the
-  module that owns the setting.** For example, an entity's name and location
-  are edited under Identity (Registry owns them); thresholds under Alarm;
-  contacts and escalation under Escalation; display preferences under Rendering
-  settings. Values may still be shown elsewhere, but not edited there.
-- The card heading and location are ordinary display text. In the card UI,
-  they are changed only through a clearly labelled **Edit name and location**
-  button inside Identity. This organizes the dashboard; it does not rule out
-  other authorized owner interfaces, such as a Registry API or admin tool.
+- **Edit in place.** Activating an editable displayed value replaces that value
+  at its existing position with the appropriate input or control and adjacent
+  **Save** and **Cancel**. This applies to featured values and to values inside
+  expandable sections. There is no separate form below the value, large editor
+  panel or modal. Editable booleans use switches; editable numbers and ranges
+  use inline editors; measured and status values stay read-only. No control is
+  invented for an absent module.
+- **Ownership decides validation, not position.** Each setting is owned by its
+  module (Registry: name, location and coordinates; Alarm: thresholds;
+  Escalation: contacts; Rendering: display preferences). A value may be edited
+  wherever it is displayed when that placement is accepted; every placement
+  uses the owner's path and the same saved value. Name and Location are
+  featured and also editable in Identity on that basis.
+- *Superseded October 21 (history kept in the [editable-field rule](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274318475)):*
+  "edit them in one place … values may be shown elsewhere, but not edited
+  there", and the display-only card heading changed only through an **Edit name
+  and location** button inside Identity, for the featured Name and Location.
+  Other authorized owner interfaces (a Registry API or admin tool) remain
+  possible.
 - **Owners decide what is editable.** Each owning module explicitly declares
   its editable fields and who may change them, and it validates, persists and
   applies changes. Only declared fields are offered: configuration, secrets,
@@ -184,9 +210,13 @@ adoption or authorization for any particular editor.
   rules above still apply. The alarm enable/disable switch is *not* such an
   exception: it is edited inside the Alarm section, and the main card shows only
   a read-only enabled/disabled indicator
-  ([alarm switch and disabled state](#alarm-switch-and-disabled-state)).
-- Existing implementations may differ until adopted. Reference evidence of the
-  Identity placement: [BardBox-Reference verification](https://github.com/bardphysicslab/BardBox-Reference/issues/1#issuecomment-6274298406).
+  ([alarm switch and disabled state](#alarm-switch-and-disabled-state)). A
+  laboratory preference to feature the switch outside the section later is a
+  recorded *future direction* ([in-place editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690)), not an
+  accepted placement or an implemented capability.
+- Existing implementations may differ until adopted. Reference evidence: the
+  earlier Identity placement ([verification](https://github.com/bardphysicslab/BardBox-Reference/issues/1#issuecomment-6274298406), historical) and the
+  in-place first pass ([BardBox-Reference#20](https://github.com/bardphysicslab/BardBox-Reference/pull/20), in review).
 
 ### Estimated values
 
@@ -221,6 +251,10 @@ labels remain open.
 [data source drivers](data-source-drivers.md#ui-rule) UI rule. Alarm state is
 shown independently of availability: healthy communications (`LIVE`) can coexist
 with an active freezer `ALARM`. Project measurement content remains configurable.
+Contact alone never earns `LIVE`, which means a fresh valid measurement: the
+Reference first pass labels recent contact without a measurement as `ONLINE`
+contact state and a never-contacted device as `OFFLINE` / "Not yet seen"
+([RENDER-SECTIONS-1](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6321871609)). The full vocabulary remains open.
 
 ### Active-alarm card outline
 
