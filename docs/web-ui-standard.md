@@ -93,7 +93,11 @@ representative RKC/CESH review. Every entity card shares one rough top structure
    not be shown in the heading. Contributing hardware identity and health sit
    beneath, normally in a foldout. They are labelled **Name** and **Location**
    everywhere, are featured at the top by default, and are also shown in
-   Identity; both places present and edit the same Registry values ([in-place
+   Identity; both places present and edit the same Registry values. Name is a
+   descriptive heading (for example CryoCube or Ulster County), backed today by
+   the Registry `equipment` value; changing it never changes the owner or the
+   hardware identity (UID, factory MAC). Location (for example RKC basement or
+   Red Hook Library) stays a separate value ([in-place
    editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690)). An unavailable value shows its label
    and `—`.
 2. **Alarm enabled/disabled indicator (when the Alarm module is included).** A
@@ -143,7 +147,9 @@ and exact fields remain deferred.
   descriptors; the project selects which are shown. Full configuration and
   secrets are never exposed automatically.
 - **First-pass section set** ([RENDER-SECTIONS-1](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6321871609), Reference
-  layout): one card per entity that never collapses itself, with collapsed
+  layout): the target is one card per monitored entity; the Reference first
+  pass draws one card per registered device, because stable entity/hardware
+  association is not implemented yet. The card never collapses itself and has collapsed
   `<details>` sections inside (several may be open): Identity, Health, Hardware,
   Firmware, Measurements, Recording, Connectivity, Delivery, Alarm and
   Escalation. Every proposed field is represented and unavailable values show
@@ -249,8 +255,8 @@ labels remain open.
 
 `OFFLINE` and `ERROR` are distinct meanings, as in the
 [data source drivers](data-source-drivers.md#ui-rule) UI rule. Alarm state is
-shown independently of availability: healthy communications (`LIVE`) can coexist
-with an active freezer `ALARM`. Project measurement content remains configurable.
+shown independently of availability: a fresh valid measurement (`LIVE`) can
+coexist with an active freezer `ALARM`. Project measurement content remains configurable.
 Contact alone never earns `LIVE`, which means a fresh valid measurement: the
 Reference first pass labels recent contact without a measurement as `ONLINE`
 contact state and a never-contacted device as `OFFLINE` / "Not yet seen"

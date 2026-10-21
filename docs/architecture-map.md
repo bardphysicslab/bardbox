@@ -266,8 +266,9 @@ These edits are not sensor-ingestion input.
 [DECISIONS](DECISIONS.md)).
 
 - **Target.** One physical board keeps one permanent UID and one factory base
-  MAC; replacement boards get new UIDs. Owner, entity, Name (stored today as
-  the Registry `equipment` value), Location, coordinates and measurement
+  MAC; replacement boards get new UIDs. Owner, entity, Name (a descriptive
+  heading such as CryoCube, stored today as the Registry `equipment` value;
+  changing it never changes owner or hardware identity), Location, coordinates and measurement
   configuration are dated mutable assignments. Changes preserve recorded
   UID/metadata and never reinterpret earlier readings. Sensor identity is
   distinct; no sensor serial scheme is selected.
