@@ -100,18 +100,30 @@ mobile widths. Do not hide critical status behind navigation.
 Accepted direction; exact remaining fields and placement are deferred to a
 representative RKC/CESH review. Every entity card shares one rough top structure.
 
-**Card order** ([card refinement, October 22](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902)): the header has
-Name and Location at the left and status at the right. **Featured data comes
-before controls, two fields per row**, and a value sits beside its allowed
-range (the freezer example: Temperature and Allowed range first, Door on the
-next row); each number stays together with its unit. **Each featured switch
-occupies a full-width row after the values.** Folders are full-width below the
-controls, and featured items are not repeated inside them. This is accepted
-platform direction; the current Reference example is a clearly simulated
-freezer ([BardBox-Reference#25](https://github.com/bardphysicslab/BardBox-Reference/pull/25), fictional values separate from
-real records, notifications and any Alarm provider). No RKC or CESH runtime has
-adopted it yet. The numbered elements below keep their meaning within this
-order:
+**Card order** (CONFIG-CARD-GROUPS-1, [accepted October 22](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340973552),
+refining the [card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902) and
+[SHARED-CARD-RULES-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340776600)). These layout rules apply to every
+project; any project's measurements, ranges and controls are content, not
+mandatory fields:
+
+1. **Name**, then **Location**, at the left of the header; status at the right.
+2. **Featured measurements**, in configured order, **one measurement per row**:
+   the measurement on the left and its threshold or allowed range, if any, on
+   the right. A row is a measurement/range pair, never two unrelated
+   measurements (this refines the earlier "two fields per row" wording). Each
+   number stays together with its unit.
+3. **Featured switches**, each a full-width row after the measurements.
+4. **Group folders**, full-width, built automatically from the logical groups
+   that modules declare.
+
+Featuring **moves** a field out of its folder: it keeps its logical group, it
+is never shown twice, and a folder whose fields are all featured stays present
+but empty (no added explanatory text). This is accepted platform direction. The
+current Reference example is simulated Buildings and Grounds (BNG) rooms on the
+main dashboard ([BardBox-Reference#26](https://github.com/bardphysicslab/BardBox-Reference/pull/26)); see
+[Reference example](#reference-example-simulated-bng-rooms). No RKC or CESH
+runtime has adopted it yet. The numbered elements below keep their meaning
+within this order:
 
 1. **Entity heading and status.** The entity's familiar display name comes
    first, with its location beneath it ([UI amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270151957)). Name and location are separate
@@ -198,6 +210,67 @@ and exact fields remain deferred.
   section; it still belongs to that section's logical group (for example Name
   and Location to Identity), but featuring moves it rather than duplicating it
   ([featured once](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6326655979)). Only the selection is future.
+
+### Groups, featuring and display configuration
+
+CONFIG-CARD-GROUPS-1 ([accepted October 22](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340973552)) applies to every
+project:
+
+- **Logical groups.** Each displayable field belongs to an established logical
+  group (Identity, Health, Hardware, Firmware, Measurements, Recording,
+  Connectivity, Delivery, Alarm and Escalation, as currently proposed). Modules
+  declare their displayable fields and groups; Rendering builds the folders
+  automatically. A project does not write per-UID or per-installation HTML.
+- **Presentation configuration** chooses which folders and which fields within
+  groups are shown, and which fields and controls are featured. It is separate
+  from domain settings (for example an allowed range) and from persistent
+  operational data, and it never changes module ownership, the authorized
+  validation, save and readback paths, or stable device identity. Configured
+  order uses an explicitly ordered list, never JSON object key order.
+- **Current behaviour.** The Reference keeps all ten folders by default; which
+  fields are featured is set in code. There is no display-selection page and no
+  configuration engine; both remain future unless separately scoped. Name stays
+  the heading label (no Owner-for-Name substitution), and no controls are
+  invented for modules that are not included.
+
+**Illustrative configuration (PROPOSED, not implemented).** Nothing loads this
+at runtime; it only shows the intended shape:
+
+```yaml
+# PROPOSED example - not read by any BardBox runtime
+card:
+  featured:                    # ordered: one measurement per row
+    - measurement: temperature
+      beside: allowed_range    # threshold/range on the right, if any
+  switches:                    # ordered: full-width rows
+    - alerts_enabled
+  folders:                     # all logical groups shown unless hidden
+    hide: []
+    hide_fields:
+      hardware: [sensor_models]
+```
+
+### Reference example: simulated BNG rooms
+
+The Reference applies the card order to simulated BNG room examples
+(BNG-ROOM-DASH-1, [scope](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340776600), [BardBox-Reference#26](https://github.com/bardphysicslab/BardBox-Reference/pull/26)).
+The room names, temperatures, ranges and the Alerts control are illustrative
+content, not fields every project must have.
+
+- The rooms are registered synthetic devices on the main dashboard, beside real
+  devices, which are never reinterpreted as simulated. A demo-only example
+  provider keeps their fictional temperature, allowed range and Alerts setting
+  in its own SQLite file, keyed to the stable Registry device key, with its own
+  revision and history. A corrupt or unavailable file is reported as
+  unavailable, never shown as default values.
+- The card and Device settings edit the same range and Alerts, with revision
+  checks and truthful save feedback. The header shows a neutral SIMULATED
+  status, or red ALARM when the fictional temperature is outside the saved
+  range; Health contact stays truthful in its folder. Nothing is delivered and
+  there is no production Alarm module.
+- The standalone simulated freezer page is removed. Device settings Edit, Save
+  and Cancel look like the same push buttons; the Registry identity review is
+  unchanged. Archive placement remains unresolved.
 - **Alarm enable/disable control.** Alarm declares the allowed range and the
   control's meaning, state, permission and label; Rendering supplies the shared
   visual switch (a featured full-width row on the card, or inside the expandable
@@ -279,7 +352,12 @@ runtime adoption or authorization for any particular editor.
   Future owning-module settings may join this page only when implemented and
   scoped; no Alarm settings, preferences or access control exist yet. Reference
   implementation: [BardBox-Reference#24](https://github.com/bardphysicslab/BardBox-Reference/pull/24), merged `2fd900e`; direct Save in
-  [BardBox-Reference#25](https://github.com/bardphysicslab/BardBox-Reference/pull/25).
+  [BardBox-Reference#25](https://github.com/bardphysicslab/BardBox-Reference/pull/25). Edit, Save and Cancel share one push-button
+  appearance ([SHARED-CARD-RULES-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340776600)). For the simulated BNG room
+  examples only, the page also edits the example provider's allowed range and
+  Alerts, the same values as the card; every submitted example field is
+  validated before anything is written, and a partial save says exactly what
+  was saved ([BardBox-Reference#26](https://github.com/bardphysicslab/BardBox-Reference/pull/26)). These are example settings, not Alarm settings.
 - *Superseded October 21 (history kept in the [editable-field rule](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274318475)):*
   "edit them in one place … values may be shown elsewhere, but not edited
   there", and the display-only card heading changed only through an **Edit name

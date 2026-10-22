@@ -4,7 +4,7 @@
 - **Branch:** `claude/card-layout-docs` from clean `main` `e090034`. The PR, exact head and status are recorded in [#64](https://github.com/bardphysicslab/bardbox/issues/64); the scope was recorded there before any edit ([comment 6340332935](https://github.com/bardphysicslab/bardbox/issues/64#issuecomment-6340332935)). Not merged; Claude does not self-merge. The branch was checked before every commit and push; there are no `main` writes.
 - **Acceptance:** [bardbox#31 comment 6339948902](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902), identical to [Reference#9 comment 6339948462](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6339948462). Pinned to engineering-standards `91a2d7c` and bardbox `e090034`.
 - **App:** [BardBox-Reference#25](https://github.com/bardphysicslab/BardBox-Reference/pull/25), merged at `c4f044a` after independent exact-head review.
-- **Previous handoff** (DEVICE-SETTINGS-FEATURED-ONCE-DOCS, PR #68): archived at [archive/CLAUDE-HANDOFF-DEVICE-SETTINGS-FEATURED-ONCE-DOCS.md](archive/CLAUDE-HANDOFF-DEVICE-SETTINGS-FEATURED-ONCE-DOCS.md). Only one relative link path was changed (to the sibling archive file).
+- **Previous handoff** (DEVICE-SETTINGS-FEATURED-ONCE-DOCS, PR #68): archived at [archive/CLAUDE-HANDOFF-DEVICE-SETTINGS-FEATURED-ONCE-DOCS.md](CLAUDE-HANDOFF-DEVICE-SETTINGS-FEATURED-ONCE-DOCS.md). Only one relative link path was changed (to the sibling archive file).
 - **Kept as is:** the historical `codex/registry-identity-docs@28d97a3` ref and PR52's records.
 
 ## Corrections after review (`2df8ec0`, accuracy only)

@@ -296,7 +296,10 @@ These edits are not sensor-ingestion input.
   edits the same values with the Registry table layout and in-row Edit → Save /
   Cancel (UID first and read-only; no Add/Archive; Save persists directly, the
   earlier Review/Confirm step being superseded), whose explicit labels are
-  accepted for that table only. On
+  accepted for that table only. For Reference's simulated BNG room examples it
+  also edits the allowed range and Alerts owned by a separate, demo-only example
+  provider (own SQLite file keyed to the stable device key, own revision), the
+  same values as the card ([BardBox-Reference#26](https://github.com/bardphysicslab/BardBox-Reference/pull/26)). On
   the dashboard card's inline editing, saved editable values are unframed at
   rest and empty ones keep a subtle frame; a changed draft stays amber until
   Registry's readback confirms the save (green only then), without visible
