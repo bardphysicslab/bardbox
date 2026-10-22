@@ -1,12 +1,16 @@
 # Claude handoff: shared adoption principle, CONFIG-CARD-GROUPS-1 and BNG room examples
 
 - **Event:** `CARD-GROUPS-DOCS`, October 22, 2026. **Status:** complete, ready for Codex independent exact-head review. Documentation only.
-- **Content head:** `2672804584f068008def2db2c7e01b1e9543b592` on `claude/card-groups-docs`, from clean `main` `764473c`. This handoff is the next commit on the same branch, and the PR head is that commit, pushed. The only change after `2672804` is this file. The branch was checked before every commit and push; there are no `main` writes.
+- **Content head:** `bb126ffcd0f580e69bff780c1cb303df1aaa757f` on `claude/card-groups-docs`, from clean `main` `764473c`. This handoff is the next commit on the same branch, and the PR head is that commit, pushed. The only change after `bb126ff` is this file. The branch was checked before every commit and push; there are no `main` writes.
 - **PR:** [bardbox#70](https://github.com/bardphysicslab/bardbox/pull/70). Not merged; Claude does not self-merge.
 - **Accepted sources:** [bardbox#31 comment 6340809622](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340809622) (shared-module adoption principle), [comment 6340776600](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340776600) (BNG-ROOM-DASH-1 + SHARED-CARD-RULES-1, identical to Reference#9 comment 6340774553), [comment 6340973552](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340973552) (CONFIG-CARD-GROUPS-1, identical to Reference#9 comment 6340974766).
 - **App:** [BardBox-Reference#26](https://github.com/bardphysicslab/BardBox-Reference/pull/26), merged at `ee5477c` after independent review. No Reference writes in this pass.
 - **Previous handoff** (CARD-LAYOUT-DOCS, PR #69): archived at [archive/CLAUDE-HANDOFF-CARD-LAYOUT-DOCS.md](archive/CLAUDE-HANDOFF-CARD-LAYOUT-DOCS.md). Only its one relative link path changed (to the sibling archive file).
 - **Kept as is:** the historical `codex/registry-identity-docs@28d97a3` ref and PR52's records.
+
+## Correction after early review (`bb126ff`, section scope only)
+
+Codex's early review at `2672804` found that the new "Reference example: simulated BNG rooms" subsection had absorbed two original general bullets: the Alarm enable/disable control and the future AQI indicator. Both are moved back to the end of "Card sections from included modules", before the new subsections, so they are not described as BNG example features. Their text is byte-identical to `764473c` and sits in its original position; there is no semantic or runtime change.
 
 ## What changed
 
@@ -27,7 +31,7 @@
 
 ## Checks
 
-- Local link and anchor check over the six changed docs and all archived handoffs: 145 relative links, all resolving once this handoff exists (the continuation entry links it).
+- Local link and anchor check, run after this handoff was written, over the six changed docs, this handoff and all archived handoffs: 146 relative links, 0 broken.
 - `git diff --check` passes. No private workstation, database or session details were added.
 
 ## Workspace
