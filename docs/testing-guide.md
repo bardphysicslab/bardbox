@@ -41,8 +41,14 @@ Dashboard checks should verify:
   green or the old value as saved
 - a featured field (currently Name and Location) is not repeated in its section
 - the Device settings table keeps UID first and read-only (visible while
-  editing on phones), offers no Add/Archive, saves only after Review → Confirm,
-  and shows the same values as the dashboard
+  editing on phones), offers no Add/Archive, saves directly with Save (no
+  Review/Confirm/Back), old Review/Back submissions from a form opened before
+  that change do not write (an explicit old Confirm still saves), and shows the
+  same values as the dashboard
+- card order: values two per row (a value beside its range, number with unit),
+  then each featured switch as a full-width row, then full-width folders; no
+  invented explanatory text or tooltips; amber only for warning/disabled
+  protection, red for active alarm/fault, every colour with a state label
 - unavailable/error nodes show red status
 - stale nodes do not display old metric values as current
 - `last_seen` appears separately when shown

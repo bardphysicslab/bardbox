@@ -63,6 +63,16 @@ mobile widths. Do not hide critical status behind navigation.
 - Keep identity at the top-left and status badges at the top-right.
 - Status badges are compact uppercase pills with a border in the status color.
   Never use color as the only signal. Standard meanings and labels are below.
+- **Colour meanings** ([card refinement, October 22](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902)). Ordinary
+  values are neutral; secondary labels and units are muted. **Amber** means a
+  warning or disabled protection (for example "Door alarm disabled"), not merely
+  enabled operation. **Red** means an active alarm or fault. Enabled switches
+  and positive status may be **green**. The editing feedback colours (draft
+  amber, confirmed-save green, then normal) stay separate from these state
+  colours. Every colour has a corresponding state label.
+- **Labels, values and controls only** by default. Do not invent explanatory
+  subtitles or tooltips unless explicitly requested; necessary validation errors
+  stay visible beside the affected editor.
 - Availability of a field never implies its display: projects select the
   original and derived values a card shows.
 - Missing **read-only** values render as `—`, unframed. A saved **editable**
@@ -88,7 +98,20 @@ mobile widths. Do not hide critical status behind navigation.
 ### Card top area
 
 Accepted direction; exact remaining fields and placement are deferred to a
-representative RKC/CESH review. Every entity card shares one rough top structure:
+representative RKC/CESH review. Every entity card shares one rough top structure.
+
+**Card order** ([card refinement, October 22](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902)): the header has
+Name and Location at the left and status at the right. **Featured data comes
+before controls, two fields per row**, and a value sits beside its allowed
+range (the freezer example: Temperature and Allowed range first, Door on the
+next row); each number stays together with its unit. **Each featured switch
+occupies a full-width row after the values.** Folders are full-width below the
+controls, and featured items are not repeated inside them. This is accepted
+platform direction; the current Reference example is a clearly simulated
+freezer ([BardBox-Reference#25](https://github.com/bardphysicslab/BardBox-Reference/pull/25), fictional values separate from
+real records, notifications and any Alarm provider). No RKC or CESH runtime has
+adopted it yet. The numbered elements below keep their meaning within this
+order:
 
 1. **Entity heading and status.** The entity's familiar display name comes
    first, with its location beneath it ([UI amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270151957)). Name and location are separate
@@ -108,13 +131,18 @@ representative RKC/CESH review. Every entity card shares one rough top structure
    Location is an empty frame with its label visible, not a dash
    ([editable frames](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6323356438); this supersedes the earlier labelled-dash
    wording).
-2. **Alarm enabled/disabled indicator (when the Alarm module is included).** A
-   clearly labelled, read-only "Alarm enabled" or "Alarm disabled" indicator,
-   using text plus color, directly below the name, location and status and above
-   the headline readings ([placement decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274413539)). It is always shown, is not a toggle, and stays
-   distinct from the active `ALARM` condition and its red outline. The switch
-   that changes it is inside the expandable Alarm section. Behavior is defined
-   under [alarm switch and disabled state](#alarm-switch-and-disabled-state).
+2. **Alarm enabled/disabled state (when the Alarm module is included).** The
+   enabled or disabled state is always visible on the card as text plus colour
+   and stays distinct from the active `ALARM` condition and its red outline. A
+   **featured** alarm switch is shown as its own full-width row after the values,
+   labelled with its state (for example "Alerts enabled", "Door alarm disabled"
+   in amber) ([card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902)). A switch that is not featured
+   stays inside the expandable Alarm section, and the card then shows a
+   read-only "Alarm enabled" / "Alarm disabled" indicator. *Superseded for
+   featured controls:* the earlier rule that the switch is only inside the Alarm
+   section with a read-only card indicator ([placement decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274413539), record
+   kept). Alarm still owns evaluation, delivery, meaning, permission and save;
+   behavior is defined under [alarm switch and disabled state](#alarm-switch-and-disabled-state).
 3. **Optional prominent reading.** A project may select one or more prominent
    original or derived values (RKC: a single temperature) or none.
 4. **Optional buffer fill indicator.** A compact battery-style fill with a rough
@@ -172,8 +200,9 @@ and exact fields remain deferred.
   ([featured once](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6326655979)). Only the selection is future.
 - **Alarm enable/disable control.** Alarm declares the allowed range and the
   control's meaning, state, permission and label; Rendering supplies the shared
-  visual switch inside the expandable Alarm section, the read-only main-card
-  indicator, and the authorized edit path (save through Alarm, then re-read).
+  visual switch (a featured full-width row on the card, or inside the expandable
+  Alarm section when not featured), the read-only indicator where the switch is
+  not featured, and the authorized edit path (save through Alarm, then re-read).
   Its accepted *target* meaning is in
   [alarm switch and disabled state](#alarm-switch-and-disabled-state). Existing
   implementations may differ; this is a documented target, not a runtime change.
@@ -235,9 +264,13 @@ runtime adoption or authorization for any particular editor.
   factory MAC are read-only on the card, without an inline Registry link; the
   Registry list in the top navigation is their editor.
 - **Device settings comparison page** ([combined acceptance](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6326655979)). A
-  separate table page reuses the Registry table layout and its in-row **Edit →
-  Review → Confirm / Back / Cancel** for each device's current descriptive
-  settings (Name, Location, Owner, coordinate pair). UID is the first column,
+  separate table page reuses the Registry table layout with in-row **Edit →
+  Save / Cancel** for each device's current descriptive settings (Name,
+  Location, Owner, coordinate pair). Save validates and persists directly
+  ([card refinement, October 22](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902); this supersedes the earlier
+  Review → Confirm / Back step and before/after arrows on this page, record
+  kept); a form opened before that change never saves through an old Review or
+  Back. The Registry identity review is unchanged. UID is the first column,
   plain and read-only, and stays visible while editing (on narrow screens the
   table scrolls inside its container with the UID column fixed). There is no
   Add, Register or Archive there. Those explicit labels apply to this table page
@@ -245,7 +278,8 @@ runtime adoption or authorization for any particular editor.
   for comparison. Both edit the same Registry values; no settings are copied.
   Future owning-module settings may join this page only when implemented and
   scoped; no Alarm settings, preferences or access control exist yet. Reference
-  implementation: [BardBox-Reference#24](https://github.com/bardphysicslab/BardBox-Reference/pull/24), merged `2fd900e`.
+  implementation: [BardBox-Reference#24](https://github.com/bardphysicslab/BardBox-Reference/pull/24), merged `2fd900e`; direct Save in
+  [BardBox-Reference#25](https://github.com/bardphysicslab/BardBox-Reference/pull/25).
 - *Superseded October 21 (history kept in the [editable-field rule](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274318475)):*
   "edit them in one place … values may be shown elsewhere, but not edited
   there", and the display-only card heading changed only through an **Edit name
@@ -270,13 +304,17 @@ runtime adoption or authorization for any particular editor.
 - **Exception for frequent operational controls.** A frequent, important
   operational control may be placed on the main card only by an explicit,
   accepted decision for that control; the owner, permission, save and readback
-  rules above still apply. The alarm enable/disable switch is *not* such an
-  exception: it is edited inside the Alarm section, and the main card shows only
-  a read-only enabled/disabled indicator
-  ([alarm switch and disabled state](#alarm-switch-and-disabled-state)). A
-  laboratory preference to feature the switch outside the section later is a
-  recorded *future direction* ([in-place editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690)), not an
-  accepted placement or an implemented capability.
+  rules above still apply. Under the accepted card order
+  ([card refinement, October 22](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902)), a **featured** switch,
+  including the alarm enable/disable switch, is placed on the card as a
+  full-width row after the values; a switch that is not featured stays in its
+  section. *Superseded for featured controls:* the earlier statement that the
+  alarm switch is *not* such an exception and is edited only inside the Alarm
+  section with a read-only card indicator, and the laboratory preference that
+  was then recorded only as future direction
+  ([in-place editing](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6322820690)); both records are kept. This is
+  platform direction, not an implemented Alarm capability: Reference shows it
+  only in a simulated example.
 - Existing implementations may differ until adopted. Reference evidence: the
   earlier Identity placement ([verification](https://github.com/bardphysicslab/BardBox-Reference/issues/1#issuecomment-6274298406), historical) and the
   in-place first pass ([BardBox-Reference#20](https://github.com/bardphysicslab/BardBox-Reference/pull/20), merged `cc8808f`).
@@ -343,7 +381,10 @@ Accepted direction ([switch amendment](https://github.com/bardphysicslab/bardbox
 with its placement superseded by the [placement decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274413539)); documentation only, not a runtime
 change.
 
-- **Placement: deliberate, not easy.** The enable/disable switch is inside the
+- **Placement.** *Superseded for featured controls by the October 22
+  [card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902):* a featured enable/disable switch is a
+  full-width row after the card's values, labelled with its state. The earlier
+  text (kept as history): the enable/disable switch is inside the
   expandable Alarm section, so changing it takes a deliberate step: opening that
   section. The main card always shows the read-only "Alarm enabled" or "Alarm
   disabled" indicator (text plus color), which is not a toggle and is distinct
@@ -359,17 +400,22 @@ change.
 - **Disabled with an active condition never looks healthy.** The active-alarm
   outline, the persistent `ALARM` text and the reduced-motion equivalent still
   apply, together with the visible disabled state.
-- **Reminder when back in range.** When the alarm is disabled and its condition
-  has returned within range, the card shows an on-card reminder such as
-  "Within range — alarm disabled. Re-enable when ready."
-- **Only truthful in-range claims.** The reminder rests on valid, fresh evidence
-  for the alarm's *condition channels*. Under per-channel validity
+- **Disabled state, no automatic reminder text.** While the alarm is disabled
+  the card keeps its state label (for example "Door alarm disabled", amber) and
+  adds no explanatory reminder by default. *Superseded by the October 22
+  minimal-content refinement ([card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902)):* the earlier
+  mandatory on-card reminder "Within range — alarm disabled. Re-enable when
+  ready." (record kept in the [switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043)). A reminder may
+  return only if explicitly requested.
+- **Only truthful in-range claims.** Any indication that the condition is
+  within range (a status, or a reminder if one is ever requested) rests on
+  valid, fresh evidence for the alarm's *condition channels*. Under per-channel validity
   ([BB-001](DECISIONS.md)), a fault on an unrelated channel does not null or
   invalidate a healthy in-range condition channel. If Health cannot establish
   fresh, valid evidence for the relevant condition (including a stale or unknown
   freshness basis, an offline node or failed condition channels), the card does
-  not claim it is currently within range; it shows the disabled state with the
-  applicable status instead. Trusted live observations may be fresh by their
+  not claim it is currently within range; it shows the disabled state label with
+  the applicable status instead. Trusted live observations may be fresh by their
   explicitly labelled observation time under project policy even when
   measurement time is unknown, while pushed and archived records never use
   receipt time as a fallback
@@ -384,7 +430,7 @@ change.
 - **Open:** switch scope when an entity has several alarm rules (per entity, as
   in RKC, or per rule); whether escalation restarts or resumes when re-enabled
   during an active condition; whether switch changes are audited with actor and
-  time; exact label and reminder wording.
+  time; exact label wording (any reminder text only if explicitly requested).
 
 ## Foldouts, tables, charts, and controls
 
