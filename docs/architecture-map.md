@@ -293,9 +293,10 @@ These edits are not sensor-ingestion input.
   validation, revision and dated history and readback; Name and Location are
   featured at the card top only (no longer repeated in Identity), and an
   empty Owner clears the assignment. A separate Device settings table page
-  edits the same values with the Registry table's Edit → Review → Confirm
-  pattern (UID first and read-only; no Add/Archive), whose explicit Edit,
-  Review, Confirm, Back and Cancel labels are accepted for that table only. On
+  edits the same values with the Registry table layout and in-row Edit → Save /
+  Cancel (UID first and read-only; no Add/Archive; Save persists directly, the
+  earlier Review/Confirm step being superseded), whose explicit labels are
+  accepted for that table only. On
   the dashboard card's inline editing, saved editable values are unframed at
   rest and empty ones keep a subtle frame; a changed draft stays amber until
   Registry's readback confirms the save (green only then), without visible
@@ -344,7 +345,7 @@ module's code, `config/` and saved `data/` are in the
 | Node definitions, entity association, names, installation location/coordinates, link type, per-device cadence | Registry | Required module |
 | Project measurement contract: channels, units, validators | Declared by the project; resolved by Registry | Metric default; units always explicit |
 | Calculations, derived-result definitions, conversion helpers | Processing | Required module; may be a no-op |
-| Alarm thresholds, delays, allowed ranges, and the alarm enable/disable control's meaning, state, permission and label | Alarm (optional) | Thresholds stay in the alarm's units; display units never change alarm semantics. Target: "alarm disabled" pauses notifications/escalation, not measurement or alarm evaluation; manual re-enable ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043)); switch inside the Alarm section with a read-only main-card indicator ([placement decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274413539)) ([card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270321987)) |
+| Alarm thresholds, delays, allowed ranges, and the alarm enable/disable control's meaning, state, permission and label | Alarm (optional) | Thresholds stay in the alarm's units; display units never change alarm semantics. Target: "alarm disabled" pauses notifications/escalation, not measurement or alarm evaluation; manual re-enable ([switch amendment](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270769043)); switch inside the Alarm section with a read-only main-card indicator ([placement decision](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274413539); superseded for a featured switch, which is a full-width card row after the values per the [card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902); Alarm keeps ownership) ([card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6270321987)) |
 | Contacts, order, availability, opt-outs, message templates | Phone chain / escalation (optional, independent of delivery channel) | RKC ownership work: [rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16). Acknowledgements and next action are Escalation-owned operational state (inventory row 18), not editable settings; the Escalation card section may display both |
 | Display selections: which module-declared sections, status, values and controls appear; optional prominent reading and buffer indicator; display units; timezone presentation | Rendering (shared visual controls and authorized edit path) | Modules declare displayable descriptors; full configuration and secrets are never auto-exposed. Field selection and timezone preference persistence remain open |
 | Local history storage allowance and target window | Archive | About two weeks is an adjustable target, not a guarantee |

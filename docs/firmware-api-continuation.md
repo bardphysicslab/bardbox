@@ -6,7 +6,22 @@ earlier open-decision list are archived unchanged in
 GitHub ([bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31)) is
 authoritative for status; this file does not embed its own commit hash.
 
-## October 21, 2026 — Device settings comparison and featured once (latest)
+## October 22, 2026 — Card order, colour meanings and Device settings direct Save (latest)
+
+[Card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902): card header Name/Location left and status
+right; featured values before controls, two per row, each value beside its
+allowed range and kept with its unit; each featured switch a full-width row
+after the values; folders full-width below; labels, values and controls only;
+semantic colours with state labels; Device settings Edit → Save/Cancel (the
+Review/Confirm step superseded); card editing retained; the alarm switch's
+in-section-only placement superseded for featured controls, with Alarm keeping
+ownership. Reference shows the card order only as a simulated freezer example
+([PR25](https://github.com/bardphysicslab/BardBox-Reference/pull/25), merged `c4f044a`); no RKC/CESH runtime adoption
+and no Alarm provider. Archive placement remains unresolved. Documentation only
+on branch `claude/card-layout-docs` from `e090034`; the handoff is
+[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+
+## October 21, 2026 — Device settings comparison and featured once (history)
 
 [Combined acceptance](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6326655979): a Device settings table page with the
 Registry table's Edit → Review → Confirm pattern for Name, Location, Owner and
@@ -15,7 +30,7 @@ dashboard editing for comparison on the same Registry values; featured Name and
 Location appear only at the card top, no longer in Identity. Reference app
 merged in [PR24](https://github.com/bardphysicslab/BardBox-Reference/pull/24) at `2fd900e` after independent review.
 Documentation only on branch `claude/device-settings-docs` from `86a8b69`; the
-handoff is [coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+handoff is [coordination/archive/CLAUDE-HANDOFF-DEVICE-SETTINGS-FEATURED-ONCE-DOCS.md](../coordination/archive/CLAUDE-HANDOFF-DEVICE-SETTINGS-FEATURED-ONCE-DOCS.md). The entries below are history.
 
 ## October 21, 2026 — Save feedback without visible edit controls (history)
 
