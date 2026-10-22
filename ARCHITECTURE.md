@@ -111,7 +111,12 @@ Summary; the [architecture map](docs/architecture-map.md#project-server-template
   Location, one featured measurement/range pair per row, full-width switches,
   then automatic group folders, with featured fields moved rather than
   duplicated), shown in Reference with simulated BNG room examples
-  ([web UI standard](docs/web-ui-standard.md#card-top-area)). Health owns contact/freshness (Not yet seen).
+  ([web UI standard](docs/web-ui-standard.md#card-top-area)). A neutral Units
+  section on both pages sets one saved application-wide display preference
+  (metric/Celsius default; Rendering-owned JSON, Processing conversion;
+  [display units](docs/web-ui-standard.md#display-units)). Module trackers:
+  [Rendering #71](https://github.com/bardphysicslab/bardbox/issues/71),
+  [Registry #10](https://github.com/bardphysicslab/bardbox/issues/10). Health owns contact/freshness (Not yet seen).
 - **Boundaries.** Registry owns identity and assignment state; Authentication
   checks credentials and permissions; Ingestion keeps its published contract;
   Archive preserves historical attribution. Rendering calls Controls/Registry and

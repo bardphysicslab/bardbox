@@ -244,22 +244,82 @@ project:
   the heading label (no Owner-for-Name substitution), and no controls are
   invented for modules that are not included.
 
-**Illustrative configuration (PROPOSED, not implemented).** Nothing loads this
-at runtime; it only shows the intended shape:
+**Illustrative configuration (PROPOSED, not implemented).** No BardBox runtime
+loads the `card` part below; it only shows the intended shape. The `units` part
+is the one piece implemented today (see [display units](#display-units)). It
+replaces the earlier YAML sketch
+([DISPLAY-JSON-REVIEW-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6342348125)).
 
-```yaml
-# PROPOSED example - not read by any BardBox runtime
-card:
-  featured:                    # ordered: one measurement per row
-    - measurement: temperature
-      beside: allowed_range    # threshold/range on the right, if any
-  switches:                    # ordered: full-width rows
-    - alerts_enabled
-  folders:                     # all logical groups shown unless hidden
-    hide: []
-    hide_fields:
-      hardware: [sensor_models]
+```json
+{
+  "formatVersion": 1,
+  "units": { "system": "metric", "temperature": "celsius" },
+  "card": {
+    "featuredMeasurements": [
+      { "field": "examples.temperature", "showRange": true }
+    ],
+    "featuredSwitches": ["examples.alerts"],
+    "hiddenGroups": [],
+    "hiddenFields": []
+  }
+}
 ```
+
+Proposed design notes (open; not accepted policy unless separately decided):
+
+- **Stable field IDs.** Fields are named `owner.field` (for example
+  `examples.temperature`, or `alarm.alerts_enabled` in a project with an Alarm
+  module). The owning module declares each field's ID, group, label and kind;
+  the file never assigns groups. Labels may change; IDs do not.
+- **Owner-declared ranges.** `showRange` shows the range the owner declares for
+  that measurement, if any; the file cannot pair a measurement with an
+  unrelated range.
+- **Order and selection.** `featuredMeasurements` and `featuredSwitches` are
+  ordered lists; `hiddenGroups` and `hiddenFields` select visibility.
+- **Defaults versus installation.** A release would ship a defaults file;
+  an installation's own file would be saved separately and survive updates, as
+  the implemented Units preference already does.
+- **Versions.** An unsupported or newer `formatVersion`, or an invalid file,
+  would be kept unchanged and reported; older versions would be converted by a
+  tested migration, never by rewriting a file just by reading it.
+- **Still open:** applicability across different kinds of devices, unknown or
+  removed fields, conflicting hide and feature choices, and whether any group
+  must stay visible. No precedence rule or mandatory visible group is decided.
+  The layout engine and display-selection page remain future.
+
+### Display units
+
+DISPLAY-UNITS-1 ([accepted](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6342348125); module tracker
+[Rendering bardbox#71](https://github.com/bardphysicslab/bardbox/issues/71) holds the reviewed contract and lifecycle) applies
+to every project. Reference implements it ([BardBox-Reference#27](https://github.com/bardphysicslab/BardBox-Reference/pull/27)).
+
+- **Controls.** A Units section above the Dashboard cards and above the Device
+  settings rows shows two Alerts-shaped switches: Metric/Imperial and
+  Celsius/Fahrenheit. Both styles are neutral (neither choice is a warning or a
+  success). Both pages use **one application-wide saved preference**, not a
+  per-user choice; the default is metric and Celsius. A switch shows a new
+  choice only after the save is confirmed.
+- **Display only.** Values are shown in the chosen unit with **one decimal**,
+  units always explicit. Stored observations, domain settings (for example an
+  allowed range), history and evaluation keep their canonical units and full
+  precision; nothing is rounded because it was displayed rounded.
+- **Edits.** An editor captures the unit it opened in and submits it. A limit
+  left untouched keeps its exact stored value, even when the other limit
+  changes; only an edited value is converted back to canonical units before
+  the owner's unchanged validation. A Units change, in this page or another,
+  never reinterprets or discards an open draft: the page shows converted values
+  only after the draft is saved or cancelled.
+- **Supported quantities.** Only quantities with a supported conversion change
+  unit. Temperature follows its explicit choice; any other or unknown quantity
+  keeps its declared unit and is never relabelled. Today the Metric/Imperial
+  choice therefore changes no visible value.
+- **Ownership.** Processing performs pure conversion. Rendering owns the
+  versioned JSON preference and its I/O, separate from the pure HTML functions;
+  shipped defaults stay separate from the installation's saved file, which
+  survives updates. Saves are revision-checked, atomic and read back. An
+  invalid, corrupt or newer preference file is kept unchanged, shown with a
+  visible warning and the defaults, and not written. Saves pass the existing
+  Controls authorization hook; no roles are added.
 
 ### Reference example: simulated BNG rooms
 
@@ -275,7 +335,8 @@ content, not fields every project must have.
   revision and history. A corrupt or unavailable file is reported as
   unavailable, never shown as default values.
 - The card and Device settings edit the same range and Alerts, with revision
-  checks and truthful save feedback. The header shows a neutral SIMULATED
+  checks and truthful save feedback, shown in the chosen
+  [display units](#display-units). The header shows a neutral SIMULATED
   status, or red ALARM when the fictional temperature is outside the saved
   range; Health contact stays truthful in its folder. Nothing is delivered and
   there is no production Alarm module.
@@ -356,7 +417,8 @@ runtime adoption or authorization for any particular editor.
   examples only, the page also edits the example provider's allowed range and
   Alerts, the same values as the card; every submitted example field is
   validated before anything is written, and a partial save says exactly what
-  was saved ([BardBox-Reference#26](https://github.com/bardphysicslab/BardBox-Reference/pull/26)). These are example settings, not Alarm settings.
+  was saved ([BardBox-Reference#26](https://github.com/bardphysicslab/BardBox-Reference/pull/26)). These are example settings, not Alarm settings. A
+  Units section sits above the table, as on the Dashboard ([display units](#display-units)).
 - *Superseded October 21 (history kept in the [editable-field rule](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274318475)):*
   "edit them in one place … values may be shown elsewhere, but not edited
   there", and the display-only card heading changed only through an **Edit name
