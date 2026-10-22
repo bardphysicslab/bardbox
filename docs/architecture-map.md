@@ -302,7 +302,9 @@ These edits are not sensor-ingestion input.
   same values as the card ([BardBox-Reference#26](https://github.com/bardphysicslab/BardBox-Reference/pull/26)). On
   the dashboard card's inline editing, saved editable values are unframed at
   rest and empty ones keep a subtle frame; a changed draft stays amber until
-  Registry's readback confirms the save (green only then), without visible
+  the corresponding owning module's readback confirms the save (Registry for
+  descriptive metadata; the example provider for simulated range/Alerts)
+  (green only then), without visible
   edit buttons; UID and MAC are read-only on the card, with no inline Registry link
   ([web UI standard](web-ui-standard.md#where-editing-controls-live)).
   Rendering never writes SQLite; Registry owns the saved record and history;
