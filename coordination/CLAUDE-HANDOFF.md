@@ -7,6 +7,13 @@
 - **Previous handoff** (DEVICE-SETTINGS-FEATURED-ONCE-DOCS, PR #68): archived at [archive/CLAUDE-HANDOFF-DEVICE-SETTINGS-FEATURED-ONCE-DOCS.md](archive/CLAUDE-HANDOFF-DEVICE-SETTINGS-FEATURED-ONCE-DOCS.md). Only one relative link path was changed (to the sibling archive file).
 - **Kept as is:** the historical `codex/registry-identity-docs@28d97a3` ref and PR52's records.
 
+## Corrections after review (`2df8ec0`, accuracy only)
+
+1. **`docs/testing-guide.md`:** "never saves from a form opened before that change" is narrowed to "old Review/Back submissions from a form opened before that change do not write (an explicit old Confirm still saves)", matching the app.
+2. **`docs/DECISIONS.md`:** the new row now also records that the minimal-content rule supersedes the mandatory on-card reminder, while the fresh, valid in-range evidence constraint remains.
+
+**Checks:** the affected link/anchor and whitespace checks were re-run (see #64). No runtime change.
+
 ## Changes
 
 - **`docs/web-ui-standard.md`** (authoritative):

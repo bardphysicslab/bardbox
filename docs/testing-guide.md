@@ -42,8 +42,9 @@ Dashboard checks should verify:
 - a featured field (currently Name and Location) is not repeated in its section
 - the Device settings table keeps UID first and read-only (visible while
   editing on phones), offers no Add/Archive, saves directly with Save (no
-  Review/Confirm/Back), never saves from a form opened before that change, and
-  shows the same values as the dashboard
+  Review/Confirm/Back), old Review/Back submissions from a form opened before
+  that change do not write (an explicit old Confirm still saves), and shows the
+  same values as the dashboard
 - card order: values two per row (a value beside its range, number with unit),
   then each featured switch as a full-width row, then full-width folders; no
   invented explanatory text or tooltips; amber only for warning/disabled
