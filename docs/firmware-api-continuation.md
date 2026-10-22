@@ -6,7 +6,29 @@ earlier open-decision list are archived unchanged in
 GitHub ([bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31)) is
 authoritative for status; this file does not embed its own commit hash.
 
-## October 22, 2026 — Card order, colour meanings and Device settings direct Save (latest)
+## October 22, 2026 — Shared adoption principle, card groups and BNG room examples (latest)
+
+[Shared-module adoption principle](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340809622): improve shared modules once
+and adopt them easily per instance while preserving configuration, data and
+project behaviour; stable interfaces and explicit tested migrations; not
+automatic rollout. Now near the top of [ARCHITECTURE](../ARCHITECTURE.md).
+[CONFIG-CARD-GROUPS-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340973552): Name, Location, ordered featured
+measurement/range rows (one per row), full-width switches, then automatic group
+folders; modules declare logical groups; visibility and featuring are
+presentation configuration; featuring moves fields; all Reference folders kept.
+A small configuration example is documented as PROPOSED only; a configuration
+engine and display-selection page remain future.
+[BNG-ROOM-DASH-1 + SHARED-CARD-RULES-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340776600): the Reference standalone
+freezer page is replaced by registered simulated BNG rooms on the main
+dashboard with a separate persisted example provider; range and Alerts are
+shared between the card and Device settings; push-button Edit/Save/Cancel
+([PR26](https://github.com/bardphysicslab/BardBox-Reference/pull/26), merged `ee5477c`). No RKC/CESH runtime adoption, production
+Alarm, auth, hardware, firmware or deployment; Registry identity review kept;
+Archive placement unresolved. Documentation only on branch
+`claude/card-groups-docs` from `764473c`; the handoff is
+[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+
+## October 22, 2026 — Card order, colour meanings and Device settings direct Save (history)
 
 [Card refinement](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902): card header Name/Location left and status
 right; featured values before controls, two per row, each value beside its
@@ -17,9 +39,9 @@ Review/Confirm step superseded); card editing retained; the alarm switch's
 in-section-only placement superseded for featured controls, with Alarm keeping
 ownership. Reference shows the card order only as a simulated freezer example
 ([PR25](https://github.com/bardphysicslab/BardBox-Reference/pull/25), merged `c4f044a`); no RKC/CESH runtime adoption
-and no Alarm provider. Archive placement remains unresolved. Documentation only
-on branch `claude/card-layout-docs` from `e090034`; the handoff is
-[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+and no Alarm provider. Archive placement remains unresolved. Documentation
+merged as `764473c` ([bardbox#69](https://github.com/bardphysicslab/bardbox/pull/69)); "two per row" is refined by
+CONFIG-CARD-GROUPS-1 above, and the freezer example is replaced by BNG rooms.
 
 ## October 21, 2026 — Device settings comparison and featured once (history)
 

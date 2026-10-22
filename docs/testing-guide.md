@@ -45,10 +45,18 @@ Dashboard checks should verify:
   Review/Confirm/Back), old Review/Back submissions from a form opened before
   that change do not write (an explicit old Confirm still saves), and shows the
   same values as the dashboard
-- card order: values two per row (a value beside its range, number with unit),
-  then each featured switch as a full-width row, then full-width folders; no
-  invented explanatory text or tooltips; amber only for warning/disabled
+- card order: Name, Location, then featured measurements in configured order,
+  one measurement per row with its threshold/range beside it (never two
+  unrelated measurements; number with unit), then each featured switch as a
+  full-width row, then full-width group folders; a featured field is moved, not
+  repeated, and a folder whose fields are all featured stays present and empty;
+  no invented explanatory text or tooltips; amber only for warning/disabled
   protection, red for active alarm/fault, every colour with a state label
+- example or project-specific providers: their settings round-trip between the
+  card and Device settings with revision checks; every submitted field is
+  validated before any write; a partial save says what was and was not saved;
+  unavailable storage is reported, never shown as defaults; real devices are
+  never reinterpreted as examples
 - unavailable/error nodes show red status
 - stale nodes do not display old metric values as current
 - `last_seen` appears separately when shown

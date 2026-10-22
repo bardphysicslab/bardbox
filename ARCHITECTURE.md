@@ -5,6 +5,22 @@ make changes. Topic-specific standards below define technical contracts; they
 are not parallel general-purpose checklists. The former BardBox Change Skill
 is consolidated into these two root documents.
 
+## Shared modules, safe adoption
+
+Guiding rule ([accepted October 22](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340809622)): **build shared modules so
+an improvement can be made once and adopted easily by every BardBox instance,
+while preserving each instance's configuration, data and project-specific
+behaviour.**
+
+- Keep project differences (configuration, content, data) separate from shared
+  module code. Example: Reference's shared card layout lives in Rendering, while
+  its simulated BNG room content comes from a separate example provider.
+- Keep interfaces stable. An incompatible change is made explicit and ships with
+  a tested migration path.
+- Easy adoption is not automatic rollout. Each instance adopts a change
+  deliberately; this rule never authorizes automatic updates, deployment, broad
+  refactoring or forced simultaneous upgrades.
+
 ## Decision history
 
 The [decision index](docs/DECISIONS.md) links accepted platform choices to their
@@ -91,9 +107,11 @@ Summary; the [architecture map](docs/architecture-map.md#project-server-template
   no visible edit buttons (saved values unframed at rest; empty ones keep a
   subtle frame; featured Name/Location appear only at the card top). A Device
   settings table page offers the same descriptive settings with Registry-style
-  Edit → Save/Cancel for comparison; cards follow the accepted order (values two
-  per row, then full-width switches, then folders), shown in Reference only as a
-  simulated example ([web UI standard](docs/web-ui-standard.md#where-editing-controls-live)). Health owns contact/freshness (Not yet seen).
+  Edit → Save/Cancel for comparison; cards follow the accepted order (Name,
+  Location, one featured measurement/range pair per row, full-width switches,
+  then automatic group folders, with featured fields moved rather than
+  duplicated), shown in Reference with simulated BNG room examples
+  ([web UI standard](docs/web-ui-standard.md#card-top-area)). Health owns contact/freshness (Not yet seen).
 - **Boundaries.** Registry owns identity and assignment state; Authentication
   checks credentials and permissions; Ingestion keeps its published contract;
   Archive preserves historical attribution. Rendering calls Controls/Registry and

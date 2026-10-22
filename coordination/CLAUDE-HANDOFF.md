@@ -1,47 +1,48 @@
-# Claude handoff: CARD-LAYOUT-DEMO-1 + SETTINGS-DIRECT-SAVE-1 shared documentation
+# Claude handoff: shared adoption principle, CONFIG-CARD-GROUPS-1 and BNG room examples
 
-- **Event:** `CARD-LAYOUT-DOCS`, October 22, 2026. **Status:** complete, ready for Codex independent exact-head review. Documentation only.
-- **Branch:** `claude/card-layout-docs` from clean `main` `e090034`. The PR, exact head and status are recorded in [#64](https://github.com/bardphysicslab/bardbox/issues/64); the scope was recorded there before any edit ([comment 6340332935](https://github.com/bardphysicslab/bardbox/issues/64#issuecomment-6340332935)). Not merged; Claude does not self-merge. The branch was checked before every commit and push; there are no `main` writes.
-- **Acceptance:** [bardbox#31 comment 6339948902](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6339948902), identical to [Reference#9 comment 6339948462](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6339948462). Pinned to engineering-standards `91a2d7c` and bardbox `e090034`.
-- **App:** [BardBox-Reference#25](https://github.com/bardphysicslab/BardBox-Reference/pull/25), merged at `c4f044a` after independent exact-head review.
-- **Previous handoff** (DEVICE-SETTINGS-FEATURED-ONCE-DOCS, PR #68): archived at [archive/CLAUDE-HANDOFF-DEVICE-SETTINGS-FEATURED-ONCE-DOCS.md](archive/CLAUDE-HANDOFF-DEVICE-SETTINGS-FEATURED-ONCE-DOCS.md). Only one relative link path was changed (to the sibling archive file).
+- **Event:** `CARD-GROUPS-DOCS`, October 22, 2026. **Status:** complete, ready for Codex independent exact-head review. Documentation only.
+- **Content head:** `e3f7d7b37fe8fe9af519cbb0d35ca337ceb3c668` on `claude/card-groups-docs`, from clean `main` `764473c`. This handoff is the next commit on the same branch, and the PR head is that commit, pushed. The only change after `e3f7d7b` is this file. The branch was checked before every commit and push; there are no `main` writes.
+- **PR:** [bardbox#70](https://github.com/bardphysicslab/bardbox/pull/70). Not merged; Claude does not self-merge.
+- **Accepted sources:** [bardbox#31 comment 6340809622](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340809622) (shared-module adoption principle), [comment 6340776600](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340776600) (BNG-ROOM-DASH-1 + SHARED-CARD-RULES-1, identical to Reference#9 comment 6340774553), [comment 6340973552](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340973552) (CONFIG-CARD-GROUPS-1, identical to Reference#9 comment 6340974766).
+- **App:** [BardBox-Reference#26](https://github.com/bardphysicslab/BardBox-Reference/pull/26), merged at `ee5477c` after independent review. No Reference writes in this pass.
+- **Previous handoff** (CARD-LAYOUT-DOCS, PR #69): archived at [archive/CLAUDE-HANDOFF-CARD-LAYOUT-DOCS.md](archive/CLAUDE-HANDOFF-CARD-LAYOUT-DOCS.md). Only its one relative link path changed (to the sibling archive file).
 - **Kept as is:** the historical `codex/registry-identity-docs@28d97a3` ref and PR52's records.
 
-## Corrections after review (`2df8ec0`, accuracy only)
+## Correction after early review (`bb126ff`, section scope only)
 
-1. **`docs/testing-guide.md`:** "never saves from a form opened before that change" is narrowed to "old Review/Back submissions from a form opened before that change do not write (an explicit old Confirm still saves)", matching the app.
-2. **`docs/DECISIONS.md`:** the new row now also records that the minimal-content rule supersedes the mandatory on-card reminder, while the fresh, valid in-range evidence constraint remains.
+Codex's early review at `2672804` found that the new "Reference example: simulated BNG rooms" subsection had absorbed two original general bullets: the Alarm enable/disable control and the future AQI indicator. Both are moved back to the end of "Card sections from included modules", before the new subsections, so they are not described as BNG example features. Their text is byte-identical to `764473c` and sits in its original position; there is no semantic or runtime change.
 
-**Checks:** the affected link/anchor and whitespace checks were re-run (see #64). No runtime change.
+## Correction after final review (`e3f7d7b`, ownership wording only)
 
-## Changes
+Codex's review at `4b61955` verified the structure fix. In `docs/architecture-map.md` (dashboard card paragraph), a changed draft now stays amber "until the corresponding owning module's readback confirms the save (Registry for descriptive metadata; the example provider for simulated range/Alerts)" instead of "until Registry's readback". The general owner rule is kept; there is no runtime, auth or scope change.
 
-- **`docs/web-ui-standard.md`** (authoritative):
-  - **Colour meanings:** ordinary values neutral; labels and units muted; amber for warning or disabled protection; red for active alarm or fault; green for enabled or positive; the editing feedback colours kept separate; every colour has a state label.
-  - **Minimal content:** labels, values and controls only, with no invented explanations or tooltips; validation errors stay beside the editor.
-  - **Card order:** the header with status at the right; featured values before controls, two per row, a value beside its range, numbers with units; each featured switch a full-width row; folders below; featured once. It is marked as platform direction, shown in Reference only as a simulated example, with no RKC/CESH adoption.
-  - **Alarm state and switch (card top item 2, the Alarm control bullet, the frequent-control exception, the Alarm switch placement):** a featured alarm switch is a full-width card row labelled with its state; a switch that is not featured stays in the Alarm section, with the read-only indicator on the card. The older in-section-only placement is explicitly **superseded for featured controls**, with the records kept. Alarm keeps evaluation, delivery, meaning, permission and save. Not an implemented Alarm capability.
-  - **Alarm reminder (reconciled with minimal content, from Codex's diff check):** the disabled state label stays and there is no automatic reminder text. The earlier mandatory on-card reminder ("Within range — alarm disabled. Re-enable when ready.") is marked superseded, with the switch-amendment link kept. The fresh/valid-evidence constraint is kept and now applies to any within-range indication. Delivery-not-evaluation, manual re-enable and the active-condition outline are unchanged. Architecture, map, testing guide and decision index were checked: none carries the reminder.
-  - **Device settings:** Edit → Save/Cancel. Save persists directly; the Review/Confirm/Back step and arrows are superseded (record kept); old forms never save through Review or Back; the Registry identity review is unchanged.
-- **`docs/architecture-map.md`:** the Dashboard card (settings Save/Cancel) and the Alarm ownership row (featured-switch supersession; Alarm keeps ownership).
-- **`ARCHITECTURE.md`:** the UI-flow summary.
-- **`docs/testing-guide.md`:** checks for settings Save, card order, minimal content and colours.
-- **`docs/DECISIONS.md`:** a new CARD-LAYOUT-DEMO-1 + SETTINGS-DIRECT-SAVE-1 row (what it supersedes; Archive unresolved; no runtime adoption).
-- **`docs/firmware-api-continuation.md`:** a new **latest** entry. The previous entry is labelled history, and its handoff link is repointed to the archive.
+## What changed
 
-**Excluded:** Archive placement, which is unresolved. No Mermaid block changed, there is no runtime change, and no private paths or session details are published.
+1. **`ARCHITECTURE.md`:**
+   - New section "Shared modules, safe adoption" directly after the introduction. It states the rule (improve once, adopt easily, preserve each instance's configuration, data and project behaviour), keeps project differences separate from shared code (example: Reference's Rendering layout versus its BNG example provider), and requires stable interfaces with explicit, tested migrations for incompatible changes. It says easy adoption is not automatic rollout, deployment, broad refactoring or forced upgrades.
+   - The platform-direction bullet now describes the refined card order and the BNG examples.
+2. **`docs/web-ui-standard.md`:**
+   - **Card order** rewritten as a numbered cross-project rule: Name, Location, featured measurements in configured order with one measurement/range pair per row, full-width switches, automatic group folders. Featuring moves a field; a fully featured folder stays present and empty. It refines the earlier "two fields per row" wording.
+   - **New "Groups, featuring and display configuration":** module-declared logical groups; Rendering builds the folders; presentation configuration (visibility, featuring, explicitly ordered) separate from domain settings and data, never changing ownership, save paths or identity. It also states current behaviour: all ten folders, featuring set in code, no engine or selection page, Name stays the heading label. A small YAML example is labelled **PROPOSED, not implemented** and is read by no runtime.
+   - **New "Reference example: simulated BNG rooms":** registered synthetic devices, a separate persisted provider keyed to the stable device key, unavailable rather than default values, shared range/Alerts between the card and Device settings, SIMULATED/ALARM status with truthful Health, no delivery or production Alarm, freezer page removed, push-button Edit/Save/Cancel, Registry identity review unchanged, Archive unresolved.
+   - **Device settings bullet:** push-button appearance; the example range/Alerts columns with validate-before-write and truthful partial saves, explicitly example settings and not Alarm settings.
+3. **`docs/architecture-map.md`:** Device settings also edits the example provider's range and Alerts for the simulated rooms; draft confirmation names the owning module's readback.
+4. **`docs/testing-guide.md`:** the card-order check is updated to measurement/range rows and moved fields; a new check covers example or project-specific providers (round trip, validate before write, truthful partial save, unavailable storage, real devices never reinterpreted).
+5. **`docs/firmware-api-continuation.md`:** a new latest entry for this pass; the previous entry becomes history and records its merge (`764473c`, bardbox#69) and its refinement.
+6. **`docs/DECISIONS.md`:** one new row after CARD-LAYOUT-DEMO-1 linking all three accepted comments; earlier entries kept.
+
+**Unchanged:** runtime code, Mermaid diagrams, firmware, hardware, deployment, RKC/CESH runtimes, auth, the production Alarm design, Registry identity review and Archive placement.
 
 ## Checks
 
-- **Local link and anchor check** over the changed docs, this handoff and all `coordination/archive/` files: see #64.
-- **`git diff --check`:** clean.
+- Local link and anchor check, run after this handoff was written, over the six changed docs, this handoff and all archived handoffs: 146 relative links, 0 broken.
+- `git diff --check` passes. No private workstation, database or session details were added.
 
-## State
+## Workspace
 
-- **Canonical checkout:** restored to `main` after the push.
-- **No Reference writes.**
-- **My Reference scratch server:** stopped after this handoff; its DB is kept. The user preview is updated separately by Codex.
+- Canonical checkout, branch `claude/card-groups-docs`. No other checkout or worktree was created.
+- Claude's own Reference scratch server (port 8780) is stopped; its synthetic databases are kept in Claude's session scratch area. The user preview was not touched; its update is Codex's.
 
 ## Next step
 
-Codex reviews the exact head, then merges and does the local sync.
+Codex reviews bardbox#70 at the exact head and merges after green checks.
