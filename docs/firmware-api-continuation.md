@@ -6,7 +6,25 @@ earlier open-decision list are archived unchanged in
 GitHub ([bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31)) is
 authoritative for status; this file does not embed its own commit hash.
 
-## October 22, 2026 — Shared adoption principle, card groups and BNG room examples (latest)
+## October 22, 2026 — Display units and the proposed JSON display configuration (latest)
+
+[DISPLAY-UNITS-1 + DISPLAY-JSON-REVIEW-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6342348125):
+a neutral Units section (Metric/Imperial, Celsius/Fahrenheit) above the
+Dashboard and Device settings sets one saved application-wide display
+preference, metric/Celsius by default. Values show one decimal; stored values
+keep canonical units and full precision; edits carry their captured unit and
+untouched limits keep their exact stored value; drafts are never reinterpreted
+or discarded by a Units change; unsupported quantities keep their declared
+units. Rendering owns the versioned JSON preference, Processing the pure
+conversion; shipped defaults stay separate from the installation's saved file.
+Reference implementation [PR27](https://github.com/bardphysicslab/BardBox-Reference/pull/27), merged `85cc96c`. The Web UI
+standard's YAML layout sketch is replaced by a PROPOSED JSON illustration with
+open design notes; the layout engine stays future. Module trackers:
+[Rendering #71](https://github.com/bardphysicslab/bardbox/issues/71), [Registry #10](https://github.com/bardphysicslab/bardbox/issues/10). Documentation only on branch
+`claude/display-units-docs` from `936fc73`; the handoff is
+[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+
+## October 22, 2026 — Shared adoption principle, card groups and BNG room examples (history)
 
 [Shared-module adoption principle](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340809622): improve shared modules once
 and adopt them easily per instance while preserving configuration, data and
@@ -24,9 +42,9 @@ dashboard with a separate persisted example provider; range and Alerts are
 shared between the card and Device settings; push-button Edit/Save/Cancel
 ([PR26](https://github.com/bardphysicslab/BardBox-Reference/pull/26), merged `ee5477c`). No RKC/CESH runtime adoption, production
 Alarm, auth, hardware, firmware or deployment; Registry identity review kept;
-Archive placement unresolved. Documentation only on branch
-`claude/card-groups-docs` from `764473c`; the handoff is
-[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+Archive placement unresolved. Documentation merged as `936fc73`
+([bardbox#70](https://github.com/bardphysicslab/bardbox/pull/70)); its YAML layout sketch is replaced by the
+PROPOSED JSON illustration above.
 
 ## October 22, 2026 — Card order, colour meanings and Device settings direct Save (history)
 

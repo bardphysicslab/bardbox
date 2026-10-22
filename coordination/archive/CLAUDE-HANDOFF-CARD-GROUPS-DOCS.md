@@ -5,7 +5,7 @@
 - **PR:** [bardbox#70](https://github.com/bardphysicslab/bardbox/pull/70). Not merged; Claude does not self-merge.
 - **Accepted sources:** [bardbox#31 comment 6340809622](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340809622) (shared-module adoption principle), [comment 6340776600](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340776600) (BNG-ROOM-DASH-1 + SHARED-CARD-RULES-1, identical to Reference#9 comment 6340774553), [comment 6340973552](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340973552) (CONFIG-CARD-GROUPS-1, identical to Reference#9 comment 6340974766).
 - **App:** [BardBox-Reference#26](https://github.com/bardphysicslab/BardBox-Reference/pull/26), merged at `ee5477c` after independent review. No Reference writes in this pass.
-- **Previous handoff** (CARD-LAYOUT-DOCS, PR #69): archived at [archive/CLAUDE-HANDOFF-CARD-LAYOUT-DOCS.md](archive/CLAUDE-HANDOFF-CARD-LAYOUT-DOCS.md). Only its one relative link path changed (to the sibling archive file).
+- **Previous handoff** (CARD-LAYOUT-DOCS, PR #69): archived at [archive/CLAUDE-HANDOFF-CARD-LAYOUT-DOCS.md](CLAUDE-HANDOFF-CARD-LAYOUT-DOCS.md). Only its one relative link path changed (to the sibling archive file).
 - **Kept as is:** the historical `codex/registry-identity-docs@28d97a3` ref and PR52's records.
 
 ## Correction after early review (`bb126ff`, section scope only)

@@ -57,6 +57,15 @@ Dashboard checks should verify:
   validated before any write; a partial save says what was and was not saved;
   unavailable storage is reported, never shown as defaults; real devices are
   never reinterpreted as examples
+- display units: the Units switches are neutral and the same on the dashboard
+  and Device settings; values show one decimal in the chosen unit while stored
+  values keep full precision; an edit submitted in its captured unit converts
+  back correctly, an untouched limit keeps its exact stored value, and a Units
+  change (this page or another tab, including a refused or unconfirmed save)
+  never reinterprets or discards an open draft; unsupported quantities keep
+  their declared unit; a missing preference file gives metric/Celsius, and an
+  invalid, corrupt or newer one is kept unchanged with a visible warning and no
+  writes
 - unavailable/error nodes show red status
 - stale nodes do not display old metric values as current
 - `last_seen` appears separately when shown
