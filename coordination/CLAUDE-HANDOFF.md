@@ -1,7 +1,7 @@
 # Claude handoff: shared adoption principle, CONFIG-CARD-GROUPS-1 and BNG room examples
 
 - **Event:** `CARD-GROUPS-DOCS`, October 22, 2026. **Status:** complete, ready for Codex independent exact-head review. Documentation only.
-- **Content head:** `bb126ffcd0f580e69bff780c1cb303df1aaa757f` on `claude/card-groups-docs`, from clean `main` `764473c`. This handoff is the next commit on the same branch, and the PR head is that commit, pushed. The only change after `bb126ff` is this file. The branch was checked before every commit and push; there are no `main` writes.
+- **Content head:** `e3f7d7b37fe8fe9af519cbb0d35ca337ceb3c668` on `claude/card-groups-docs`, from clean `main` `764473c`. This handoff is the next commit on the same branch, and the PR head is that commit, pushed. The only change after `e3f7d7b` is this file. The branch was checked before every commit and push; there are no `main` writes.
 - **PR:** [bardbox#70](https://github.com/bardphysicslab/bardbox/pull/70). Not merged; Claude does not self-merge.
 - **Accepted sources:** [bardbox#31 comment 6340809622](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340809622) (shared-module adoption principle), [comment 6340776600](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340776600) (BNG-ROOM-DASH-1 + SHARED-CARD-RULES-1, identical to Reference#9 comment 6340774553), [comment 6340973552](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6340973552) (CONFIG-CARD-GROUPS-1, identical to Reference#9 comment 6340974766).
 - **App:** [BardBox-Reference#26](https://github.com/bardphysicslab/BardBox-Reference/pull/26), merged at `ee5477c` after independent review. No Reference writes in this pass.
@@ -11,6 +11,10 @@
 ## Correction after early review (`bb126ff`, section scope only)
 
 Codex's early review at `2672804` found that the new "Reference example: simulated BNG rooms" subsection had absorbed two original general bullets: the Alarm enable/disable control and the future AQI indicator. Both are moved back to the end of "Card sections from included modules", before the new subsections, so they are not described as BNG example features. Their text is byte-identical to `764473c` and sits in its original position; there is no semantic or runtime change.
+
+## Correction after final review (`e3f7d7b`, ownership wording only)
+
+Codex's review at `4b61955` verified the structure fix. In `docs/architecture-map.md` (dashboard card paragraph), a changed draft now stays amber "until the corresponding owning module's readback confirms the save (Registry for descriptive metadata; the example provider for simulated range/Alerts)" instead of "until Registry's readback". The general owner rule is kept; there is no runtime, auth or scope change.
 
 ## What changed
 
@@ -22,7 +26,7 @@ Codex's early review at `2672804` found that the new "Reference example: simulat
    - **New "Groups, featuring and display configuration":** module-declared logical groups; Rendering builds the folders; presentation configuration (visibility, featuring, explicitly ordered) separate from domain settings and data, never changing ownership, save paths or identity. It also states current behaviour: all ten folders, featuring set in code, no engine or selection page, Name stays the heading label. A small YAML example is labelled **PROPOSED, not implemented** and is read by no runtime.
    - **New "Reference example: simulated BNG rooms":** registered synthetic devices, a separate persisted provider keyed to the stable device key, unavailable rather than default values, shared range/Alerts between the card and Device settings, SIMULATED/ALARM status with truthful Health, no delivery or production Alarm, freezer page removed, push-button Edit/Save/Cancel, Registry identity review unchanged, Archive unresolved.
    - **Device settings bullet:** push-button appearance; the example range/Alerts columns with validate-before-write and truthful partial saves, explicitly example settings and not Alarm settings.
-3. **`docs/architecture-map.md`:** Device settings also edits the example provider's range and Alerts for the simulated rooms.
+3. **`docs/architecture-map.md`:** Device settings also edits the example provider's range and Alerts for the simulated rooms; draft confirmation names the owning module's readback.
 4. **`docs/testing-guide.md`:** the card-order check is updated to measurement/range rows and moved fields; a new check covers example or project-specific providers (round trip, validate before write, truthful partial save, unavailable storage, real devices never reinterpreted).
 5. **`docs/firmware-api-continuation.md`:** a new latest entry for this pass; the previous entry becomes history and records its merge (`764473c`, bardbox#69) and its refinement.
 6. **`docs/DECISIONS.md`:** one new row after CARD-LAYOUT-DEMO-1 linking all three accepted comments; earlier entries kept.
