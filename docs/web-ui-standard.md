@@ -210,6 +210,17 @@ and exact fields remain deferred.
   section; it still belongs to that section's logical group (for example Name
   and Location to Identity), but featuring moves it rather than duplicating it
   ([featured once](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6326655979)). Only the selection is future.
+- **Alarm enable/disable control.** Alarm declares the allowed range and the
+  control's meaning, state, permission and label; Rendering supplies the shared
+  visual switch (a featured full-width row on the card, or inside the expandable
+  Alarm section when not featured), the read-only indicator where the switch is
+  not featured, and the authorized edit path (save through Alarm, then re-read).
+  Its accepted *target* meaning is in
+  [alarm switch and disabled state](#alarm-switch-and-disabled-state). Existing
+  implementations may differ; this is a documented target, not a runtime change.
+- A future AQI or color indicator light is explicitly deferred. Future CESH
+  research may examine the PurpleAir Flex dual-PMS6003 correction, averaging and
+  AQI method to evaluate matching it; no algorithm is selected or implemented.
 
 ### Groups, featuring and display configuration
 
@@ -271,18 +282,6 @@ content, not fields every project must have.
 - The standalone simulated freezer page is removed. Device settings Edit, Save
   and Cancel look like the same push buttons; the Registry identity review is
   unchanged. Archive placement remains unresolved.
-- **Alarm enable/disable control.** Alarm declares the allowed range and the
-  control's meaning, state, permission and label; Rendering supplies the shared
-  visual switch (a featured full-width row on the card, or inside the expandable
-  Alarm section when not featured), the read-only indicator where the switch is
-  not featured, and the authorized edit path (save through Alarm, then re-read).
-  Its accepted *target* meaning is in
-  [alarm switch and disabled state](#alarm-switch-and-disabled-state). Existing
-  implementations may differ; this is a documented target, not a runtime change.
-- A future AQI or color indicator light is explicitly deferred. Future CESH
-  research may examine the PurpleAir Flex dual-PMS6003 correction, averaging and
-  AQI method to evaluate matching it; no algorithm is selected or implemented.
-
 ### Where editing controls live
 
 Accepted direction ([editable-field rule](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6274318475), a BB-003 supplement), amended
