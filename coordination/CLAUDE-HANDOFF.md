@@ -59,7 +59,7 @@ The diagram edge labels and the "Sensor delivery" paragraph are updated. The che
 
 ## Checks
 
-- **Mermaid:** all three diagrams parse and render with mermaid 10.9.1. The rendered server SVG contains the new workflow, ACK, snapshot, revision, outcome and Composition labels. Visual check page, outside the repository: `/private/tmp/claude-501/-Users-kornelispoort-Documents-Codex-2026-09-17-i-w-work-bardbox-slack-bot/af9e9a17-9f20-4ce0-9119-f53f69d29f2b/scratchpad/bardbox-access-control-mermaid/index.html`. Serve that folder over loopback HTTP; it loads mermaid 10.9.1 from jsDelivr.
+- **Mermaid:** all three diagrams parse and render with mermaid 10.9.1. The rendered server SVG contains the new workflow, ACK, snapshot, revision, outcome and Composition labels. The check used the author's temporary render-check page outside the repository (Mermaid 10.9.1).
 - **Fences:** balanced (6).
 - **Links and anchors:** local links and anchors resolve in the changed files.
 - **Whitespace:** `git diff --check` is clean.
