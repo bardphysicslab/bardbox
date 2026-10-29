@@ -147,7 +147,7 @@ flowchart TB
         Normalize --> Ingest["Ingestion: validate observations and record semantics"]
     end
     Auth["Access Control (existing authentication owner)<br/>authentication: who the person, device or partner is;<br/>authorization: which project pages, data and actions<br/>roles, sessions, contract/API: PROPOSED / TBD"]
-    Login["Login adapters, replaceable: basic/password today,<br/>Bard Google sign-in later (PROPOSED)"] -.->|"identify the person"| Auth
+    Login["Login adapters, replaceable (PROPOSED contract):<br/>for example an existing basic/password login where present;<br/>Bard Google sign-in later"] -.->|"identify the person"| Auth
     Auth -.->|"device credentials (unchanged)"| Communications
     subgraph StateBoundary["Registry, health and archive: separate state owners"]
         Registry["Project Registry (required): board identity, dated entity assignments;<br/>resolves schemas/units from the declared project measurement contract"] --> Ingest
@@ -235,8 +235,9 @@ not imply only HTTP needs protection. Read/control authorization stays separate.
 **Access Control (accepted conceptual direction, October 29, 2026,
 [ACCESS-CONTROL-DIRECTION-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6500637310); contract, API and runtime adoption PROPOSED / TBD).**
 Access Control is the conceptual name for the existing authentication owner
-(its current layout and implementation name stays
-[`software/app/authentication/`](repository-layout.md); nothing is renamed or
+(its documented layout name stays
+[`software/app/authentication/`](repository-layout.md), an architectural folder
+name, not evidence of an implemented Access Control API; nothing is renamed or
 added, and there is no second auth module). Authentication identifies who a
 person, device or partner is; authorization decides which project pages, data
 and actions that identity may use.
@@ -246,8 +247,9 @@ and actions that identity may use.
   authorized requests; each domain owner still validates and persists its own
   state (Registry, Alarm, module-owned settings).
 - **Membership, not sign-in:** login adapters are replaceable behind one
-  dependable shared contract: the current basic/password prompt now, Bard Google
-  sign-in later. Signing in, holding a link or having a Bard identity does not by
+  dependable shared contract: for example an existing basic/password login where a
+  project has one (RKC's environment admin login today), and Bard Google sign-in later
+  (proposed). Signing in, holding a link or having a Bard identity does not by
   itself grant project membership. Provider changes must not alter Rendering,
   Registry or Alarm contracts.
 - **Example, RKC:** access is limited to project-approved people (lab staff, IT,
@@ -732,9 +734,11 @@ Notes:
   ACK, not a catch-up controller and not an ingestion dependency. Archive's
   per-node files stay authoritative.
 - **Credentials (16)** are read or verified only at the boundary that uses them:
-  device authentication in Communications, operator login in Controls,
-  historical Data API access in Query, and provider credentials in Alarms and
-  Backup. No module displays or returns secret values. Clock/startup has no
+  device authentication in Communications, historical Data API access in Query,
+  partner keys at the Partner API, and provider credentials in Alarms and Backup.
+  Access Control verifies people and their permissions at the server page,
+  Query/read and Controls/write boundaries (row 15); this grants no other module
+  access to secret values. No module displays or returns secret values. Clock/startup has no
   credential access merely by sharing a process. Registry's "?" in row 16 is
   only about what credential-related data, if any, the integration contract
   (D7) places beside the identity bindings Registry already owns.

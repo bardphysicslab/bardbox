@@ -12,8 +12,8 @@ authoritative for status; this file does not embed its own commit hash.
 drawing names the existing authentication owner **Access Control** (conceptual;
 the `software/app/authentication/` layout name stays) and shows human access
 enforced at page endpoints, Queries/read APIs and Controls/write APIs, with
-Rendering only reflecting permissions. Login adapters are replaceable (basic/password
-now, Bard Google later); membership is project-approved, not implied by sign-in.
+Rendering only reflecting permissions. Login adapters are replaceable (for example an existing basic/password
+login where present; Bard Google later, proposed); membership is project-approved, not implied by sign-in.
 Device and partner credential relationships are unchanged. The role matrix,
 sessions, enforcement failure and API stay PROPOSED / TBD under D6. Documentation
 only on branch `claude/access-control-docs` from `fb0c4c9`; the handoff is
