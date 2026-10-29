@@ -6,7 +6,20 @@ earlier open-decision list are archived unchanged in
 GitHub ([bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31)) is
 authoritative for status; this file does not embed its own commit hash.
 
-## October 22, 2026 — Display units and the proposed JSON display configuration (latest)
+## October 29, 2026 — Access Control in the server diagram (latest)
+
+[ACCESS-CONTROL-DIRECTION-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6500637310): the maintained server
+drawing names the existing authentication owner **Access Control** (conceptual;
+the `software/app/authentication/` layout name stays) and shows human access
+enforced at page endpoints, Queries/read APIs and Controls/write APIs, with
+Rendering only reflecting permissions. Login adapters are replaceable (basic/password
+now, Bard Google later); membership is project-approved, not implied by sign-in.
+Device and partner credential relationships are unchanged. The role matrix,
+sessions, enforcement failure and API stay PROPOSED / TBD under D6. Documentation
+only on branch `claude/access-control-docs` from `fb0c4c9`; the handoff is
+[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+
+## October 22, 2026 — Display units and the proposed JSON display configuration (history)
 
 [DISPLAY-UNITS-1 + DISPLAY-JSON-REVIEW-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6342348125):
 a neutral Units section (Metric/Imperial, Celsius/Fahrenheit) above the
@@ -21,8 +34,8 @@ Reference implementation [PR27](https://github.com/bardphysicslab/BardBox-Refere
 standard's YAML layout sketch is replaced by a PROPOSED JSON illustration with
 open design notes; the layout engine stays future. Module trackers:
 [Rendering #71](https://github.com/bardphysicslab/bardbox/issues/71), [Registry #10](https://github.com/bardphysicslab/bardbox/issues/10). Documentation only on branch
-`claude/display-units-docs` from `936fc73`; the handoff is
-[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+`claude/display-units-docs` from `936fc73`; merged as `fb0c4c9` ([bardbox#72](https://github.com/bardphysicslab/bardbox/pull/72)); its handoff is archived at
+[coordination/archive/CLAUDE-HANDOFF-DISPLAY-UNITS-DOCS.md](../coordination/archive/CLAUDE-HANDOFF-DISPLAY-UNITS-DOCS.md).
 
 ## October 22, 2026 — Shared adoption principle, card groups and BNG room examples (history)
 

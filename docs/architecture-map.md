@@ -144,9 +144,11 @@ flowchart TB
             Serial["Serial adapter"] --> Normalize
             Fetch["Remote API adapter"] --> Normalize
         end
-        Auth["Authentication / authorization"] -.-> Communications
         Normalize --> Ingest["Ingestion: validate observations and record semantics"]
     end
+    Auth["Access Control (existing authentication owner)<br/>authentication: who the person, device or partner is;<br/>authorization: which project pages, data and actions<br/>roles, sessions, contract/API: PROPOSED / TBD"]
+    Login["Login adapters, replaceable: basic/password today,<br/>Bard Google sign-in later (PROPOSED)"] -.->|"identify the person"| Auth
+    Auth -.->|"device credentials (unchanged)"| Communications
     subgraph StateBoundary["Registry, health and archive: separate state owners"]
         Registry["Project Registry (required): board identity, dated entity assignments;<br/>resolves schemas/units from the declared project measurement contract"] --> Ingest
         Registry -.-> Communications
@@ -164,9 +166,11 @@ flowchart TB
     Processing -->|Selected derived inputs| Alarm
     Alarm --> Escalation["Acknowledgements / escalation and phone chain<br/>(optional, independent of alarms)"]
     Escalation --> Notify["Notification adapters"]
+    People["People: approved project members only<br/>(a Bard sign-in or a link grants no membership)"] -->|"page requests"| Pages
     subgraph PresentationBoundary["Query, rendering and control: separate interfaces"]
-        Queries["Query interfaces / read API"] --> Render["Rendering: entity cards / charts / status;<br/>display units and labelled local time"]
-        Render -->|Operator requests| Controls["Authorized control API"]
+        Pages["Server page endpoints"] --> Render
+        Queries["Query interfaces / read API"] --> Render["Rendering: entity cards / charts / status;<br/>display units and labelled local time;<br/>reflects permissions, never authorizes"]
+        Render -->|Operator requests| Controls["Authorized control API<br/>routes authorized requests to owners"]
     end
     Render -.->|"Pure conversion / inverse conversion"| Processing
     Registry --> Queries
@@ -176,7 +180,9 @@ flowchart TB
     Processing --> Queries
     Alarm --> Queries
     Escalation --> Queries
-    Auth -.-> Controls
+    Auth -.->|"enforce: pages"| Pages
+    Auth -.->|"enforce: reads"| Queries
+    Auth -.->|"enforce: writes"| Controls
     Controls -->|"UI edits: Registry validates/saves; read back saved state"| Registry
     Controls -->|Project setting edit requests| Settings["Module-owned configuration: each owner validates, persists and applies"]
     Controls --> Alarm
@@ -188,7 +194,7 @@ flowchart TB
     Queries -->|Accepted records and derived values, read only| PartnerAPI["Optional partner read-only pull API<br/>fields, bounds, keys and hosting deferred"]
     Partner["External consumer, for example JustAir for CESH"] -->|Read requests| PartnerAPI
     PartnerAPI -->|Responses| Partner
-    Auth -.-> PartnerAPI
+    Auth -.->|"partner keys (unchanged)"| PartnerAPI
     DiagnosticSources["Server error reports: operational modules and callers of pure modules"]
     DiagnosticSources -.->|Shared logging interface| DiagnosticLog["Central application diagnostic log: collection, output and retention"]
     subgraph Operations["Service operations, outside application modules"]
@@ -225,6 +231,40 @@ drivers normalize observations. Ingestion validates registered identity, channel
 and record semantics independently of serial or network protocol details.
 Authentication applies at every applicable external boundary; the schematic does
 not imply only HTTP needs protection. Read/control authorization stays separate.
+
+**Access Control (accepted conceptual direction, October 29, 2026,
+[ACCESS-CONTROL-DIRECTION-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6500637310); contract, API and runtime adoption PROPOSED / TBD).**
+Access Control is the conceptual name for the existing authentication owner
+(its current layout and implementation name stays
+[`software/app/authentication/`](repository-layout.md); nothing is renamed or
+added, and there is no second auth module). Authentication identifies who a
+person, device or partner is; authorization decides which project pages, data
+and actions that identity may use.
+- **Human access is enforced at three server boundaries:** page endpoints, Queries
+  and read APIs, and Controls and write APIs. Rendering only reflects what is
+  permitted (for example, hiding an action) and never authorizes. Controls routes
+  authorized requests; each domain owner still validates and persists its own
+  state (Registry, Alarm, module-owned settings).
+- **Membership, not sign-in:** login adapters are replaceable behind one
+  dependable shared contract: the current basic/password prompt now, Bard Google
+  sign-in later. Signing in, holding a link or having a Bard identity does not by
+  itself grant project membership. Provider changes must not alter Rendering,
+  Registry or Alarm contracts.
+- **Example, RKC:** access is limited to project-approved people (lab staff, IT,
+  Kornelis), not all Bard users. A *viewer* may read the freezer dashboard and
+  readings but not the Registry or settings; a *manager/admin* may manage the
+  Registry and the permitted alarm and settings operations. No physical
+  freezer-power switching is implied.
+- **Machine boundaries are unchanged:** device credentials (Communications, with
+  Registry owning identity bindings; D7) and partner keys (Partner API; D10) keep
+  their existing relationships. Human roles are distinct from device UIDs,
+  Registry identity and machine credentials.
+- **Same conceptual contract in every project;** no project has to implement a
+  full provider now. Exposure and transport rules stay in
+  [network access](network-access.md#optional-authenticated-campus-dashboards).
+- **Still open (D6):** the exact role matrix, admin scope and inheritance,
+  membership and session persistence, enforcement and failure behaviour, and the
+  concrete API. No provider, store schema or session mechanism is selected here.
 
 All BardBox network nodes push in the target. Direct serial sources and remote
 API fetching are separate source types, not an alternative TCP-polling model for
@@ -605,7 +645,7 @@ inventoried here. Science computed from BardBox measurements stays in scope. Mod
 | 12 | Alarm thresholds and alarm configuration (limits, delays, arm and door flags) | Operators | Alarm module (optional) | RKC | Per-node app-config fields, edited by admin and alert endpoints. The RKC CSV log reuses `min_temp_c`/`max_temp_c` for observed interval extremes | Kept distinct from ingestion validity limits; backup scope (D4) |
 | 13 | Project configuration (titles, timezone, clock and freshness policy, poll/stale/offline, feature flags, retention, backup policy) | Operators | Persistent configuration owner | Both | JSON app config, environment overrides, backup env file | Backup scope (D4) |
 | 14 | Display settings (visible fields, order, labels, optional prominent reading and buffer indicator, display units, timezone presentation) | Project | Rendering (module-owned configuration) | Both | Templates and code | Field selection and timezone preference persistence (D2); the Units preference is implemented in Reference (shipped defaults separate from the saved installation file) |
-| 15 | Users, roles and sessions (operator identity — not device UID) | Operators | Authorization at the control and query boundaries | Both | RKC: one admin login from environment; no user IDs or roles. CESH: no dashboard login; machine bearer token for the historical Data API | Operator user/role model (D6) |
+| 15 | Users, roles and sessions (operator identity — not device UID) | Operators | Access Control (the existing authentication owner): authentication plus authorization at page, query/read and control/write boundaries; conceptual direction accepted, contract PROPOSED ([ACCESS-CONTROL-DIRECTION-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6500637310)) | Both | RKC: one admin login from environment; no user IDs or roles. CESH: no dashboard login; machine bearer token for the historical Data API | Operator user/role model, sessions and enforcement details (D6) |
 | 16 | Credentials (references only): device telemetry tokens, Data API token, admin login, SMTP, Twilio, rclone remote, device Wi-Fi/OTA secrets, partner export credentials (future) | Deployment; provisioning | Deployment secret storage outside source. Communications authenticates devices and Registry owns identity bindings (per the ingestion contract); issuance and lifecycle are separately owned ([Registry discussion #10](https://github.com/bardphysicslab/bardbox/issues/10); firmware-tools#41 is superseded history) | Both | Environment variables, local config, rclone config, device NVS | CESH firmware sends a device token the server does not check; issuance scheme and credential-to-identity integration contract (D7) |
 | 17 | Contacts and availability (people, phone/email, order, availability, opt-outs) | Operators; inbound SMS | Phone chain / escalation (optional); RKC implementation in [rkc-monitor#16](https://github.com/bardphysicslab/rkc-monitor/issues/16) | RKC | App config, updated by the admin page and inbound STOP | D4 |
 | 18 | Alarm, escalation, acknowledgement and notification state (incidents, acknowledgement windows, processed inbound IDs, incident log, templates) | Alarm module; providers | Alarm and escalation modules | RKC | In-memory alert state; processed-ID JSON file; incident CSV copied by rclone | Restart durability; D4, D6 |
@@ -737,7 +777,12 @@ Notes:
 - **D5** Whether Archive keeps a channel-definition snapshot for later
   interpretation of records.
 - **D6** Operator user and role model, and whether acknowledgements bind to an
-  operator identity.
+  operator identity. *Conceptual direction accepted October 29*
+  ([ACCESS-CONTROL-DIRECTION-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6500637310): Access Control enforces human access at pages, reads and
+  writes; replaceable login adapters; approved membership with RKC
+  viewer and manager/admin examples). Still open: the exact role matrix, admin
+  scope and inheritance, membership/session persistence, enforcement failure
+  behaviour and the API.
 - **D7** Device credential issuance and lifecycle scheme, and the concrete
   contract linking a credential to its registered identity
   ([Registry discussion #10](https://github.com/bardphysicslab/bardbox/issues/10); firmware-tools#41 is superseded history).

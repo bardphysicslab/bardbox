@@ -5,7 +5,7 @@
 - **PR:** [bardbox#72](https://github.com/bardphysicslab/bardbox/pull/72). Not merged; Claude does not self-merge.
 - **Accepted scope:** [bardbox#31 comment 6342348125](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6342348125), identical to [Reference#9 comment 6342346009](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6342346009). Reviewed contract and lifecycle: [Rendering #71](https://github.com/bardphysicslab/bardbox/issues/71); Registry module tracker [#10](https://github.com/bardphysicslab/bardbox/issues/10).
 - **App:** [BardBox-Reference#27](https://github.com/bardphysicslab/BardBox-Reference/pull/27), merged at `85cc96c` after independent review. No Reference writes in this pass.
-- **Previous handoff** (CARD-GROUPS-DOCS, PR #70): archived at [archive/CLAUDE-HANDOFF-CARD-GROUPS-DOCS.md](archive/CLAUDE-HANDOFF-CARD-GROUPS-DOCS.md). Only its one relative link path changed (to the sibling archive file).
+- **Previous handoff** (CARD-GROUPS-DOCS, PR #70): archived at [archive/CLAUDE-HANDOFF-CARD-GROUPS-DOCS.md](CLAUDE-HANDOFF-CARD-GROUPS-DOCS.md). Only its one relative link path changed (to the sibling archive file).
 - **Kept as is:** the historical `codex/registry-identity-docs@28d97a3` ref and PR52's records.
 
 ## What changed
