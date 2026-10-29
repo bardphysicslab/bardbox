@@ -1,43 +1,76 @@
-# Claude handoff: display units and the PROPOSED JSON display configuration
+# Claude handoff: per-workflow application services (amendment to the server-diagram PR)
 
-- **Event:** `DISPLAY-UNITS-DOCS` (DISPLAY-UNITS-1 + DISPLAY-JSON-REVIEW-1), October 22, 2026. **Status:** complete, ready for Codex independent exact-head review. Documentation only.
-- **Content head:** `2820a6dba5eaeaa7a364fd301cdf413fae356f52` on `claude/display-units-docs`, from clean `main` `936fc73` (verified before branching). This handoff is the next commit on the same branch; the PR head is that commit, pushed. The only change after `2820a6d` is this file. The branch was checked before every commit and push; there are no `main` writes.
-- **PR:** [bardbox#72](https://github.com/bardphysicslab/bardbox/pull/72). Not merged; Claude does not self-merge.
-- **Accepted scope:** [bardbox#31 comment 6342348125](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6342348125), identical to [Reference#9 comment 6342346009](https://github.com/bardphysicslab/BardBox-Reference/issues/9#issuecomment-6342346009). Reviewed contract and lifecycle: [Rendering #71](https://github.com/bardphysicslab/bardbox/issues/71); Registry module tracker [#10](https://github.com/bardphysicslab/bardbox/issues/10).
-- **App:** [BardBox-Reference#27](https://github.com/bardphysicslab/BardBox-Reference/pull/27), merged at `85cc96c` after independent review. No Reference writes in this pass.
-- **Previous handoff** (CARD-GROUPS-DOCS, PR #70): archived at [archive/CLAUDE-HANDOFF-CARD-GROUPS-DOCS.md](archive/CLAUDE-HANDOFF-CARD-GROUPS-DOCS.md). Only its one relative link path changed (to the sibling archive file).
-- **Kept as is:** the historical `codex/registry-identity-docs@28d97a3` ref and PR52's records.
+- **Event:** `WORKFLOW-SERVICES-DOCS` (WORKFLOW-SERVICES-DIRECTION-1), October 29, 2026. **Status:** complete, ready for Codex independent exact-head review. Documentation only.
+- **Same PR, separate amendment:** [bardbox#74](https://github.com/bardphysicslab/bardbox/pull/74), branch `claude/access-control-docs`. The Access Control commits are preserved unchanged: `f41e6ef`, `cbd69ae`, `be55eb5` (author head, PASS) and `8a3130e` (Codex review). **Correction:** `c7e9e65` contains only the archive rename of the previous handoff, despite its message; the diagram, DECISIONS and continuation edits were never staged. `9cad466` added this handoff only. All of the amendment content, with the Codex ownership correction below, is in the **next commit after `9cad466`**, which is the PR head to review. Not merged; Claude does not self-merge.
+- **Accepted scope:** [bardbox#31 comment 6501064832](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6501064832), after the [Claude](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6500893028) and [Codex](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6500908431) evaluations.
+- **Guidance:** engineering-standards `91a2d7c`; BardBox baseline `fb0c4c9`.
+- **Contract inventory** (read-only, next-step recommendation): [bardbox#31 comment 6501149067](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6501149067).
+- **Previous handoff** (ACCESS-CONTROL-DOCS): archived at [archive/CLAUDE-HANDOFF-ACCESS-CONTROL-DOCS.md](archive/CLAUDE-HANDOFF-ACCESS-CONTROL-DOCS.md). Only its one relative link changed. Codex's review in `coordination/CODEX-REVIEW.md` (PASS at `be55eb5`) is left unchanged.
 
-## What changed
+## What changed (amendment content, in the commit after `9cad466`)
 
-1. **`docs/web-ui-standard.md`**
-   - **New "Display units" section**, a cross-project rule:
-     - **Switches:** neutral Metric/Imperial and Celsius/Fahrenheit switches above the Dashboard cards and Device settings rows; one saved application-wide preference, not per user; metric/Celsius default; a choice shown only after a confirmed save.
-     - **Display:** one displayed decimal, units explicit; stored values, domain settings, history and evaluation keep canonical units and full precision.
-     - **Edits:** captured edit units; untouched limits kept exactly; only edited values converted before the owner's unchanged validation; a Units change never reinterprets or discards a draft.
-     - **Supported quantities:** temperature follows its explicit choice, and other or unknown quantities keep their declared units, so Metric/Imperial currently changes nothing visible.
-     - **Ownership:** Processing does pure conversion; Rendering owns the versioned JSON preference and its I/O, separate from the pure HTML functions; shipped defaults are separate from the installation file; saves are revision-checked, atomic and read back; bad or newer files are kept, warned about and not written; the Controls hook is unchanged with no roles added.
-     - **Detail:** links #71 and Reference PR27 instead of copying the contract.
-   - **Layout configuration:** the YAML sketch is replaced by a **PROPOSED** JSON illustration. Only its `units` part is implemented today; the `card` part is loaded by nothing. Design notes cover owner-qualified field IDs, owner-declared ranges, ordered lists and visibility, defaults versus installation, and version handling. Applicability, unknown fields, hide/feature conflicts and any always-visible group are listed as **still open**, with no precedence rule or mandatory group decided. The engine and display-selection page stay future.
-   - **Cross-links:** the Device settings bullet and the BNG example now link the Display units section.
-   - **Unchanged:** the card order, ten folders, featured-once, colours, Alarm ownership and freezer page removal.
-2. **`docs/architecture-map.md`:** the display-selections ownership row, the "Processing, units and time" paragraph and the configuration inventory row each note the Reference Units implementation; open items (field selection, timezone persistence) stay open.
-3. **`ARCHITECTURE.md`:** the platform-direction bullet mentions the Units section and links the Rendering #71 and Registry #10 trackers.
-4. **`docs/testing-guide.md`:** a new display-units check list.
-5. **`docs/DECISIONS.md`:** one new row linking the accepted comments, contract, refinement and trackers; earlier entries kept.
-6. **`docs/firmware-api-continuation.md`:** a new latest entry; the previous entry becomes history and records its merge (`936fc73`, bardbox#70).
+1. **`docs/architecture-map.md`, server diagram:**
+   - **Delivery acceptance workflow** (a per-use-case application service; API PROPOSED / TBD; no authoritative state). It sits between the normalized Communications output and the owners:
+     - it takes the Registry's consistent snapshot and identity context (corrected at review: originally "duplicate context"), then calls the pure `validate(record, delivery, registry_snapshot)` and gets its result back;
+     - it calls Archive in two steps: first the duplicate lookup for a retry, then new validated records. Archive returns a known accepted duplicate or a durable acceptance;
+     - **the ACK goes out only after durable acceptance or a known duplicate**;
+     - eligible accepted readings are published to Latest, with previews kept separate;
+     - contact and validity evidence goes to Health.
 
-**Unchanged:** runtime code, Mermaid diagrams, firmware, hardware, deployment, auth roles, Archive placement, RKC/CESH runtimes and production Alarm design.
+     These edges replace the earlier direct Ingestion → Archive/Latest/Health and Archive → Push edges. Ingestion is labelled pure.
+   - **Multi-owner save workflow** (for example the Reference card save): Controls sends it an authorized request that spans owners. It calls the Registry and module-owned settings through their own APIs, each with its own revision, and returns each owner's confirmed, partial or uncertain result.
+   - **Controls → Alarm** is labelled as the single-owner case ("disable alerts: Alarm decides, persists, confirms").
+   - **Composition** is added as "startup construction and injection only", wiring both workflows.
+   - **Unchanged:** Access Control and the other nodes.
+2. **`docs/architecture-map.md`, text:** a new "Per-workflow application services" section. It separates the accepted conceptual role from the PROPOSED / TBD APIs and failure policies, and covers:
+   - the existing callers and Controls as the default, with injected owner interfaces
+   - Composition as wiring only
+   - stateless services that never write another owner's state; owners never import their callers
+   - no router or event bus, and reads that bypass command services
+   - the human write path and the sensor delivery path, with the unchanged ingestion contract and ACK rule, and RKC's simpler adapter
+   - no rollback, transaction or retry promise
+   - the current state: no Reference receiving pipeline, and no delivered services
+3. **`docs/DECISIONS.md`:** one new WORKFLOW-SERVICES-DIRECTION-1 row.
+4. **`docs/firmware-api-continuation.md`:** a new latest entry. The Access Control entry becomes history and points to its archived handoff.
+
+**Unchanged:**
+- the node and USB flasher diagrams (checked; no workflow or auth conflict)
+- the ingestion contract and other standards
+- runtime code
+- CESH and RKC
+
+## Review correction (Codex, `9cad466`)
+
+The ownership of the duplicate lookup is fixed in the same commit, which also carries the previously unstaged amendment content. No API or schema changed.
+- **Registry** supplies the consistent snapshot and **identity context**.
+- **Archive** owns the duplicate lookup, the comparison and durable acceptance. The workflow asks Archive's duplicate lookup **before** today's validation, for a known accepted retry ([ingestion contract, retry rule](../docs/ingestion-contract.md#envelope-rejection-and-durable-acceptance)).
+- **New records** go through pure validation, then Archive acceptance.
+- **A known accepted duplicate** is ACK-eligible but never published as a new measurement.
+- **Still TBD:** previews stay separate; the projection policy is unchanged.
+
+The diagram edge labels and the "Sensor delivery" paragraph are updated. The checks below were re-run after the correction.
+
+**Open compatibility interface (planning, not verified).** This is recorded from the [Template #36 criterion](https://github.com/bardphysicslab/bardbox-project-template/issues/36#issuecomment-6501140669) and [CESH #72](https://github.com/bardphysicslab/cesh-air-monitor/issues/72#issuecomment-6501141051). It belongs to the inventory, not to new diagram or runtime work.
+- **What must fit:** next week's firmware has to fit the **current chosen USB workflow**: the board and flash size, the dual-slot layout, the build artifacts, the image size, the install manifest and selection rules, and the serial identity, settings and diagnostic commands.
+- **What must be shown:** preserved identity, settings and queued readings, plus boot and read-back evidence.
+- **Not the same protocol:** CESH `PROVISION_*`/`WIFI_*` is not Reference `config/1`.
+- **Status:** not verified; no builds or flashing.
+- **Sequence:** the pilot can launch with the existing engineer preparation, without the future student tool. The final student trial comes after compatible firmware and prepared devices.
 
 ## Checks
 
-- Local link and anchor check, run after this handoff was written, over the six changed docs, this handoff and all archived handoffs: 154 relative links, 0 broken.
-- `git diff --check` passes. No private workstation, database or session details were added.
+- **Mermaid:** all three diagrams parse and render with mermaid 10.9.1. The rendered server SVG contains the new workflow, ACK, snapshot, revision, outcome and Composition labels. The check used the author's temporary render-check page outside the repository (Mermaid 10.9.1).
+- **Fences:** balanced (6).
+- **Links and anchors:** local links and anchors resolve in the changed files.
+- **Whitespace:** `git diff --check` is clean.
+- **Runtime tests:** none, because no code changed.
 
-## Workspace
+## Limits
 
-Canonical bardbox checkout, branch `claude/display-units-docs`; no other checkout or worktree created. Claude's Reference scratch server is stopped; its synthetic data is kept privately. The user preview was not touched.
+- **Conceptual only:** this is a conceptual role. No service API, outcome vocabulary, retry or partial-failure policy is selected.
+- **Nothing delivered:** the Reference card save and any delivery pipeline are not delivered as services.
 
-## Next step
+## Next step and owner
 
-Codex reviews bardbox#72 at the exact head and merges after green checks.
+1. **Codex** reviews the amendment at the exact PR head. Corrections go on this branch.
+2. **Kornelis** decides on merging the combined PR and picks the next contract discussion from the inventory.
