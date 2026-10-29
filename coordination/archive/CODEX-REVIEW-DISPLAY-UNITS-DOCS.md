@@ -1,0 +1,7 @@
+# Codex review: DISPLAY-UNITS-DOCS
+
+PASS at author head `10232bb30328e8a7d32bef7fb9d0f6433a7d619a`, content `2820a6dba5eaeaa7a364fd301cdf413fae356f52`, baseline `936fc73`, bardbox PR #72. Governing guidance: engineering-standards `91a2d7c0d4afd3eac55ec612be9866f46fb3a11d`; BardBox `936fc73c73f9ab5c138bc5cc85c06da07b558b56`.
+
+Independently reviewed all changed documents and archived handoff against accepted scope and merged Reference PR #27 (`85cc96c`). The authoritative Web UI standard covers both-page neutral application-wide Units controls, metric/Celsius defaults, explicit units, one displayed decimal with full canonical precision, captured-unit edits, exact untouched bounds, draft preservation, supported conversion limits and module ownership. Architecture, testing, index and continuation agree. Module tracker links reuse Rendering #71 and Registry #10. Shared layout rules and safe module adoption remain intact; BNG is example content. Full layout JSON and unresolved applicability/conflict/group policies remain explicitly proposed; no speculative policy is adopted.
+
+Independent validation: all 154 relative links and anchors pass; archived prior handoff equals its original except the necessary relative-link adjustment; whitespace passes. No diagrams or runtime changed, so runtime tests are reused from the independently reviewed Reference delivery rather than repeated. No private operational data added. No remaining blocking findings. Review-only commit changes no implementation; authorized merge/local sync follows exact-head verification.
