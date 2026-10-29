@@ -6,7 +6,18 @@ earlier open-decision list are archived unchanged in
 GitHub ([bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31)) is
 authoritative for status; this file does not embed its own commit hash.
 
-## October 29, 2026 — Access Control in the server diagram (latest)
+## October 29, 2026 — Per-workflow application services in the server diagram (latest)
+
+[WORKFLOW-SERVICES-DIRECTION-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6501064832): the same server
+drawing (same PR as Access Control, a separately reviewed amendment) adds the role
+of narrow per-use-case workflow services where a workflow spans owners, shown for
+delivery acceptance and a multi-owner save. The default stays existing callers and
+Controls with injected owner interfaces; Composition only wires; no central
+Coordinator or event bus; the ingestion contract and ACK rule are unchanged.
+Service APIs and partial/retry policies stay PROPOSED / TBD; nothing is
+implemented. The handoff is [coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+
+## October 29, 2026 — Access Control in the server diagram (history)
 
 [ACCESS-CONTROL-DIRECTION-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6500637310): the maintained server
 drawing names the existing authentication owner **Access Control** (conceptual;
@@ -16,8 +27,8 @@ Rendering only reflecting permissions. Login adapters are replaceable (for examp
 login where present; Bard Google later, proposed); membership is project-approved, not implied by sign-in.
 Device and partner credential relationships are unchanged. The role matrix,
 sessions, enforcement failure and API stay PROPOSED / TBD under D6. Documentation
-only on branch `claude/access-control-docs` from `fb0c4c9`; the handoff is
-[coordination/CLAUDE-HANDOFF.md](../coordination/CLAUDE-HANDOFF.md). The entries below are history.
+only on branch `claude/access-control-docs` from `fb0c4c9`, reviewed (PASS at `be55eb5`); its handoff is archived at
+[coordination/archive/CLAUDE-HANDOFF-ACCESS-CONTROL-DOCS.md](../coordination/archive/CLAUDE-HANDOFF-ACCESS-CONTROL-DOCS.md).
 
 ## October 22, 2026 — Display units and the proposed JSON display configuration (history)
 

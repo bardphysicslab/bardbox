@@ -4,7 +4,7 @@
 - **Content head:** `f41e6ef` on `claude/access-control-docs`, from clean `main` `fb0c4c9` (verified against the remote before branching). This handoff is the next commit on the same branch; the PR head is that commit, pushed. Not merged; Claude does not self-merge.
 - **Accepted scope:** [bardbox#31 comment 6500637310](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6500637310). D6 stays open.
 - **Guidance:** engineering-standards `91a2d7c`; BardBox baseline `fb0c4c9`.
-- **Previous handoff** (DISPLAY-UNITS-DOCS, PR #72, merged as `fb0c4c9`): archived at [archive/CLAUDE-HANDOFF-DISPLAY-UNITS-DOCS.md](archive/CLAUDE-HANDOFF-DISPLAY-UNITS-DOCS.md). Only its one relative link changed (to the sibling archive file).
+- **Previous handoff** (DISPLAY-UNITS-DOCS, PR #72, merged as `fb0c4c9`): archived at [archive/CLAUDE-HANDOFF-DISPLAY-UNITS-DOCS.md](CLAUDE-HANDOFF-DISPLAY-UNITS-DOCS.md). Only its one relative link changed (to the sibling archive file).
 
 ## What changed
 

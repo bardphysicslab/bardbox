@@ -144,18 +144,21 @@ flowchart TB
             Serial["Serial adapter"] --> Normalize
             Fetch["Remote API adapter"] --> Normalize
         end
-        Normalize --> Ingest["Ingestion: validate observations and record semantics"]
+        Normalize -->|"authenticated, bounded, normalized delivery"| DeliveryWF
+        DeliveryWF["Delivery acceptance workflow<br/>(per-use-case application service; API PROPOSED / TBD):<br/>sequences owner calls, no authoritative state"] -->|"validate(record, delivery, registry_snapshot)"| Ingest["Ingestion (pure): validate observations and record semantics"]
+        Ingest -->|"result: record, delivery, errors"| DeliveryWF
     end
     Auth["Access Control (existing authentication owner)<br/>authentication: who the person, device or partner is;<br/>authorization: which project pages, data and actions<br/>roles, sessions, contract/API: PROPOSED / TBD"]
     Login["Login adapters, replaceable (PROPOSED contract):<br/>for example an existing basic/password login where present;<br/>Bard Google sign-in later"] -.->|"identify the person"| Auth
     Auth -.->|"device credentials (unchanged)"| Communications
     subgraph StateBoundary["Registry, health and archive: separate state owners"]
-        Registry["Project Registry (required): board identity, dated entity assignments;<br/>resolves schemas/units from the declared project measurement contract"] --> Ingest
+        Registry["Project Registry (required): board identity, dated entity assignments;<br/>resolves schemas/units from the declared project measurement contract"] -->|"consistent snapshot / identity context"| DeliveryWF
         Registry -.-> Communications
-        Ingest -->|Archive records| Archive["Durable archive / deduplication<br/>local history ON by default; storage allowance;<br/>tombstones survive row eviction"]
-        Archive -->|Durable acceptance or known duplicate| Push
-        Ingest -->|Accepted readings / previews| Latest["Latest-reading store"]
-        Ingest -->|Contact / validity evidence| Health["Health / freshness<br/>validity, freshness, contact, archive_blocked"]
+        DeliveryWF -->|"1. duplicate lookup (retry);<br/>2. new validated records"| Archive["Durable archive / deduplication<br/>local history ON by default; storage allowance;<br/>tombstones survive row eviction"]
+        Archive -->|"known accepted duplicate, or durable acceptance"| DeliveryWF
+        DeliveryWF -->|"ACK only after durable acceptance or known duplicate"| Push
+        DeliveryWF -->|"eligible accepted readings; previews separate"| Latest["Latest-reading store"]
+        DeliveryWF -->|Contact / validity evidence| Health["Health / freshness<br/>validity, freshness, contact, archive_blocked"]
         Latest --> Health
     end
     Archive --> Processing["Processing (required, may be no-op): project calculations,<br/>derived results, sensor QA, buffer estimates,<br/>pure unit conversion helpers"]
@@ -185,8 +188,14 @@ flowchart TB
     Auth -.->|"enforce: writes"| Controls
     Controls -->|"UI edits: Registry validates/saves; read back saved state"| Registry
     Controls -->|Project setting edit requests| Settings["Module-owned configuration: each owner validates, persists and applies"]
-    Controls --> Alarm
+    Controls -->|"single owner, for example disable alerts:<br/>Alarm decides, persists, confirms"| Alarm
     Controls --> Escalation
+    Controls -->|"authorized request spanning owners"| SaveWF["Multi-owner save workflow, for example the Reference card save<br/>(per-use-case application service; API PROPOSED / TBD)"]
+    SaveWF -->|"owner API with its own revision"| Registry
+    SaveWF -->|"owner API with its own revision"| Settings
+    SaveWF -.->|"each owner's confirmed, partial or uncertain result"| Controls
+    Composition["Composition: startup construction and injection only"] -.->|"wires owner interfaces"| DeliveryWF
+    Composition -.->|"wires owner interfaces"| SaveWF
     Archive -->|Stable files / snapshots| Backup["Optional Drive backup (included, OFF by default):<br/>per-node eligibility, deferral and checkpoint; rclone copy and verify"]
     Health -->|Per-node catch-up progress, read only| Backup
     Backup --> Drive["Configured BardBox Drive destination"]
@@ -267,6 +276,49 @@ and actions that identity may use.
 - **Still open (D6):** the exact role matrix, admin scope and inheritance,
   membership and session persistence, enforcement and failure behaviour, and the
   concrete API. No provider, store schema or session mechanism is selected here.
+
+**Per-workflow application services (accepted conceptual direction, October 29,
+2026, [WORKFLOW-SERVICES-DIRECTION-1](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6501064832); service APIs and failure policies PROPOSED / TBD).**
+This is a *role*, not a new module, and not one service per module or a central
+Coordinator. The default stays as it is: existing callers and Controls calling
+owners through injected owner interfaces. A per-use-case workflow service is
+added only where a concrete workflow sequences calls across owners. The drawing
+shows two examples: **delivery acceptance** and a **multi-owner save** (for
+example the Reference card save).
+- **Owners:** Composition constructs, wires and starts; it does no workflow work.
+  A workflow service holds no authoritative domain state, calls explicit owner
+  APIs, and never writes another owner's state. Owners never import their
+  workflow callers. There is no central message router or event bus by default.
+  Reads and Queries do not detour through command services.
+- **Human writes:** Rendering request → Access Control and Controls (the human
+  write gate; Access Control also guards pages and Queries) → a workflow service
+  only when the request spans owners → each owner (Registry, Alarm, module-owned
+  settings) validates, persists and applies → an explicit confirmed, partial or
+  uncertain result → Rendering shows the confirmed state. A single-owner request,
+  for example disabling alerts, goes from Controls to Alarm, which decides and
+  persists its meaning.
+- **Sensor delivery** (the [ingestion contract](ingestion-contract.md) is unchanged):
+  Communications authenticates, bounds and normalizes. The delivery workflow
+  first asks **Archive's duplicate lookup** (Archive owns duplicate comparison and
+  durable acceptance): a known accepted exact duplicate returns its original
+  acceptance without re-validation under today's Registry
+  ([retry rule](ingestion-contract.md#envelope-rejection-and-durable-acceptance)).
+  It is ACK-eligible but is **never** published as a new measurement. A new record
+  gets **Registry's consistent snapshot and identity context** (Registry owns
+  identity and bindings), then the pure `validate(record, delivery, registry_snapshot)`,
+  then Archive acceptance. Only Archive `accepted` or a known accepted duplicate
+  permits the ACK. Only a newly accepted record is eligible for archival
+  publication. Previews stay separate, and the post-acceptance projection policy
+  is TBD. The
+  Registry–Ingestion contract stays the same across projects; RKC may use a
+  simpler adapter behind it.
+- **Not promised:** no cross-store rollback, transaction or automatic retry. The
+  exact partial, retry and post-commit projection-failure behaviour and every
+  service API are unfinished.
+- **Current state:** Reference has no receiving/archive pipeline, and its
+  existing demo callers, including the multi-owner card save in
+  `composition/server.py`, are not delivered as workflow services. This section
+  changes no CESH or RKC behaviour.
 
 All BardBox network nodes push in the target. Direct serial sources and remote
 API fetching are separate source types, not an alternative TCP-polling model for

@@ -1,18 +1,18 @@
 # Claude handoff: per-workflow application services (amendment to the server-diagram PR)
 
 - **Event:** `WORKFLOW-SERVICES-DOCS` (WORKFLOW-SERVICES-DIRECTION-1), October 29, 2026. **Status:** complete, ready for Codex independent exact-head review. Documentation only.
-- **Same PR, separate amendment:** [bardbox#74](https://github.com/bardphysicslab/bardbox/pull/74), branch `claude/access-control-docs`. The Access Control commits are preserved unchanged: `f41e6ef`, `cbd69ae`, `be55eb5` (author head, PASS) and `8a3130e` (Codex review). The amendment content commit is `c7e9e65`; this handoff is the next commit. Not merged; Claude does not self-merge.
+- **Same PR, separate amendment:** [bardbox#74](https://github.com/bardphysicslab/bardbox/pull/74), branch `claude/access-control-docs`. The Access Control commits are preserved unchanged: `f41e6ef`, `cbd69ae`, `be55eb5` (author head, PASS) and `8a3130e` (Codex review). **Correction:** `c7e9e65` contains only the archive rename of the previous handoff, despite its message; the diagram, DECISIONS and continuation edits were never staged. `9cad466` added this handoff only. All of the amendment content, with the Codex ownership correction below, is in the **next commit after `9cad466`**, which is the PR head to review. Not merged; Claude does not self-merge.
 - **Accepted scope:** [bardbox#31 comment 6501064832](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6501064832), after the [Claude](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6500893028) and [Codex](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6500908431) evaluations.
 - **Guidance:** engineering-standards `91a2d7c`; BardBox baseline `fb0c4c9`.
 - **Contract inventory** (read-only, next-step recommendation): [bardbox#31 comment 6501149067](https://github.com/bardphysicslab/bardbox/issues/31#issuecomment-6501149067).
 - **Previous handoff** (ACCESS-CONTROL-DOCS): archived at [archive/CLAUDE-HANDOFF-ACCESS-CONTROL-DOCS.md](archive/CLAUDE-HANDOFF-ACCESS-CONTROL-DOCS.md). Only its one relative link changed. Codex's review in `coordination/CODEX-REVIEW.md` (PASS at `be55eb5`) is left unchanged.
 
-## What changed in `c7e9e65`
+## What changed (amendment content, in the commit after `9cad466`)
 
 1. **`docs/architecture-map.md`, server diagram:**
    - **Delivery acceptance workflow** (a per-use-case application service; API PROPOSED / TBD; no authoritative state). It sits between the normalized Communications output and the owners:
-     - it takes the Registry's consistent snapshot and duplicate context, then calls the pure `validate(record, delivery, registry_snapshot)` and gets its result back;
-     - it sends archive records to Archive and receives back a durable acceptance or a known duplicate;
+     - it takes the Registry's consistent snapshot and identity context (corrected at review: originally "duplicate context"), then calls the pure `validate(record, delivery, registry_snapshot)` and gets its result back;
+     - it calls Archive in two steps: first the duplicate lookup for a retry, then new validated records. Archive returns a known accepted duplicate or a durable acceptance;
      - **the ACK goes out only after durable acceptance or a known duplicate**;
      - eligible accepted readings are published to Latest, with previews kept separate;
      - contact and validity evidence goes to Health.
@@ -38,6 +38,24 @@
 - the ingestion contract and other standards
 - runtime code
 - CESH and RKC
+
+## Review correction (Codex, `9cad466`)
+
+The ownership of the duplicate lookup is fixed in the same commit, which also carries the previously unstaged amendment content. No API or schema changed.
+- **Registry** supplies the consistent snapshot and **identity context**.
+- **Archive** owns the duplicate lookup, the comparison and durable acceptance. The workflow asks Archive's duplicate lookup **before** today's validation, for a known accepted retry ([ingestion contract, retry rule](../docs/ingestion-contract.md#envelope-rejection-and-durable-acceptance)).
+- **New records** go through pure validation, then Archive acceptance.
+- **A known accepted duplicate** is ACK-eligible but never published as a new measurement.
+- **Still TBD:** previews stay separate; the projection policy is unchanged.
+
+The diagram edge labels and the "Sensor delivery" paragraph are updated. The checks below were re-run after the correction.
+
+**Open compatibility interface (planning, not verified).** This is recorded from the [Template #36 criterion](https://github.com/bardphysicslab/bardbox-project-template/issues/36#issuecomment-6501140669) and [CESH #72](https://github.com/bardphysicslab/cesh-air-monitor/issues/72#issuecomment-6501141051). It belongs to the inventory, not to new diagram or runtime work.
+- **What must fit:** next week's firmware has to fit the **current chosen USB workflow**: the board and flash size, the dual-slot layout, the build artifacts, the image size, the install manifest and selection rules, and the serial identity, settings and diagnostic commands.
+- **What must be shown:** preserved identity, settings and queued readings, plus boot and read-back evidence.
+- **Not the same protocol:** CESH `PROVISION_*`/`WIFI_*` is not Reference `config/1`.
+- **Status:** not verified; no builds or flashing.
+- **Sequence:** the pilot can launch with the existing engineer preparation, without the future student tool. The final student trial comes after compatible firmware and prepared devices.
 
 ## Checks
 
